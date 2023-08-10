@@ -156,6 +156,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
         public Builder addFullyConnectedLayer(int width) {
             FullyConnectedLayer layer = new FullyConnectedLayer(width);
             network.addLayer(layer);
+            layer.setActivation(InternalUtils.create(layer.getActivationType()));
             return this;
         }
 
@@ -163,6 +164,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
             for(int width : widths) {
                 FullyConnectedLayer layer = new FullyConnectedLayer(width);
                 network.addLayer(layer);
+                layer.setActivation(InternalUtils.create(layer.getActivationType()));
             }
             return this;
         }
@@ -180,6 +182,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
         public Builder addFullyConnectedLayer(int width, ActivationType activationType) {
             FullyConnectedLayer layer = new FullyConnectedLayer(width, activationType);
             network.addLayer(layer);
+            layer.setActivation(InternalUtils.create(layer.getActivationType()));
             return this;
         }
 
@@ -187,6 +190,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
             for(int width : widths) {
                 FullyConnectedLayer layer = new FullyConnectedLayer(width, activationType);
                 network.addLayer(layer);
+                layer.setActivation(InternalUtils.create(layer.getActivationType()));
             }
             return this;
         }
@@ -199,6 +203,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
          */
         public Builder addLayer(AbstractLayer layer) {
             network.addLayer(layer);
+            layer.setActivation(InternalUtils.create(layer.getActivationType()));
             return this;
         }
 
@@ -208,6 +213,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
                 outputLayer = new SoftmaxOutputLayer(width);
             } else {
                 outputLayer = new OutputLayer(width, activationType);
+                outputLayer.setActivation(InternalUtils.create(outputLayer.getActivationType()));
             }
 
             network.setOutputLayer(outputLayer);
@@ -265,6 +271,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
                 AbstractLayer layer = network.getLayers().get(i);
                 if (setDefaultActivation && !(layer instanceof InputLayer) && !(layer instanceof OutputLayer)) { // ne za izlazni layer
                     layer.setActivationType(defaultActivationType); // ali ovo ne treba ovako!!! ako je vec nesto setovano onda nemoj to d agazis
+                    layer.setActivation(InternalUtils.create(defaultActivationType));
                 }
                 layer.setPrevLayer(prevLayer);
                 if (prevLayer != null) {

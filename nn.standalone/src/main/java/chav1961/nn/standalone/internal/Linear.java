@@ -1,6 +1,8 @@
-package chav1961.nn.core.interfaces;
+package chav1961.nn.standalone.internal;
 
 import java.io.Serializable;
+
+import chav1961.nn.core.interfaces.ActivationFunction;
 
 /**
  * Linear activation function and its derivative
@@ -10,7 +12,7 @@ import java.io.Serializable;
  * 
  * @author zoran
  */
-class Linear implements ActivationFunction, Serializable {
+public class Linear implements ActivationFunction, Serializable {
 	private static final long serialVersionUID = -2110162625610977346L;
 
 	@Override

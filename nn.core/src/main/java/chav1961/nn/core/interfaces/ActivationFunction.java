@@ -22,7 +22,6 @@
 
 package chav1961.nn.core.interfaces;
 
-
 /**
  * Common base interface for all activation functions used in layers.
  * Classes implementing this interface should provide methods for calculating
@@ -53,35 +52,4 @@ public interface ActivationFunction {
      * @return first derivative of activation function
      */
     float getPrime(float y);
-
-
-    /**
-     * Creates and returns specified type of activation function.
-     * A factory method for creating activation functions;
-     *
-     * @param type type of the activation function
-     *
-     * @return returns instance of specified activation function type
-     * @throws NullPointerException null activation type
-     * @throws UnsupportedOperationException unsupported activation type
-     */
-    public static ActivationFunction create(final ActivationType type) throws NullPointerException, UnsupportedOperationException {
-    	if (type == null) {
-    		throw new NullPointerException("Activation type can't be null");
-    	}
-    	else {
-            switch (type) {
-	            case LINEAR:
-	                return new Linear();
-	            case RELU:
-	                return new Relu();
-	            case SIGMOID:
-	                return new Sigmoid();
-	            case TANH:
-	                return new Tanh();
-	            default:
-	                throw new UnsupportedOperationException("Activation type ["+type+"] is not supported yet");
-	        }
-    	}
-    }
 }

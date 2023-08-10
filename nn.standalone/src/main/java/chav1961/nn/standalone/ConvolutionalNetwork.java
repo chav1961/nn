@@ -124,6 +124,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
             InputLayer inLayer = new InputLayer(width, height, 3);
             neuralNet.setInputLayer(inLayer);
             neuralNet.addLayer(inLayer);
+            inLayer.setActivation(InternalUtils.create(inLayer.getActivationType()));
 
             return this;
         }
@@ -140,6 +141,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
             InputLayer inLayer = new InputLayer(width, height, channels);
             neuralNet.setInputLayer(inLayer);
             neuralNet.addLayer(inLayer);
+            inLayer.setActivation(InternalUtils.create(inLayer.getActivationType()));
 
             return this;
         }
@@ -147,6 +149,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
         public Builder addFullyConnectedLayer(int width) {
             FullyConnectedLayer layer = new FullyConnectedLayer(width);
             neuralNet.addLayer(layer);
+            layer.setActivation(InternalUtils.create(layer.getActivationType()));
             return this;
         }
 
@@ -161,6 +164,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
         public Builder addFullyConnectedLayer(int width, ActivationType activationType) {
             FullyConnectedLayer layer = new FullyConnectedLayer(width, activationType);
             neuralNet.addLayer(layer);
+            layer.setActivation(InternalUtils.create(layer.getActivationType()));
             return this;
         }
 
@@ -168,6 +172,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
             try {
                 OutputLayer outputLayer = clazz.getDeclaredConstructor(Integer.TYPE).newInstance(width);
                 neuralNet.addLayer(outputLayer);
+                outputLayer.setActivation(InternalUtils.create(outputLayer.getActivationType()));
                 neuralNet.setOutputLayer(outputLayer);
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
                 Logger.getLogger(ConvolutionalNetwork.class.getName()).log(Level.SEVERE, null, ex);
@@ -183,6 +188,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
             } else {
                 outputLayer = new OutputLayer(width);
                 outputLayer.setActivationType(activationType);
+                outputLayer.setActivation(InternalUtils.create(activationType));
             }
 
             neuralNet.setOutputLayer(outputLayer);
@@ -195,48 +201,56 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
         public Builder addConvolutionalLayer(int filterSize, int channels) {
             ConvolutionalLayer convolutionalLayer = new ConvolutionalLayer(filterSize, filterSize, channels, defaultActivationType);
             neuralNet.addLayer(convolutionalLayer);
+            convolutionalLayer.setActivation(InternalUtils.create(convolutionalLayer.getActivationType()));
             return this;
         }
 
         public Builder addConvolutionalLayer(int filterSize, int channels, ActivationType activationType) {
             ConvolutionalLayer convolutionalLayer = new ConvolutionalLayer(filterSize, filterSize, channels, activationType);
             neuralNet.addLayer(convolutionalLayer);
+            convolutionalLayer.setActivation(InternalUtils.create(convolutionalLayer.getActivationType()));
             return this;
         }
 
         public Builder addConvolutionalLayer(int filterWidth, int filterHeight, int channels) {
             ConvolutionalLayer convolutionalLayer = new ConvolutionalLayer(filterWidth, filterHeight, channels, defaultActivationType);
             neuralNet.addLayer(convolutionalLayer);
+            convolutionalLayer.setActivation(InternalUtils.create(convolutionalLayer.getActivationType()));
             return this;
         }
 
         public Builder addConvolutionalLayer(int filterWidth, int filterHeight, int channels, int stride) {
             ConvolutionalLayer convolutionalLayer = new ConvolutionalLayer(filterWidth, filterHeight, stride, channels, defaultActivationType);
             neuralNet.addLayer(convolutionalLayer);
+            convolutionalLayer.setActivation(InternalUtils.create(convolutionalLayer.getActivationType()));
             return this;
         }
 
         public Builder addConvolutionalLayer(int filterWidth, int filterHeight, int channels, ActivationType activationType) {
             ConvolutionalLayer convolutionalLayer = new ConvolutionalLayer(filterWidth, filterHeight, channels, activationType);
             neuralNet.addLayer(convolutionalLayer);
+            convolutionalLayer.setActivation(InternalUtils.create(convolutionalLayer.getActivationType()));
             return this;
         }
 
         public Builder addConvolutionalLayer(int filterWidth, int filterHeight, int channels, int stride, ActivationType activationType) {
             ConvolutionalLayer convolutionalLayer = new ConvolutionalLayer(filterWidth, filterHeight, channels, stride, activationType);
             neuralNet.addLayer(convolutionalLayer);
+            convolutionalLayer.setActivation(InternalUtils.create(convolutionalLayer.getActivationType()));
             return this;
         }
 
         public Builder addMaxPoolingLayer(int filterSize, int stride) {
             MaxPoolingLayer poolingLayer = new MaxPoolingLayer(filterSize, filterSize, stride);
             neuralNet.addLayer(poolingLayer);
+            poolingLayer.setActivation(InternalUtils.create(poolingLayer.getActivationType()));
             return this;
         }
 
         public Builder addMaxPoolingLayer(int filterWidth, int filterHeight, int stride) {
             MaxPoolingLayer poolingLayer = new MaxPoolingLayer(filterWidth, filterHeight, stride);
             neuralNet.addLayer(poolingLayer);
+            poolingLayer.setActivation(InternalUtils.create(poolingLayer.getActivationType()));
             return this;
         }
 
@@ -292,6 +306,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
                 AbstractLayer layer = neuralNet.getLayers().get(i);
                  if (setDefaultActivation && !(layer instanceof InputLayer) && !(layer instanceof OutputLayer)) { // ne za izlazni layer
                     layer.setActivationType(defaultActivationType); // ali ovo ne treba ovako!!! ako je vec nesto setovano onda nemoj to d agazis
+                    layer.setActivation(InternalUtils.create(defaultActivationType));
                 }
                 layer.setPrevLayer(prevLayer);
                 if (prevLayer != null) {

@@ -296,7 +296,7 @@ public abstract class AbstractLayer implements Layer, Serializable {
 
     public final void setActivationType(ActivationType activationType) {
         this.activationType = activationType;
-        if (activationType != ActivationType.SOFTMAX) this.activation = ActivationFunction.create(activationType); // we use different layer for softmax
+//        if (activationType != ActivationType.SOFTMAX) this.activation = ActivationFunction.create(activationType); // we use different layer for softmax
     }
 
     public float getL1() {

@@ -101,7 +101,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
         this.depth = channels;
         this.stride = 1;
         this.activationType = ActivationType.TANH;
-        this.activation = ActivationFunction.create(activationType);
+//        this.activation = ActivationFunction.create(activationType);
     }
 
     public ConvolutionalLayer(int filterWidth, int filterHeight, int channels, ActivationType activationType) {
@@ -110,7 +110,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
         this.depth = channels;
         this.stride = 1;
         this.activationType = activationType;
-        this.activation = ActivationFunction.create(activationType);
+//        this.activation = ActivationFunction.create(activationType);
     }
 
     public ConvolutionalLayer(int filterWidth, int filterHeight, int channels, int stride, ActivationType activationType) {
@@ -119,7 +119,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
         this.depth = channels;
         this.stride = stride;
         this.activationType = activationType;
-        this.activation = ActivationFunction.create(activationType);
+//        this.activation = ActivationFunction.create(activationType);
     }
 
     /**

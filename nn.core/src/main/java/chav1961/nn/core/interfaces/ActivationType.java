@@ -33,5 +33,6 @@ public enum ActivationType {
     RELU,
     SIGMOID,
     SOFTMAX,     
-    TANH,
+    TANH;
+	
 }

@@ -1,6 +1,8 @@
-package chav1961.nn.core.interfaces;
+package chav1961.nn.standalone.internal;
 
 import java.io.Serializable;
+
+import chav1961.nn.core.interfaces.ActivationFunction;
 
 /**
  * Rectified Linear Activation and its Derivative.

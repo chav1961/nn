@@ -53,8 +53,6 @@ public class ImageSetUtils {
     public static final String TEST_FILE = "test.txt";
     public static final String IMAGE_IDX_FILE = "index.txt";
 
-    private static final Logger LOGGER = Logger.getLogger(ImageSetUtils.class.getName());
-
 
   /**
    * Creates image data set from raw images by resizing and randomly croping to target dimensions.
@@ -89,7 +87,6 @@ public class ImageSetUtils {
 
             final String fileName = entry.getKey().getName();
 
-            LOGGER.info("Processing image " + fileName);
             count++;
 
             // scale image an add it to image set
@@ -110,8 +107,6 @@ public class ImageSetUtils {
 
             // create augmented images here?
             //
-
-            LOGGER.info(targetFile + " done!");
         }
     }
 
@@ -139,7 +134,6 @@ public class ImageSetUtils {
 
             final String fileName = entry.getKey().getName();
 
-            LOGGER.info("Processing image " + fileName);
             count++;
 
             // scale image an add it to image set
@@ -151,8 +145,6 @@ public class ImageSetUtils {
             final String targetFile =  label + File.separator + label+"_"+count; // make sure the key is only filename without the path
 
             ImageUtils.writeImages(randomlyCropedImages, destPath, targetFile, imgType);
-
-            LOGGER.info(targetFile + " done!");
         }
     }
   }
