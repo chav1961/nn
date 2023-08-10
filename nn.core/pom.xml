@@ -7,6 +7,21 @@
   </parent>
   <artifactId>nn.core</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.visrec</groupId>
+            <artifactId>visrec-api</artifactId>
+            <version>1.0.5</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+
+
 	<developers>
 		<developer>
 			<name>Alexander Chernomyrdin aka chav1961</name>

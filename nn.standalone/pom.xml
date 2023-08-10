@@ -58,6 +58,13 @@
 	    </repository>
 	</distributionManagement>
   
+	<dependencies>
+        <dependency>
+            <groupId>com.github.chav1961</groupId>
+            <artifactId>nn.core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+	</dependencies>
   
      <build>
        <finalName>nn.standalone-${project.parent.version}</finalName>
