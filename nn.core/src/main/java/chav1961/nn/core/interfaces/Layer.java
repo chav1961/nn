@@ -56,8 +56,4 @@ public interface Layer {
      * @return layer deltas tensor
      */
     public Tensor getDeltas();
-
-
-//    public Tensor getWeights();
-
 }

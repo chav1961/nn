@@ -72,11 +72,10 @@ public interface LossFunction {
      * @param testSet
      * @return
      */
-    default public float valueFor(NeuralNetwork nnet, DataSet<? extends MLDataItem> testSet) {
+    default public float valueFor(NeuralNetwork<?> nnet, DataSet<? extends MLDataItem> testSet) {
         for(MLDataItem tsItem : testSet) {
             nnet.setInput(tsItem.getInput());
-            float[] output = nnet.getOutput();
-            addPatternError(output, tsItem.getTargetOutput().getValues());
+            addPatternError(nnet.getOutput(), tsItem.getTargetOutput().getValues());
         }
         return getTotal();
     }

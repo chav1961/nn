@@ -72,7 +72,7 @@ public class ExampleImage implements MLDataItem {
      * @param label image label
      * @throws IOException if file is not found or reading file fails from some reason.
      */
-    public ExampleImage(File imgFile, String label) throws IOException {
+    public ExampleImage(final File imgFile, final String label) throws IOException {
         this.label = label;
         this.file = imgFile;
         BufferedImage image = ImageIO.read(imgFile);
@@ -82,7 +82,7 @@ public class ExampleImage implements MLDataItem {
         createInputFromPixels(image);
     }
 
-    public ExampleImage(BufferedImage image, String label) {
+    public ExampleImage(final BufferedImage image, final String label) {
         this.label = label;
         width = image.getWidth();
         height = image.getHeight();
