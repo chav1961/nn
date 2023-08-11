@@ -25,7 +25,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Logger;
 
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.NeuralNetwork;
 
 /**
  * This layer performs max pooling operation in convolutional neural network, which
@@ -69,15 +70,25 @@ public final class MaxPoolingLayer extends AbstractLayer {
      * @param stride filter step
      */
     public MaxPoolingLayer(int filterWidth, int filterHeight, int stride) {
+    	super(LayerType.MAXPOOLING);
+    	
         this.filterWidth = filterWidth;
         this.filterHeight = filterHeight;
         this.stride = stride;
     }
 
     @Override
-    final public void init() {
+    final public void init(final NeuralNetwork<?> network) {
         // max pooling layer can be only after Convolutional Layer
-        if (!(prevLayer instanceof ConvolutionalLayer)) throw new RuntimeException("Illegal network architecture! MaxPooling can be only after convolutional layer!");
+    	switch (getPrevLayer().getLayerType()) {
+			case CONVOLUTIONAL	:
+				break;
+			case FULLY_CONNECTED: case INPUT : case MAXPOOLING : case OUTPUT :
+				throw new IllegalStateException("Illegal network architecture! MaxPooling can be only after convolutional layer!");				
+			default:
+				throw new UnsupportedOperationException("Layer type ["+getPrevLayer().getLayerType()+"] is not supported yet");
+    	}
+//        if (!(prevLayer instanceof ConvolutionalLayer)) throw new RuntimeException("Illegal network architecture! MaxPooling can be only after convolutional layer!");
 
         inputs = prevLayer.outputs;
 
@@ -85,8 +96,8 @@ public final class MaxPoolingLayer extends AbstractLayer {
         height = (inputs.getRows() - filterHeight) / stride + 1;
         depth = prevLayer.getDepth(); 
 
-        outputs = new Tensor(height, width, depth);
-        deltas = new Tensor(height, width,  depth);
+        outputs = network.getTensorFactory().newInstance(height, width, depth);
+        deltas = network.getTensorFactory().newInstance(height, width,  depth);
 
         // used in fprop to save idx position of max value
         maxIdx = new int[depth][height][width][2];
@@ -146,13 +157,28 @@ public final class MaxPoolingLayer extends AbstractLayer {
      */
     @Override
     public void backward() {
-
-        if (nextLayer instanceof FullyConnectedLayer) {
-            backwardFromFullyConnected();
-        }
-        else if (nextLayer instanceof ConvolutionalLayer) {
-             backwardFromConvolutional();
-        }
+    	switch (getNextLayer().getLayerType()) {
+			case CONVOLUTIONAL	:
+	            backwardFromConvolutional();
+	            break;
+			case FULLY_CONNECTED:
+	            backwardFromFullyConnected();
+				break;
+			case INPUT 			:
+				break;
+			case MAXPOOLING 	:
+				break;
+			case OUTPUT			:
+				break;
+			default :
+				throw new UnsupportedOperationException("Layer type ["+getNextLayer().getLayerType()+"] is not supported yet");
+    	}
+//        if (nextLayer instanceof FullyConnectedLayer) {
+//            backwardFromFullyConnected();
+//        }
+//        else if (nextLayer instanceof ConvolutionalLayer) {
+//             backwardFromConvolutional();
+//        }
 
     }
 

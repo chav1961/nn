@@ -46,17 +46,6 @@ public class Cifar10 {
     String testFile = "./src/test/resources/datasets/cifar10/test.txt";
 
     public void run() throws IOException {
-        ImageSet imageSet = new ImageSet(imageWidth, imageHeight);
-        imageSet.loadLabels(new File(labelsFile));
-        imageSet.loadImages(new File(trainingFile), 2000);
-        imageSet.setInvertImages(true);
-        imageSet.zeroMean();
-        imageSet.shuffle();
-
-        int labelsCount = imageSet.getLabelsCount();
-
-        ImageSet[] imageSets = imageSet.split(0.6, 0.4);
-
         ConvolutionalNetwork neuralNet = ConvolutionalNetwork.builder()
                                         .addInputLayer(imageWidth, imageHeight, 3)
                                         .addConvolutionalLayer(3, 3, 16)
@@ -72,6 +61,17 @@ public class Cifar10 {
                                         .hiddenActivationFunction(ActivationType.TANH)
                                         .lossFunction(LossType.CROSS_ENTROPY)
                                         .build();
+        ImageSet imageSet = new ImageSet(imageWidth, imageHeight, neuralNet.getTensorFactory());
+        imageSet.loadLabels(new File(labelsFile));
+        imageSet.loadImages(new File(trainingFile), 2000);
+        imageSet.setInvertImages(true);
+        imageSet.zeroMean();
+        imageSet.shuffle();
+
+        int labelsCount = imageSet.getLabelsCount();
+
+        ImageSet[] imageSets = imageSet.split(0.6, 0.4);
+
 
         System.err.println("Training neural network");
 

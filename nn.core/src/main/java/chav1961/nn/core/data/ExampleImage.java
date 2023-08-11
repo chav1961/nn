@@ -28,8 +28,9 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import chav1961.nn.core.interfaces.MLDataItem;
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.interfaces.TensorFactory;
 import chav1961.nn.core.utils.ImageUtils;
-import chav1961.nn.core.utils.Tensor;
 
 /**
  * This class represents example image to train the network.
@@ -46,6 +47,7 @@ public class ExampleImage implements MLDataItem {
      * Image label, a concept to map to this image
      */
     private final String label;
+    private final TensorFactory factory;
 
     /**
      * Desired network output - maybe its better to use  int - output index with 1 ? lesss memory for huge data sets - TODO: use int here
@@ -72,32 +74,35 @@ public class ExampleImage implements MLDataItem {
      * @param label image label
      * @throws IOException if file is not found or reading file fails from some reason.
      */
-    public ExampleImage(final File imgFile, final String label) throws IOException {
+    public ExampleImage(final File imgFile, final String label, final TensorFactory factory) throws IOException {
         this.label = label;
         this.file = imgFile;
         BufferedImage image = ImageIO.read(imgFile);
-        width = image.getWidth();
-        height = image.getHeight();
+        this.width = image.getWidth();
+        this.height = image.getHeight();
+        this.factory = factory;
 
         createInputFromPixels(image);
     }
 
-    public ExampleImage(final BufferedImage image, final String label) {
+    public ExampleImage(final BufferedImage image, final String label, final TensorFactory factory) {
         this.label = label;
-        width = image.getWidth();
-        height = image.getHeight();
+        this.width = image.getWidth();
+        this.height = image.getHeight();
+        this.factory = factory;
 
         createInputFromPixels(image);
     }
     
-    public ExampleImage(BufferedImage image) {
-        this(image, null);
+    public ExampleImage(BufferedImage image, final TensorFactory factory) {
+        this(image, null, factory);
     }    
     
-    public ExampleImage(BufferedImage image, String label, int targetWidth, int targetHeight) throws IOException {
+    public ExampleImage(BufferedImage image, String label, int targetWidth, int targetHeight, final TensorFactory factory) throws IOException {
         this.label = label;
-        width = targetWidth;
-        height = targetHeight;  
+        this.width = targetWidth;
+        this.height = targetHeight;  
+        this.factory = factory;
         
         // if specified image does not fit given dimsnsions scale image
         if (image.getWidth() != targetWidth || image.getHeight() != targetHeight) {
@@ -132,7 +137,7 @@ public class ExampleImage implements MLDataItem {
             }
         }
 
-        rgbTensor = new Tensor(height, width, 3, rgbVector);
+        rgbTensor = factory.newInstance(height, width, 3, rgbVector);
     }
     
     public void invert() {

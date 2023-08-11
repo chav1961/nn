@@ -21,6 +21,8 @@
 
 package chav1961.nn.core.utils;
 
+import chav1961.nn.core.interfaces.Tensor;
+
 /**
  * Static utility methods for tensors.
  * 
@@ -29,21 +31,24 @@ package chav1961.nn.core.utils;
 public class Tensors {
 
     public static float[] copyOf(float[] arr) {
-        float[] copy = new float[arr.length];
-        System.arraycopy(arr, 0, copy, 0, arr.length);
-        return copy;
+    	return arr.clone();
+//        float[] copy = new float[arr.length];
+//        System.arraycopy(arr, 0, copy, 0, arr.length);
+//        return copy;
     }
 
-    public static void sub(float[] arr, float val) {
+    public static float[] sub(float[] arr, float val) {
         for(int i=0; i < arr.length; i++) {
              arr[i] = arr[i] - val;
         }
+        return arr;
     }
 
-    public static void multiply(float[] arr1, float[] arr2) {
+    public static float[] multiply(float[] arr1, float[] arr2) {
         for (int i = 0; i < arr1.length; i++) {
             arr1[i] *= arr2[i];
-        }        
+        }
+        return arr1;
     }
 
 
@@ -101,88 +106,68 @@ public class Tensors {
         return min;       
     }        
     
-    public static void div(final float[] array, final float val) {
+    public static float[] div(final float[] array, final float val) {
         for (int i = 0; i < array.length; i++) {
             array[i] /= val;
         }
+        return array;
     }
 
-    public static void div(final float[] array, final float[] divisor) {
+    public static float[] div(final float[] array, final float[] divisor) {
         for (int i = 0; i < array.length; i++) {
-            array[i] = array[i] / divisor[i];
+            array[i] /= divisor[i];
         }
+        return array;
     }
     
-    public static final void sub(final float[] array1, final float[] array2) {
+    public static float[] sub(final float[] array1, final float[] array2) {
         for (int i = 0; i < array1.length; i++) {
             array1[i] -= array2[i];
         }
+        return array1;
     }
 
-    public static final void add(final float[] array1, final float[] array2) {
+    public static float[] add(final float[] array1, final float[] array2) {
         for (int i = 0; i < array1.length; i++) {
             array1[i] += array2[i];
         }
+        return array1;
     }    
     
-    // decimal scale
-    
-    // return min max mean std in one 
-//    public static Tensor stats(Tensor t, Tensor min) {
-//        final float[] tValues= t.getValues();
-//        final float[] minValues= min.getValues();
-//        
-//        for(int i=0; i < tValues.length; i++) {
-//            if (tValues[i] > minValues[i]) minValues[i] = tValues[i];
-//        }
-//        return min;       
-//    }        
-      
-    public static Tensor zeros(int cols) {
-        return new Tensor(cols, 0f);
+    /**
+     * Subtracts tensor t2 from t1. The result is t1.
+     *
+     * @param t1
+     * @param t2
+     */
+    public final static void sub(final Tensor t1, final Tensor t2) {
+        for (int i = 0; i < t1.getValues().length; i++) {
+            t1.getValues()[i] -= t2.getValues()[i];
+        }
+    }
+
+    public static final void fill(final float[] array, final float val) {
+        for (int i = 0; i < array.length; i++) {
+            array[i] = val;
+        }
+    }
+
+    // TODO: also set dimensions for dst
+    public static final void copy(final Tensor src, final Tensor dest) {
+        System.arraycopy(src.getValues(), 0, dest.getValues(), 0, src.getValues().length);
+    }
+
+    public static final void copy(final float[] src, final float[] dest) {
+        System.arraycopy(src, 0, dest, 0, src.length);
     }
     
-    public static Tensor ones(int cols) {
-        return new Tensor(cols, 1.0f);
-    }    
-    
-    public static Tensor random(int rows, int cols) {
-        Tensor tensor = new Tensor(rows, cols);
+    public static String valuesAsString(Tensor... tensors) {
+        StringBuilder sb = new StringBuilder();
 
-        for (int r = 0; r < tensor.getRows(); r++) {
-            for (int c = 0; c < tensor.getCols(); c++) {
-                tensor.set(r, c, RandomGenerator.getDefault().nextFloat());
-            }
+        for (Tensor t : tensors) {
+            sb.append(t.toString());
         }
-        return tensor;
+
+        return sb.toString();
     }
-    
-    public static Tensor random(int rows, int cols, int depth) {
-        Tensor tensor = new Tensor(rows, cols, depth);
-
-        for (int z = 0; z < tensor.getDepth(); z++) {
-            for (int r = 0; r < tensor.getRows(); r++) {
-                for (int c = 0; c < tensor.getCols(); c++) {
-                    tensor.set(r, c, z, RandomGenerator.getDefault().nextFloat());
-                }
-            }
-        }
-        return tensor;
-    }    
-    
-    public static Tensor random(int rows, int cols, int depth, int fourthDim) {
-        Tensor tensor = new Tensor(rows, cols, depth, fourthDim);
-
-        for (int f = 0; f < tensor.getFourthDim(); f++) {
-            for (int z = 0; z < tensor.getDepth(); z++) {
-                for (int r = 0; r < tensor.getRows(); r++) {
-                    for (int c = 0; c < tensor.getCols(); c++) {
-                        tensor.set(r, c, z, f, RandomGenerator.getDefault().nextFloat());
-                    }
-                }
-            }
-        }
-        return tensor;
-    }      
-    
 }

@@ -27,7 +27,7 @@ import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.data.preprocessing.Scaler;
 
 import chav1961.nn.core.interfaces.MLDataItem;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.utils.Tensors;
 
 /**

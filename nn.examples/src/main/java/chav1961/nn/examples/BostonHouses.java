@@ -27,13 +27,12 @@ import java.io.IOException;
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
 
-import chav1961.nn.core.data.DataSets;
 import chav1961.nn.core.eval.Evaluators;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.utils.FileIO;
-import chav1961.nn.core.utils.Tensor;
 import chav1961.nn.standalone.FeedForwardNetwork;
+import chav1961.nn.standalone.internal.TensorImpl;
 
 /**
  * Minimal example for linear regression using FeedForwardNetwork.
@@ -49,11 +48,6 @@ public class BostonHouses {
 
             int inputsNum = 1;
             int outputsNum = 1;
-            String csvFilename = "./src/test/resources/datasets/bostonsredjen-2kolone.csv";
-
-            // load and create data set from csv file
-            DataSet dataSet = FileIO.readCsv(new File(csvFilename).getAbsolutePath() , inputsNum, outputsNum, true);
-            DataSet[] trainAndTestSet = dataSet.split(0.6);
 
             // create neural network using network specific builder
             FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
@@ -63,6 +57,12 @@ public class BostonHouses {
                     .lossFunction(LossType.MEAN_SQUARED_ERROR)
                     .build();
             
+            String csvFilename = "./src/test/resources/datasets/bostonsredjen-2kolone.csv";
+
+            // load and create data set from csv file
+            DataSet dataSet = FileIO.readCsv(new File(csvFilename).getAbsolutePath() , inputsNum, outputsNum, true, neuralNet.getTensorFactory());
+            DataSet[] trainAndTestSet = dataSet.split(0.6);
+            
             neuralNet.getTrainer().setMaxError(0.006f);
 
             neuralNet.train(trainAndTestSet[0]);
@@ -71,7 +71,7 @@ public class BostonHouses {
             System.out.println(pm);
 
             // perform prediction for some input value
-            neuralNet.setInput(Tensor.create(1, 1, new float[] {0.2f}));
+            neuralNet.setInput(new TensorImpl(1, 1, new float[] {0.2f}));
             System.out.println("Predicted price of the house is for 8 :" + neuralNet.getOutput()[0]);//*50);
     }
 

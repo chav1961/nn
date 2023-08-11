@@ -1,6 +1,7 @@
 package chav1961.nn.examples;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.visrec.ml.data.DataSet;
@@ -21,9 +22,11 @@ import chav1961.nn.standalone.FeedForwardNetwork;
  *
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */
-public class QuickStart {
+public class QuickStartNew {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // load data  set from csv file
+
         // create instance of multi addLayer percetpron using builder
         FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
                 .addInputLayer(4)
@@ -33,8 +36,7 @@ public class QuickStart {
                 .randomSeed(123)
                 .build();
 
-        // load data  set from csv file
-        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/iris_data_normalised.txt", 4, 3, true, neuralNet.getTensorFactory());
+        DataSet dataSet = FileIO.readJson(new FileInputStream("./src/test/resources/datasets/iris_data_normalised.json"), 4, 3, neuralNet.getTensorFactory());
         dataSet.shuffle();
         
         // create and configure instanceof backpropagation trainer

@@ -27,7 +27,6 @@ import javax.visrec.ml.classification.BinaryClassifier;
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ri.ml.classification.FeedForwardNetBinaryClassifier;
 
-import chav1961.nn.core.data.DataSets;
 import chav1961.nn.core.data.preprocessing.MaxScaler;
 import chav1961.nn.core.eval.Evaluators;
 import chav1961.nn.core.interfaces.ActivationType;
@@ -50,8 +49,17 @@ public class SpamClassifier {
         int numInputs = 57;
         int numOutputs = 1;
         
+        // create instance of feed forward neural network using its builder
+        FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
+                .addInputLayer(numInputs)
+                .addFullyConnectedLayer(25, ActivationType.TANH)
+                .addOutputLayer(numOutputs, ActivationType.SIGMOID)
+                .lossFunction(LossType.CROSS_ENTROPY)
+                .randomSeed(123)
+                .build();
+
         // load spam data  set from csv file
-        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/spam.csv", numInputs, numOutputs, true);             
+        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/spam.csv", numInputs, numOutputs, true, neuralNet.getTensorFactory());             
 
         // split data set into train and test set
         DataSet<MLDataItem>[] trainAndTestSet = dataSet.split(0.6, 0.4);
@@ -63,15 +71,7 @@ public class SpamClassifier {
         scaler.apply(trainingSet);
         scaler.apply(testSet);
         
-        // create instance of feed forward neural network using its builder
-        FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
-                .addInputLayer(numInputs)
-                .addFullyConnectedLayer(25, ActivationType.TANH)
-                .addOutputLayer(numOutputs, ActivationType.SIGMOID)
-                .lossFunction(LossType.CROSS_ENTROPY)
-                .randomSeed(123)
-                .build();
-
+        
         // set training settings
         neuralNet.getTrainer().setMaxError(0.2f)
                               .setLearningRate(0.01f);

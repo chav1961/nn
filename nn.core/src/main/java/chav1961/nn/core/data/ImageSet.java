@@ -25,9 +25,10 @@ import javax.imageio.ImageIO;
 import javax.visrec.ml.data.Column;
 import javax.visrec.ml.data.DataSet;
 
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.interfaces.TensorFactory;
 import chav1961.nn.core.utils.ImageSetUtils;
 import chav1961.nn.core.utils.ImageUtils;
-import chav1961.nn.core.utils.Tensor;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -56,6 +57,7 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
     private final int imageHeight;
     private boolean scaleImages = true;
     private boolean invertImages = false;
+    private final TensorFactory factory;
     private Tensor mean;
     private String delimiter = " ";
 
@@ -67,16 +69,18 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
 
     // ovi ne mogu svi da budu u memoriji odjednom...
     // osmisliti i neki protocni / buffered data set, koji ucitava jedan batch
-    public ImageSet(int imageWidth, int imageHeight) {
+    public ImageSet(int imageWidth, int imageHeight, TensorFactory factory) {
         super();
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
+        this.factory = factory;
     }
 
-    public ImageSet(int imageWidth, int imageHeight, String imageDirPath) throws IOException {
+    public ImageSet(int imageWidth, int imageHeight, String imageDirPath, TensorFactory factory) throws IOException {
         super();
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
+        this.factory = factory;
 
         ImageSetUtils.createImageIndex(imageDirPath);
         ImageSetUtils.createLabelsIndex(imageDirPath);
@@ -260,8 +264,8 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
             final String lbl = labels.get(i);
             if (scaleImages) img = ImageUtils.scaleImage(img, imageWidth, imageHeight);
 
-            final ExampleImage exImg = new ExampleImage(img, lbl);
-            exImg.setTargetOutput(new Tensor(oneHotEncode(lbl, columnNames)));
+            final ExampleImage exImg = new ExampleImage(img, lbl, factory);
+            exImg.setTargetOutput(factory.newInstance(oneHotEncode(lbl, columnNames)));
             if (invertImages) exImg.invert();
             add(exImg);
         }
@@ -277,12 +281,14 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
         private final List<String> labels;
         private final int start;
         private final int end;
+        private final TensorFactory factory;
 
-        public ImageProcessor(List<BufferedImage> images, List<String> labels, int start, int end) {
+        public ImageProcessor(List<BufferedImage> images, List<String> labels, int start, int end, final TensorFactory factory) {
             this.images = images;
             this.labels = labels;
             this.start = start;
             this.end = end;
+            this.factory = factory;
         }
 
         @Override
@@ -293,8 +299,8 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
                 String lbl = li.next();
                 if (scaleImages) img = ImageUtils.scaleImage(img, imageWidth, imageHeight);
 
-                final ExampleImage exImg = new ExampleImage(img, lbl);
-                exImg.setTargetOutput(new Tensor(oneHotEncode(lbl, columnNames)));
+                final ExampleImage exImg = new ExampleImage(img, lbl, factory);
+                exImg.setTargetOutput(factory.newInstance(oneHotEncode(lbl, columnNames)));
                 if (invertImages) exImg.invert();
                 add(exImg); // vratiti kao batch rezultata
             }
@@ -364,7 +370,7 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
         int itemIdx = 0;
 
         for (int p = 0; p < partSizes.length; p++) {
-            ImageSet subSet = new ImageSet(imageWidth, imageHeight);
+            ImageSet subSet = new ImageSet(imageWidth, imageHeight, factory);
             int itemsCount = (int) (size() * partSizes[p]);
 
             for (int j = 0; j < itemsCount; j++) {
@@ -435,7 +441,7 @@ public class ImageSet extends TabularDataSet<ExampleImage> {
      * @return mean Tensor for the entire dataset
      */
     public Tensor zeroMean() {
-        mean = new Tensor(imageHeight, imageWidth, 3);
+        mean = factory.newInstance(imageHeight, imageWidth, 3);
 
         // sum all matrices
         items.forEach((img) -> mean.add(img.getInput()));

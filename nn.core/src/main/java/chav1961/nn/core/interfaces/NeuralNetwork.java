@@ -11,13 +11,13 @@ import javax.visrec.ml.eval.EvaluationMetrics;
 import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.layers.InputLayer;
 import chav1961.nn.core.layers.OutputLayer;
-import chav1961.nn.core.utils.Tensor;
 import chav1961.purelib.basic.interfaces.SpiServiceFactory;
 
 public interface NeuralNetwork<Tr> extends SpiServiceFactory<NeuralNetwork<Tr>>, TrainerProvider<Tr>, Serializable, Cloneable {
 	public static final String	NEURAL_NETWORK_SCHEME = "neuralnetwork";
 	
 	NetworkType getNetworkType();
+	TensorFactory getTensorFactory();
 	
     String getLabel();
     NeuralNetwork<Tr> setLabel(String label);

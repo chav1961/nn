@@ -21,37 +21,37 @@
 
 package chav1961.nn.core.train;
 
+import java.util.EventObject;
+
 /**
  * This class holds source and type of training event.
  *
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */
-public final class TrainingEvent {
-
-    private final BackpropagationTrainer source;
+public final class TrainingEvent extends EventObject {
+	private static final long serialVersionUID = 173459921999513034L;
+	
     private final Type type;
 
     public static enum Type {
-        STARTED, STOPPED, EPOCH_FINISHED, MINI_BATCH, ITERATION_FINISHED;
+        STARTED, 
+        STOPPED, 
+        EPOCH_FINISHED, 
+        MINI_BATCH, 
+        ITERATION_FINISHED;
     }
 
     public TrainingEvent(final BackpropagationTrainer source, final Type type) {
-        this.source = source;
+    	super(source);
         this.type = type;
     }
 
+    @Override
     public BackpropagationTrainer getSource() {
-        return source;
+        return (BackpropagationTrainer)super.getSource();
     }
 
     public Type getType() {
         return type;
     }
-
-//    public static Type STARTED = Type.STARTED;
-//    public static Type STOPPED = Type.STOPPED;
-//    public static Type EPOCH_FINISHED = Type.EPOCH_FINISHED;
-//    public static Type MINI_BATCH = Type.MINI_BATCH;
-//    public static Type ITERATION_FINISHED = Type.ITERATION_FINISHED;
-
 }

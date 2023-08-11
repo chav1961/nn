@@ -21,7 +21,9 @@
  */
 package chav1961.nn.core.layers;
 
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.NeuralNetwork;
+import chav1961.nn.core.interfaces.Tensor;
 
 /**
  * Input layer in neural network, which accepts external input, and sends it to next layer in a network.
@@ -44,10 +46,12 @@ public class InputLayer extends AbstractLayer {
      * @param depth layer depth (number of input channels)
      */
     public InputLayer(int width, int height, int depth) {
+    	super(LayerType.INPUT);
+    	
         this.width = width;
         this.height = height;
         this.depth = depth;  
-        init();
+//        init();
     }
 
     /**
@@ -57,10 +61,12 @@ public class InputLayer extends AbstractLayer {
      * @param height layer height
      */
     public InputLayer(int width, int height) {
+    	super(LayerType.INPUT);
+    	
         this.width = width;
         this.height = height;
         this.depth = 1; 
-        init();
+//        init();
     }
 
     /**
@@ -69,18 +75,20 @@ public class InputLayer extends AbstractLayer {
      * @param width layer width
      */
     public InputLayer(int width) {
+    	super(LayerType.INPUT);
+    	
         this.width = width;
         this.height = 1;
         this.depth = 1;
-        init();
+//        init();
     }
 
     /**
      * Initialize this layer in network.
      */
     @Override
-    public final void init() {
-        inputs = new Tensor(height, width, depth);
+    public final void init(final NeuralNetwork<?> network) {
+        inputs = network.getTensorFactory().newInstance(height, width, depth);
         outputs = inputs;  
     }
 

@@ -30,7 +30,6 @@ import java.io.ObjectInputStream;
 import java.net.URI;
 import java.util.List;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.BinaryCrossEntropyLoss;
 import chav1961.nn.core.interfaces.CrossEntropyLoss;
@@ -44,9 +43,10 @@ import chav1961.nn.core.layers.FullyConnectedLayer;
 import chav1961.nn.core.layers.InputLayer;
 import chav1961.nn.core.layers.OutputLayer;
 import chav1961.nn.core.layers.SoftmaxOutputLayer;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.RandomGenerator;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.standalone.internal.TensorImpl;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
@@ -59,7 +59,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
 
     private static final long serialVersionUID = 5819940381359274290L;    
     
-    private transient Tensor inputTensor;
+    private transient TensorImpl inputTensor;
     
 
     /**
@@ -106,7 +106,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
     private void initClassFieldsOfNetAndAllLayers() {
     	List<AbstractLayer> layers = this.getLayers();
         for (AbstractLayer cur: layers) {
-            cur.init();
+            cur.init(this);
         }
     }    
     
@@ -141,7 +141,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
             InputLayer inLayer = new InputLayer(width);
             network.addLayer(inLayer);
             network.setInputLayer(inLayer);
-            network.inputTensor = new Tensor(width);
+            network.inputTensor = new TensorImpl(width);
 
             return this;
         }
@@ -282,7 +282,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
 
             // init internal layer structures (weights, outputs, deltas etc. for each layer)
             for (AbstractLayer layer : network.getLayers()) {
-                layer.init();
+                layer.init(network);
             }
 
             // throw excption if loss is null - ili generalno nesto nije setovano kako treba

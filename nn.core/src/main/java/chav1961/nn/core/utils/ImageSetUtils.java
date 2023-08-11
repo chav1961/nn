@@ -41,6 +41,7 @@ import javax.imageio.ImageIO;
 
 import chav1961.nn.core.data.ExampleImage;
 import chav1961.nn.core.data.ImageSet;
+import chav1961.nn.core.interfaces.TensorFactory;
 
 /**
  *
@@ -70,8 +71,8 @@ public class ImageSetUtils {
    * @return
    * @throws IOException
    */
-  public static ImageSet createDataSetFromRawImages(String sourcePath, String targetPath, int targetWidth, int targetHeight, boolean useAbsolutePaths) throws IOException {
-    ImageSet imageSet = new ImageSet(targetWidth, targetHeight);
+  public static ImageSet createDataSetFromRawImages(String sourcePath, String targetPath, int targetWidth, int targetHeight, boolean useAbsolutePaths, final TensorFactory factory) throws IOException {
+    ImageSet imageSet = new ImageSet(targetWidth, targetHeight, factory);
 
     // list all subddirectories / categories
     List<String> labels = labelsFromSubDirectories(sourcePath);
@@ -91,7 +92,7 @@ public class ImageSetUtils {
 
             // scale image an add it to image set
             final BufferedImage scaledImage = ImageUtils.scaleBySmallerAndCrop(entry.getValue(), targetWidth, targetHeight);
-            imageSet.add(new ExampleImage(scaledImage, label));
+            imageSet.add(new ExampleImage(scaledImage, label, factory));
 
             // write scaled image to target dir
             final String imgType = ImageUtils.getImageType(entry.getKey());

@@ -32,10 +32,10 @@ import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.FileIO;
-import chav1961.nn.core.utils.Tensor;
 import chav1961.nn.examples.util.CsvFile;
 import chav1961.nn.examples.util.Plot;
 import chav1961.nn.standalone.FeedForwardNetwork;
+import chav1961.nn.standalone.internal.TensorImpl;
 
 /**
  * Minimal example for linear regression using FeedForwardNetwork.
@@ -51,10 +51,6 @@ public class LinearRegression {
 
             int inputsNum = 1;
             int outputsNum = 1;
-            String csvFilename = "./src/test/resources/datasets/linear.csv";
-
-            // load and create data set from csv file
-            DataSet dataSet = FileIO.readCsv(csvFilename , inputsNum, outputsNum);
 
             // create neural network using network specific builder
             FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
@@ -63,6 +59,11 @@ public class LinearRegression {
                     .lossFunction(LossType.MEAN_SQUARED_ERROR)
                     .build();
 
+            String csvFilename = "./src/test/resources/datasets/linear.csv";
+
+            // load and create data set from csv file
+            DataSet dataSet = FileIO.readCsv(csvFilename , inputsNum, outputsNum, neuralNet.getTensorFactory());
+            
             BackpropagationTrainer trainer = neuralNet.getTrainer();
             trainer.setMaxError(0.0002f)
                     .setMaxEpochs(10000)
@@ -99,7 +100,7 @@ public class LinearRegression {
 
         for(int i=0; i<data.length; i++) {
             data[i][0] =  0.5-Math.random();
-            nnet.setInput(new Tensor(1, 1, new float[] { (float)data[i][0] }));
+            nnet.setInput(new TensorImpl(1, 1, new float[] { (float)data[i][0] }));
             data[i][1] = nnet.getOutput()[0];
         }
 

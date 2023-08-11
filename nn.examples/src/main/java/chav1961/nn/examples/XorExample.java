@@ -39,8 +39,6 @@ public class XorExample {
 
     public static void main(String[] args) {
 
-        TabularDataSet dataSet = ExampleDataSets.xor();
-        dataSet.setColumnNames(new String[] {"input1", "input2", "output"});
 
         FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
                 .addInputLayer(2)
@@ -49,6 +47,9 @@ public class XorExample {
                 .lossFunction(LossType.MEAN_SQUARED_ERROR)
 //                .randomSeed(123)
                 .build();
+
+        TabularDataSet dataSet = ExampleDataSets.xor(neuralNet.getTensorFactory());
+        dataSet.setColumnNames(new String[] {"input1", "input2", "output"});
         
 //        neuralNet.getTrainer().setLearningRate(0.9f);
 //        neuralNet.setOutputLabels("output");

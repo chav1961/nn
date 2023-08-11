@@ -26,10 +26,12 @@ import java.io.Serializable;
 import chav1961.nn.core.interfaces.ActivationFunction;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.Layer;
+import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Optimizer;
 import chav1961.nn.core.interfaces.OptimizerType;
 import chav1961.nn.core.interfaces.RandomWeightsType;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.Tensor;
 
 /**
  * Base class for different types of layers (except data/input layer) Provides
@@ -38,8 +40,6 @@ import chav1961.nn.core.utils.Tensor;
  * @author Zoran Sevarac
  */
 public abstract class AbstractLayer implements Layer, Serializable {
-
-    
 	private static final long serialVersionUID = 4172662870441249554L;
 	
 
@@ -118,6 +118,12 @@ public abstract class AbstractLayer implements Layer, Serializable {
     
     protected RandomWeightsType randomWeightsType = RandomWeightsType.XAVIER;
 
+    private final LayerType	layerType;
+    
+    protected AbstractLayer(final LayerType layerType) {
+    	this.layerType = layerType;
+    }
+    
     /**
      * This method should implement layer initialization when layer is added to
      * network (create weights, outputs, deltas, randomization etc.)
@@ -129,7 +135,7 @@ public abstract class AbstractLayer implements Layer, Serializable {
      * Init methods of all layers must be sensitive for both scenarios and check if field is null before initializing it with default new objects.
      * In most cases if the field is not null, than init method should not touch it.
      */
-    public abstract void init();
+    public abstract void init(final NeuralNetwork<?> network);
 
     /**
      * This method should implement forward pass in subclasses
@@ -151,6 +157,11 @@ public abstract class AbstractLayer implements Layer, Serializable {
      */
     public abstract void applyWeightChanges();
 
+    
+    public LayerType getLayerType() {
+    	return layerType;
+    }
+    
     public int getWidth() {
         return width;
     }
@@ -163,7 +174,7 @@ public abstract class AbstractLayer implements Layer, Serializable {
         return depth;
     }
 
-    public AbstractLayer getPrevlayer() {
+    public AbstractLayer getPrevLayer() {
         return prevLayer;
     }
 
@@ -171,12 +182,12 @@ public abstract class AbstractLayer implements Layer, Serializable {
         this.prevLayer = prevLayer;
     }
 
-    public void setNextlayer(AbstractLayer nextlayer) {
-        this.nextLayer = nextlayer;
-    }
-
     public AbstractLayer getNextLayer() {
         return nextLayer;
+    }
+    
+    public void setNextlayer(AbstractLayer nextlayer) {
+        this.nextLayer = nextlayer;
     }
 
     public Tensor getWeights() {

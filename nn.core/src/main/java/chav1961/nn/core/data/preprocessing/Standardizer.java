@@ -27,7 +27,9 @@ import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.data.preprocessing.Scaler;
 
 import chav1961.nn.core.interfaces.MLDataItem;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.NeuralNetwork;
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.interfaces.TensorFactory;
 
 /**
  * Performs standardization in order to get desired statistical properties of the data set.
@@ -44,11 +46,11 @@ public class Standardizer implements Scaler<DataSet<MLDataItem>>, Serializable {
     private final Tensor std;
     
     
-    public Standardizer(DataSet<MLDataItem> dataSet) {
+    public Standardizer(final TensorFactory factory, final DataSet<MLDataItem> dataSet) {
         Tensor t = dataSet.get(0).getInput();
         // int dims = t.getDimensions();
-        mean = new Tensor(t.getCols());
-        std = new Tensor(t.getCols());
+        mean = factory.newInstance(t.getCols());
+        std = factory.newInstance(t.getCols());
         
         for(MLDataItem item : dataSet) {
             mean.add(item.getInput());
@@ -61,7 +63,7 @@ public class Standardizer implements Scaler<DataSet<MLDataItem>>, Serializable {
         for(MLDataItem item : dataSet) {
             Tensor diff = item.getInput().copy();
             diff.sub(mean);
-            diff.multiplyElementWise(diff);  // ^2
+            diff.multiply(diff);  // ^2
             std.add(diff);            
         }        
         std.div(dataSet.size()-1);

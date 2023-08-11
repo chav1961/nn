@@ -21,12 +21,13 @@
  */
 package chav1961.nn.core.data;
 
+import javax.visrec.ml.data.BasicDataSet;
 import javax.visrec.ml.data.Column;
 import javax.visrec.ml.data.DataSet;
 
 import chav1961.nn.core.interfaces.MLDataItem;
+import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.utils.RandomGenerator;
-import chav1961.nn.core.utils.Tensor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +42,7 @@ import java.util.Random;
  * @param <E> Type of elements in this data set.
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */
-public class TabularDataSet<E extends MLDataItem> extends javax.visrec.ml.data.BasicDataSet<E> {
+public class TabularDataSet<E extends MLDataItem> extends BasicDataSet<E> {
 
     private int numInputs, numOutputs; // number of inputs and outputs / target values
 
@@ -202,11 +203,6 @@ public class TabularDataSet<E extends MLDataItem> extends javax.visrec.ml.data.B
 
         private final Tensor input; // network input
         private final Tensor targetOutput; // for classifiers target can be index, int 
-
-        public Item(float[] in, float[] targetOutput) {
-            this.input = new Tensor(in);
-            this.targetOutput = new Tensor(targetOutput);
-        }
 
         public Item(Tensor input, Tensor targetOutput) {
             this.input = input;

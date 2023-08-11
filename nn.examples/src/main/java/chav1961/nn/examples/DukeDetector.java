@@ -24,12 +24,12 @@ package chav1961.nn.examples;
 
 import javax.visrec.ml.eval.EvaluationMetrics;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
 import chav1961.nn.core.data.ImageSet;
 import chav1961.nn.core.eval.ClassifierEvaluator;
 import chav1961.nn.core.eval.ConfusionMatrix;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.FileIO;
 import chav1961.nn.examples.util.FileIODebug;
@@ -50,11 +50,22 @@ public class DukeDetector {
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
         int imageWidth = 64;
         int imageHeight = 64;
+        System.err.println("Creating neural network...");
+
+        ConvolutionalNetwork convNet = ConvolutionalNetwork.builder()
+                .addInputLayer(imageWidth, imageHeight, 3)
+                .addConvolutionalLayer(3, 3, 3, ActivationType.TANH)
+                .addMaxPoolingLayer(2, 2, 2)
+                .addFullyConnectedLayer(10, ActivationType.TANH)
+                .addOutputLayer(1, ActivationType.SIGMOID)
+                .lossFunction(LossType.CROSS_ENTROPY)
+                .build();
+
 
         String trainingFile = "./src/test/resources/datasets/DukeSet/train.txt";
         String labelsFile = "./src/test/resources/datasets/DukeSet/labels.txt";
 
-        ImageSet imageSet = new ImageSet(imageWidth, imageHeight);
+        ImageSet imageSet = new ImageSet(imageWidth, imageHeight, convNet.getTensorFactory());
 
         System.err.println("Loading images...");
 
@@ -67,17 +78,7 @@ public class DukeDetector {
 
         // ImageSet[] trainAndTestSet = imageSet.split(0.7, 0.3);
 
-        System.err.println("Creating neural network...");
-
-        ConvolutionalNetwork convNet = ConvolutionalNetwork.builder()
-                .addInputLayer(imageWidth, imageHeight, 3)
-                .addConvolutionalLayer(3, 3, 3, ActivationType.TANH)
-                .addMaxPoolingLayer(2, 2, 2)
-                .addFullyConnectedLayer(10, ActivationType.TANH)
-                .addOutputLayer(1, ActivationType.SIGMOID)
-                .lossFunction(LossType.CROSS_ENTROPY)
-                .build();
-
+        
         convNet.setOutputLabels(imageSet.getTargetColumnsNames());
 
         System.err.println("Training neural network");

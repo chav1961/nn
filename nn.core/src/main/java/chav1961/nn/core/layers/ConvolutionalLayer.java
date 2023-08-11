@@ -21,12 +21,11 @@
  */
 package chav1961.nn.core.layers;
 
-import java.util.logging.Logger;
-
-import chav1961.nn.core.interfaces.ActivationFunction;
 import chav1961.nn.core.interfaces.ActivationType;
+import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.utils.Tensors;
 
 
@@ -96,7 +95,9 @@ public final class ConvolutionalLayer extends AbstractLayer {
      * @param channels
      */
     public ConvolutionalLayer(int filterWidth, int filterHeight, int channels) {
-        this.filterWidth = filterWidth;
+    	super(LayerType.CONVOLUTIONAL);
+    	
+    	this.filterWidth = filterWidth;
         this.filterHeight = filterHeight;
         this.depth = channels;
         this.stride = 1;
@@ -105,6 +106,8 @@ public final class ConvolutionalLayer extends AbstractLayer {
     }
 
     public ConvolutionalLayer(int filterWidth, int filterHeight, int channels, ActivationType activationType) {
+    	super(LayerType.CONVOLUTIONAL);
+    	
         this.filterWidth = filterWidth;
         this.filterHeight = filterHeight;
         this.depth = channels;
@@ -114,6 +117,8 @@ public final class ConvolutionalLayer extends AbstractLayer {
     }
 
     public ConvolutionalLayer(int filterWidth, int filterHeight, int channels, int stride, ActivationType activationType) {
+    	super(LayerType.CONVOLUTIONAL);
+    	
         this.filterWidth = filterWidth;
         this.filterHeight = filterHeight;
         this.depth = channels;
@@ -129,12 +134,16 @@ public final class ConvolutionalLayer extends AbstractLayer {
      * Assumes that prevLayer is set in network builder
      */
     @Override
-    public void init() {
+    public void init(final NeuralNetwork<?> network) {
         // prev layer can only be input, max pooling or convolutional
-        if (!(prevLayer instanceof InputLayer || prevLayer instanceof ConvolutionalLayer || prevLayer instanceof MaxPoolingLayer)) {
-            throw new IllegalStateException("Illegal architecture: convolutional layer can be used only after input, convolutional or maxpooling layer");
-        }
-
+    	switch (getPrevLayer().getLayerType()) {
+			case CONVOLUTIONAL: case INPUT: case MAXPOOLING:
+				break;
+			case FULLY_CONNECTED: case OUTPUT:
+	            throw new IllegalStateException("Illegal architecture: convolutional layer can be used only after input, convolutional or maxpooling layer");
+			default:
+				throw new UnsupportedOperationException("Layer type ["+getPrevLayer().getLayerType()+"] is not supported yet");
+    	}
         inputs = prevLayer.outputs;
 
         width = (prevLayer.getWidth()) / stride;
@@ -145,8 +154,8 @@ public final class ConvolutionalLayer extends AbstractLayer {
         fCenterY = (filterHeight - 1) / 2;
 
         // init output cells, deltas and derivative buffer
-        outputs = new Tensor(height, width, depth);
-        deltas = new Tensor(height, width, depth);
+        outputs = network.getTensorFactory().newInstance(height, width, depth);
+        deltas = network.getTensorFactory().newInstance(height, width, depth);
 
         // init filters(weights)
         filterDepth = prevLayer.getDepth();
@@ -158,22 +167,22 @@ public final class ConvolutionalLayer extends AbstractLayer {
         int inputCount = (filterWidth * filterHeight + 1) * filterDepth;
 
         for (int ch = 0; ch < filters.length; ch++) {
-            filters[ch] = new Tensor(filterHeight, filterWidth, filterDepth);
+            filters[ch] = network.getTensorFactory().newInstance(filterHeight, filterWidth, filterDepth);
             RandomWeights.uniform(filters[ch].getValues(), inputCount); 
             //RandomWeights.normal(filters[ch].getValues()); 
 
-            deltaWeights[ch] = new Tensor(filterHeight, filterWidth, filterDepth);
-            prevDeltaWeights[ch] = new Tensor(filterHeight, filterWidth, filterDepth);
-            prevGradSums[ch] = new Tensor(filterHeight, filterWidth, filterDepth);
+            deltaWeights[ch] = network.getTensorFactory().newInstance(filterHeight, filterWidth, filterDepth);
+            prevDeltaWeights[ch] = network.getTensorFactory().newInstance(filterHeight, filterWidth, filterDepth);
+            prevGradSums[ch] = network.getTensorFactory().newInstance(filterHeight, filterWidth, filterDepth);
         }
 
         // and biases              
         biases = new float[depth]; 
         deltaBiases = new float[depth];
         prevDeltaBiases = new float[depth];
-        prevBiasSqrSum = new Tensor(depth);
+        prevBiasSqrSum = network.getTensorFactory().newInstance(depth);
         //RandomWeights.randomize(biases);        // sometimes the init to 0 for relu 0.1
-        Tensor.fill(biases, 0.1f);        
+        Tensors.fill(biases, 0.1f);        
     }
 
     /**
@@ -232,17 +241,34 @@ public final class ConvolutionalLayer extends AbstractLayer {
      */
     @Override
     public void backward() {
-        if (nextLayer instanceof FullyConnectedLayer) {
-            backwardFromFullyConnected();
-        }
-
-        if (nextLayer instanceof MaxPoolingLayer) {
-            backwardFromMaxPooling();
-        }
-
-        if (nextLayer instanceof ConvolutionalLayer) {
-            backwardFromConvolutional();
-        }
+    	switch (getNextLayer().getLayerType()) {
+			case CONVOLUTIONAL		:
+	            backwardFromConvolutional();
+				break;
+			case FULLY_CONNECTED	:
+	            backwardFromFullyConnected();
+				break;
+			case INPUT		:
+				break;
+			case MAXPOOLING	:
+	            backwardFromMaxPooling();
+				break;
+			case OUTPUT		:
+				break;
+			default:
+				throw new UnsupportedOperationException("Layer type ["+getNextLayer().getLayerType()+"] is not supported yet");
+    	}
+//        if (nextLayer instanceof FullyConnectedLayer) {
+//            backwardFromFullyConnected();
+//        }
+//
+//        if (nextLayer instanceof MaxPoolingLayer) {
+//            backwardFromMaxPooling();
+//        }
+//
+//        if (nextLayer instanceof ConvolutionalLayer) {
+//            backwardFromConvolutional();
+//        }
     }
 
     /**
@@ -413,14 +439,14 @@ public final class ConvolutionalLayer extends AbstractLayer {
             Tensors.div(deltaBiases, batchSize);
         }
 
-        Tensor.copy(deltaBiases, prevDeltaBiases);  // save this for momentum
+        Tensors.copy(deltaBiases, prevDeltaBiases);  // save this for momentum
 
         for (int ch = 0; ch < depth; ch++) {
             if (batchMode) { 
                 deltaWeights[ch].div(batchSize);
             }
 
-            Tensor.copy(deltaWeights[ch], prevDeltaWeights[ch]); 
+            Tensors.copy(deltaWeights[ch], prevDeltaWeights[ch]); 
 
             filters[ch].add(deltaWeights[ch]);
             biases[ch] += deltaBiases[ch];
@@ -431,7 +457,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
         }
 
         if (batchMode) { // reset delta biases for next batch
-            Tensor.fill(deltaBiases, 0);
+            Tensors.fill(deltaBiases, 0);
         }
 
     }

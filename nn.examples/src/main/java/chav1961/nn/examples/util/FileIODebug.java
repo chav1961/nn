@@ -54,7 +54,7 @@ import java.util.List;
 //import org.json.JSONArray;
 //import org.json.JSONObject;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 
 /**
  * File utilities for saving and loading neural networks.

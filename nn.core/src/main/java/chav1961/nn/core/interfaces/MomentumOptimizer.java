@@ -25,7 +25,6 @@ package chav1961.nn.core.interfaces;
 import java.io.Serializable;
 
 import chav1961.nn.core.layers.AbstractLayer;
-import chav1961.nn.core.utils.Tensor;
 
 class MomentumOptimizer implements Optimizer, Serializable {
 	private static final long serialVersionUID = 3214230909953355084L;

@@ -26,8 +26,8 @@ import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
 import javax.visrec.ml.eval.Evaluator;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
 import chav1961.nn.core.interfaces.MLDataItem;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 
 import java.util.List;
 

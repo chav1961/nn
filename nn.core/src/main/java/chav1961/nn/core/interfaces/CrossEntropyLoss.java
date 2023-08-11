@@ -23,7 +23,7 @@ package chav1961.nn.core.interfaces;
 
 import java.io.Serializable;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 
 /**
  * Represents Average Cross Entropy Loss function.
@@ -32,8 +32,6 @@ import chav1961.nn.core.AbstractNeuralNetwork;
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */
 public class CrossEntropyLoss implements LossFunction, Serializable {
-	
-	
     private static final long serialVersionUID = 7810738324038602274L;
 	
 	
@@ -42,7 +40,7 @@ public class CrossEntropyLoss implements LossFunction, Serializable {
     private float totalError;
     private int patternCount=0;            
     
-    public CrossEntropyLoss(AbstractNeuralNetwork neuralNet) {
+    public CrossEntropyLoss(NeuralNetwork<?> neuralNet) {
      //   outputLayer = (OutputLayer)neuralNet.getOutputLayer();
         outputError = new float[neuralNet.getOutputLayer().getWidth()];
     }

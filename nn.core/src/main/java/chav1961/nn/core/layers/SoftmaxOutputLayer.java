@@ -24,8 +24,8 @@ package chav1961.nn.core.layers;
 import java.util.Arrays;
 
 import chav1961.nn.core.interfaces.ActivationType;
+import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
-import chav1961.nn.core.utils.Tensor;
 
 /**
  * Output layer with softmax activation function.
@@ -49,17 +49,17 @@ public class SoftmaxOutputLayer extends OutputLayer {
     }
 
     @Override
-    public void init() {
+    public void init(final NeuralNetwork<?> network) {
         inputs = prevLayer.outputs;
-        outputs = new Tensor(width);
+        outputs = network.getTensorFactory().newInstance(width);
         outputErrors = new float[width];
-        deltas = new Tensor(width);
+        deltas = network.getTensorFactory().newInstance(width);
 
         int prevLayerWidth = prevLayer.getWidth();
-        weights = new Tensor(prevLayerWidth, width);
-        deltaWeights = new Tensor(prevLayerWidth, width);
-        gradients = new Tensor(prevLayerWidth, width);
-        prevDeltaWeights = new Tensor(prevLayerWidth, width);
+        weights = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        deltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        gradients = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        prevDeltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
         RandomWeights.xavier(weights.getValues(), prevLayerWidth, width);
 
         biases = new float[width];

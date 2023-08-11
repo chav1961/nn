@@ -27,7 +27,7 @@ import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.data.preprocessing.Scaler;
 
 import chav1961.nn.core.interfaces.MLDataItem;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.utils.Tensors;
 
 /**
@@ -95,11 +95,11 @@ public final class MaxScaler implements Scaler<DataSet<MLDataItem>>, Serializabl
      * @param outputs 
      */
     public void deNormalizeOutputs(final Tensor outputs) {
-        outputs.multiplyElementWise(maxOutputs);
+        outputs.multiply(maxOutputs);
     }
     
     public void deNormalizeInputs(final Tensor inputs) {
-        inputs.multiplyElementWise(maxInputs);
+        inputs.multiply(maxInputs);
     }    
 
    

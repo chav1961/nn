@@ -48,18 +48,6 @@ public class CrediCardFraud {
         
         int numInputs= 29;
         int numOutputs = 1;
-        boolean hasHeader = true;
-
-        // load spam data  set from csv file
-        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/CreditCardFraud.csv", numInputs, numOutputs, hasHeader);
-        
-        // scale data to [0, 1] range
-        DataSets.scaleMax(dataSet);
-        
-        // split data into training and test set
-        DataSet<MLDataItem>[] trainTestSet = dataSet.split(0.6);
-        DataSet<MLDataItem> trainingSet = trainTestSet[0];
-        DataSet<MLDataItem> testSet = trainTestSet[1];
         
         // create instance of feed forward neural network using its builder
         FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
@@ -69,6 +57,20 @@ public class CrediCardFraud {
                 .lossFunction(LossType.CROSS_ENTROPY) // cross entropy loss function is commonly used for classification problems
                 .build();
   
+        boolean hasHeader = true;
+
+        // load spam data  set from csv file
+        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/CreditCardFraud.csv", numInputs, numOutputs, hasHeader, neuralNet.getTensorFactory());
+        
+        // scale data to [0, 1] range
+        DataSets.scaleMax(dataSet);
+        
+        // split data into training and test set
+        DataSet<MLDataItem>[] trainTestSet = dataSet.split(0.6);
+        DataSet<MLDataItem> trainingSet = trainTestSet[0];
+        DataSet<MLDataItem> testSet = trainTestSet[1];
+        
+        
         // set parameters of the training algorithm
         neuralNet.getTrainer().setMaxError(0.03f)
                               .setMaxEpochs(10000)

@@ -52,8 +52,17 @@ public class IrisFlowersClassifier {
         int numInputs = 4;  // corresponds to number of input features/attribute in data set
         int numOutputs = 3; // corresponds to number of categories/classes in data set
         
+        // create instance of feed forward neural network (aka multi layer percetpron) using corresponding builder
+        FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
+                .addInputLayer(numInputs) // input layer accepts inputs from data set, and it's size must correspond to number of inputs in data set
+                .addFullyConnectedLayer(8, ActivationType.RELU) // hidden fully connected layer enables solving more complex problems
+                .addOutputLayer(numOutputs, ActivationType.SOFTMAX) // commonly used activation function in output layer for multi class classification
+                .lossFunction(LossType.CROSS_ENTROPY) // commonly used loss function for multi class classification problems
+                .randomSeed(456)    // fix ramdomization seed in order to be able to repeat the results - can use nay value
+                .build();
+
         // load iris data  set from csv file
-        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/iris.csv", numInputs, numOutputs, true);
+        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/iris.csv", numInputs, numOutputs, true, neuralNet.getTensorFactory());
         
         // scale data to range [0,1] in order to make it suitable for neural network processing
         Scaler scaler = new MaxScaler(dataSet);
@@ -64,15 +73,7 @@ public class IrisFlowersClassifier {
         DataSet trainingSet = trainTestSet[0]; // part of data to use for training
         DataSet testSet = trainTestSet[1]; // part of data set to use for testing/evaluation
 
-        // create instance of feed forward neural network (aka multi layer percetpron) using corresponding builder
-        FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
-                .addInputLayer(numInputs) // input layer accepts inputs from data set, and it's size must correspond to number of inputs in data set
-                .addFullyConnectedLayer(8, ActivationType.RELU) // hidden fully connected layer enables solving more complex problems
-                .addOutputLayer(numOutputs, ActivationType.SOFTMAX) // commonly used activation function in output layer for multi class classification
-                .lossFunction(LossType.CROSS_ENTROPY) // commonly used loss function for multi class classification problems
-                .randomSeed(456)    // fix ramdomization seed in order to be able to repeat the results - can use nay value
-                .build();
-
+        
         // get and configure instanceof training algorithm for neural network - backpropagation trainer
         BackpropagationTrainer trainer = neuralNet.getTrainer();
         trainer.setMaxError(0.04f); // training is stopped when thie error valueis reached

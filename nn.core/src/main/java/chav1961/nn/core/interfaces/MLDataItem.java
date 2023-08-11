@@ -21,8 +21,6 @@
     
 package chav1961.nn.core.interfaces;
 
-import chav1961.nn.core.utils.Tensor;
-
 /**
  * Single data item for machine learning algorithms.
  * Provides methods for accessing input and target output.

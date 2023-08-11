@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.BinaryCrossEntropyLoss;
 import chav1961.nn.core.interfaces.CrossEntropyLoss;
@@ -40,6 +39,7 @@ import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.MeanSquaredErrorLoss;
 import chav1961.nn.core.interfaces.NetworkType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
+import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.layers.ConvolutionalLayer;
 import chav1961.nn.core.layers.FullyConnectedLayer;
@@ -47,9 +47,11 @@ import chav1961.nn.core.layers.InputLayer;
 import chav1961.nn.core.layers.MaxPoolingLayer;
 import chav1961.nn.core.layers.OutputLayer;
 import chav1961.nn.core.layers.SoftmaxOutputLayer;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.RandomGenerator;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.utils.Tensors;
+import chav1961.nn.standalone.internal.TensorImpl;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
@@ -95,7 +97,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
     private void initClassFieldsOfNetAndAllLayers() {
     	List<AbstractLayer> layers = this.getLayers();
         for (AbstractLayer cur: layers) {
-            cur.init();
+            cur.init(this);
         }
     }
     
@@ -338,7 +340,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
         for (AbstractLayer layer : getLayers()) {
             if (layer instanceof ConvolutionalLayer) {
                 Tensor[] filters = ((ConvolutionalLayer)layer).getFilters();
-                String filterStr = Tensor.valuesAsString(filters);
+                String filterStr = Tensors.valuesAsString(filters);
                 weightsList.add(filterStr);
             } else {
                 weightsList.add(layer.getDeltaWeights().toString());

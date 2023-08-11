@@ -3,7 +3,7 @@ package chav1961.nn.core.data;
 import java.util.List;
 
 import chav1961.nn.core.interfaces.MLDataItem;
-import chav1961.nn.core.utils.Tensor;
+import chav1961.nn.core.interfaces.Tensor;
 
 public class DataSetStats {
     private Tensor min, max, mean, var, std;

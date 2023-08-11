@@ -19,18 +19,20 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.utils;
+package chav1961.nn.standalone.internal;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.function.Function;
+
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.utils.RandomGenerator;
 
 /**
  * This class represents multidimensional array/matrix (can be 1D, 2D, 3D or 4D).
  *
  * @author Zoran Sevarac
  */
-public class Tensor implements Serializable {
+public class TensorImpl implements Tensor {
 	private static final long serialVersionUID = -2345745004528761209L;
 	
 	
@@ -51,7 +53,7 @@ public class Tensor implements Serializable {
      *
      * @param values values of column tensor
      */
-    public Tensor(final float... values) {
+    public TensorImpl(final float[] values) {
         this.rows = 1;
         this.cols = values.length;
         this.depth = 1;
@@ -65,7 +67,7 @@ public class Tensor implements Serializable {
      *
      * @param vals
      */
-    public Tensor(final float[][] vals) {
+    public TensorImpl(final float[][] vals) {
         this.rows = vals.length;
         this.cols = vals[0].length;
         this.depth = 1;
@@ -85,7 +87,7 @@ public class Tensor implements Serializable {
      *
      * @param vals 2D array of tensor values
      */
-    public Tensor(final float[][][] vals) {
+    public TensorImpl(final float[][][] vals) {
         this.depth = vals.length;
         this.rows = vals[0].length;
         this.cols = vals[0][0].length;
@@ -103,8 +105,7 @@ public class Tensor implements Serializable {
         }
     }
 
-    public Tensor(final float[][][][] vals) {
-
+    public TensorImpl(final float[][][][] vals) {
         this.fourthDim = vals.length;
         this.depth = vals[0].length;
         this.rows = vals[0][0].length;
@@ -129,7 +130,7 @@ public class Tensor implements Serializable {
      * TODO: this should be rows!!!
      * @param cols number of columns
      */
-    public Tensor(int cols) {
+    public TensorImpl(int cols) {
         if (cols < 0) {
             throw new IllegalArgumentException("Number of cols cannot be negative: " + cols);
         }
@@ -142,7 +143,7 @@ public class Tensor implements Serializable {
         values = new float[cols];
     }
 
-    public Tensor(int cols, float val) {
+    public TensorImpl(int cols, float val) {
         if (cols < 0) {
             throw new IllegalArgumentException("Number of cols cannot be negative: " + cols);
         }
@@ -165,7 +166,7 @@ public class Tensor implements Serializable {
      * @param rows number of rows
      * @param cols number of columns
      */
-    public Tensor(int rows, int cols) {
+    public TensorImpl(int rows, int cols) {
         if (rows < 0) {
             throw new IllegalArgumentException("Number of rows cannot be negative: " + rows);
         }
@@ -181,7 +182,7 @@ public class Tensor implements Serializable {
         values = new float[rows * cols];
     }
 
-    public Tensor(int rows, int cols, float[] values) {
+    public TensorImpl(int rows, int cols, float[] values) {
         if (rows < 0) {
             throw new IllegalArgumentException("Number of rows cannot be negative: " + rows);
         }
@@ -208,7 +209,7 @@ public class Tensor implements Serializable {
      * @param cols number of columns
      * @param depth tensor depth
      */
-    public Tensor(int rows, int cols, int depth) { // trebalo bi depth, rows, cols
+    public TensorImpl(int rows, int cols, int depth) { // trebalo bi depth, rows, cols
         if (rows < 0) {
             throw new IllegalArgumentException("Number of rows cannot be negative: " + rows);
         }
@@ -228,7 +229,7 @@ public class Tensor implements Serializable {
     }
 
     // cols, rows, 3rd, 4th?
-    public Tensor(int rows, int cols, int depth, int fourthDim) { // trebalo bi fourthDim, depth, rows, cols
+    public TensorImpl(int rows, int cols, int depth, int fourthDim) { // trebalo bi fourthDim, depth, rows, cols
         if (rows < 0) {
             throw new IllegalArgumentException("Number of rows cannot be negative: " + rows);
         }
@@ -250,7 +251,7 @@ public class Tensor implements Serializable {
         this.values = new float[rows * cols * depth * fourthDim];
     }
 
-    public Tensor(int rows, int cols, int depth, int fourthDim, float[] values) {
+    public TensorImpl(int rows, int cols, int depth, int fourthDim, float[] values) {
         if (rows < 0) {
             throw new IllegalArgumentException("Number of rows cannot be negative: " + rows);
         }
@@ -272,7 +273,7 @@ public class Tensor implements Serializable {
         this.values = values;
     }
 
-    public Tensor(int rows, int cols, int depth, float[] values) {
+    public TensorImpl(int rows, int cols, int depth, float[] values) {
         if (rows < 0) {
             throw new IllegalArgumentException("Number of rows cannot be negative: " + rows);
         }
@@ -294,15 +295,13 @@ public class Tensor implements Serializable {
         this.values = values;
     }
 
-    private Tensor(Tensor t) {
-        this.cols = t.cols;
-        this.rows = t.rows;
-        this.depth = t.depth;
-        this.fourthDim = t.fourthDim;
-        this.dimensions = t.dimensions;
-        values = new float[t.values.length];
-
-        System.arraycopy(t.values, 0, values, 0, t.values.length);
+    public TensorImpl(Tensor t) {
+        this.dimensions = t.getDimensions();
+        this.cols = t.getCols();
+        this.rows = t.getRows();
+        this.depth = t.getDepth();
+        this.fourthDim = t.getFourthDim();
+        this.values = t.getValues().clone();
     }
 
     /**
@@ -311,6 +310,7 @@ public class Tensor implements Serializable {
      * @param idx
      * @return
      */
+    @Override
     public final float get(final int idx) {
         return values[idx];
     }
@@ -322,6 +322,7 @@ public class Tensor implements Serializable {
      * @param val
      * @return
      */
+    @Override
     public final float set(final int idx, final float val) {
         return values[idx] = val;
     }
@@ -333,9 +334,11 @@ public class Tensor implements Serializable {
      * @param row
      * @return value at [row, col]
      */
+    @Override
     public final float get(final int row, final int col) {
-        final int idx = row * cols + col;
-        return values[idx];
+    	return get(row * cols + col);
+//        final int idx = row * cols + col;
+//        return values[idx];
     }
 
     /**
@@ -345,9 +348,11 @@ public class Tensor implements Serializable {
      * @param col matrix col
      * @param val value to set
      */
+    @Override
     public final void set(final int row, final int col, final float val) {
-        final int idx = row * cols + col;
-        values[idx] = val;
+    	set(row * cols + col, val);
+//        final int idx = row * cols + col;
+//        values[idx] = val;
     }
 
     /**
@@ -358,63 +363,81 @@ public class Tensor implements Serializable {
      * @param z
      * @return
      */
+    @Override
     public final float get(final int row, final int col, final int z) {
-        final int idx = z * cols * rows + row * cols + col;
-        return values[idx];
+    	return get(z * cols * rows + row * cols + col);
+//        final int idx = z * cols * rows + row * cols + col;
+//        return values[idx];
     }
 
+    @Override
     public final void set(final int row, final int col, final int z, final float val) {
-        final int idx = z * cols * rows + row * cols + col;
-        values[idx] = val;
+    	set(z * cols * rows + row * cols + col, val);
+//        final int idx = z * cols * rows + row * cols + col;
+//        values[idx] = val;
     }
 
+    @Override
     public final float get(final int row, final int col, final int z, final int fourth) {
-        final int idx = fourth * rows * cols * depth + z * rows * cols + row * cols + col;
-        return values[idx];
+    	return get(fourth * rows * cols * depth + z * rows * cols + row * cols + col);
+//        final int idx = fourth * rows * cols * depth + z * rows * cols + row * cols + col;
+//        return values[idx];
     }
 
+    @Override
     public final void set(final int row, final int col, final int z, final int fourth, final float val) {
-        final int idx = fourth * rows * cols * depth + z * rows * cols + row * cols + col;
-        values[idx] = val;
+        set(fourth * rows * cols * depth + z * rows * cols + row * cols + col, val);
+//    	final int idx = fourth * rows * cols * depth + z * rows * cols + row * cols + col;        
+//        values[idx] = val;
     }
 
+    @Override
     public final float getWithStride(final int[] idxs) {
         final int idx = idxs[0] * shape[1] * shape[2] * shape[3] + idxs[1] * shape[2] * shape[3] + idxs[2] * shape[3] + idxs[3];
         return values[idx];
     }
 
+    @Override
     public final float[] getValues() {
         return values;
     }
 
+    @Override
     public final void setValues(final float... values) {
         this.values = values;
     }
 
+    @Override
     public final void copyFrom(final float[] src) {
         System.arraycopy(src, 0, values, 0, values.length);
     }
 
+    @Override
     public final int getCols() {
         return cols;
     }
 
+    @Override
     public final int getRows() {
         return rows;
     }
 
+    @Override
     public final int getDepth() {
         return depth;
     }
 
+    @Override
     public final int getFourthDim() {
         return fourthDim;
     }
 
+    @Override
     public final int getDimensions() {
         return dimensions;
     }
 
+    @Override
     public final int size() {
         return values.length;
     }
@@ -437,6 +460,7 @@ public class Tensor implements Serializable {
         return sb.toString();
     }
 
+    @Override
     public final void add(final int idx, final float value) {
         values[idx] += value;
     }
@@ -448,19 +472,25 @@ public class Tensor implements Serializable {
      * @param row
      * @param value
      */
+    @Override
     public final void add(final int row, final int col, final float value) {
-        final int idx = row * cols + col;
-        values[idx] += value;
+    	add(row * cols + col, value);
+//        final int idx = row * cols + col;
+//        values[idx] += value;
     }
 
+    @Override
     public final void  add(final int row, final int col, final int z, final float value) {
-        final int idx = z * cols * rows + row * cols + col;
-        values[idx] += value;
+    	add(z * cols * rows + row * cols + col, value);
+//        final int idx = z * cols * rows + row * cols + col;
+//        values[idx] += value;
     }
 
+    @Override
     public final void add(final int row, final int col, final int z, final int fourth, final float value) {
-        final int idx = fourth * cols * rows * depth + z * cols * rows + row * cols + col;
-        values[idx] += value;
+    	add(fourth * cols * rows * depth + z * cols * rows + row * cols + col, value);
+//        final int idx = fourth * cols * rows * depth + z * cols * rows + row * cols + col;
+//        values[idx] += value;
     }
 
 
@@ -470,25 +500,37 @@ public class Tensor implements Serializable {
      *
      * @param t tensor to add
      */
+    @Override
     public final void add(Tensor t) {
         for (int i = 0; i < values.length; i++) {
-            values[i] += t.values[i];
+            values[i] += t.getValues()[i];
         }
     }
 
+    @Override
+    public final void sub(final int idx, final float value) {
+        values[idx] -= value;
+    }
+    
+    @Override
     public final void sub(final int row, final int col, final float value) {
-        final int idx = row * cols + col;
-        values[idx] -= value;
+    	sub(row * cols + col, value);
+//        final int idx = row * cols + col;
+//        values[idx] -= value;
     }
 
+    @Override
     public final void sub(final int row, final int col, final int z, final float value) {
-        final int idx = z * rows * cols + row * cols + col;
-        values[idx] -= value;
+    	sub(z * rows * cols + row * cols + col, value);
+//        final int idx = z * rows * cols + row * cols + col;
+//        values[idx] -= value;
     }
 
+    @Override
     public final void sub(final int row, final int col, final int z, final int fourth, final float value) {
-        final int idx = fourth * rows * cols * depth + z * rows * cols + row * cols + col;
-        values[idx] -= value;
+    	sub(fourth * rows * cols * depth + z * rows * cols + row * cols + col, value);
+//        final int idx = fourth * rows * cols * depth + z * rows * cols + row * cols + col;
+//        values[idx] -= value;
     }
 
     /**
@@ -496,12 +538,14 @@ public class Tensor implements Serializable {
      *
      * @param t tensor to subtract
      */
+    @Override
     public final void sub(final Tensor t) {
         for (int i = 0; i < values.length; i++) {
-            values[i] -= t.values[i];
+            values[i] -= t.getValues()[i];
         }
     }
     
+    @Override
     public final void sub(final float val) {
         for (int i = 0; i < values.length; i++) {
             values[i] -= val;
@@ -509,22 +553,11 @@ public class Tensor implements Serializable {
     }    
 
     /**
-     * Subtracts tensor t2 from t1. The result is t1.
-     *
-     * @param t1
-     * @param t2
-     */
-    public final static void sub(final Tensor t1, final Tensor t2) {
-        for (int i = 0; i < t1.values.length; i++) {
-            t1.values[i] -= t2.values[i];
-        }
-    }
-
-    /**
      * Divide all values in this tensor with specified value.
      *
      * @param value
      */
+    @Override
     public final void div(final float value) {
         for (int i = 0; i < values.length; i++) {
             values[i] /= value;
@@ -532,6 +565,7 @@ public class Tensor implements Serializable {
     }
     
     // element wise division
+    @Override
     public final void div(final float[] divisors) {
         for (int i = 0; i < values.length; i++) {
             values[i] /= divisors[i];
@@ -543,42 +577,30 @@ public class Tensor implements Serializable {
      *
      * @param value value used to fill tensor
      */
+    @Override
     public final void fill(final float value) {
         for (int i = 0; i < values.length; i++) {
             values[i] = value;
         }
     }
 
-    public static final void fill(final float[] array, final float val) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = val;
-        }
-    }
-
-    
+    @Override
     public final void div(Tensor t) {
         for (int i = 0; i < values.length; i++) {
-            this.values[i] = this.values[i] / t.values[i];
+            this.getValues()[i] /= t.getValues()[i];
         }
     }
     
     // TODO: fix number of dimensions
-    public Tensor copy() {
-        Tensor newTensor = new Tensor(rows, cols,  depth, fourthDim);    
+    @Override
+    public TensorImpl copy() {
+        TensorImpl newTensor = new TensorImpl(rows, cols,  depth, fourthDim);    
         System.arraycopy(this.values, 0, newTensor.values, 0, this.values.length);                
         return newTensor;
     }
     
-    // TODO: also set dimensions for dst
-    public static final void copy(final Tensor src, final Tensor dest) {
-        System.arraycopy(src.values, 0, dest.values, 0, src.values.length);
-    }
-
-    public static final void copy(final float[] src, final float[] dest) {
-        System.arraycopy(src, 0, dest, 0, src.length);
-    }
-
-    public void apply(Function<Float, Float> f) {
+    @Override
+    public void apply(final FloatFunction f) {
         for(int i=0; i<values.length; i++) {
             values[i] = f.apply(values[i]);
         }
@@ -595,7 +617,7 @@ public class Tensor implements Serializable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Tensor other = (Tensor) obj;
+        final TensorImpl other = (TensorImpl) obj;
         if (this.cols != other.cols) {
             return false;
         }
@@ -629,7 +651,8 @@ public class Tensor implements Serializable {
         return hash;
     }
 
-    public boolean equals(Tensor t2, float delta) {
+    @Override
+    public boolean equals(final Tensor t2, float delta) {
         float[] arr2 = t2.getValues();
 
         for (int i = 0; i < values.length; i++) {
@@ -640,23 +663,12 @@ public class Tensor implements Serializable {
         return true;
     }
 
-// add clone using apache clone builder
-
-    public static String valuesAsString(Tensor[] tensors) {
-        StringBuilder sb = new StringBuilder();
-
-        for (Tensor t : tensors) {
-            sb.append(t.toString());
-        }
-
-        return sb.toString();
-    }
-
     /**
      * Sets tensor values from csv string.
      *
      * @param values csv string with values
      */
+    @Override
     public void setValuesFromString(String values) {
         String[] strArr = values.split(",");
         for (int i = 0; i < strArr.length; i++) {
@@ -664,31 +676,13 @@ public class Tensor implements Serializable {
         }
     }
 
-    /**
-     * Factory method for creating tensor instance,
-     *
-     * @param rows
-     * @param cols
-     * @param values
-     * @return
-     */
-    public static Tensor create(int rows, int cols, float[] values) {
-        return new Tensor(rows, cols, values);
-    }
-
-    public static Tensor create(int rows, int cols, int depth, float[] values) {
-        return new Tensor(rows, cols, depth, values);
-    }
-
-    public static Tensor create(int rows, int cols, int depth, int fourthDim, float[] values) {
-        return new Tensor(rows, cols, depth, fourthDim, values);
-    }
-
+    
     /**
      * Returns sum of abs values of this tensor - L1 norm
      *
      * @return L1 norm
      */
+    @Override
     public float sumAbs() {
         float sum = 0;
         for (int i = 0; i < values.length; i++) {
@@ -702,6 +696,7 @@ public class Tensor implements Serializable {
      *
      * @return L2 norm
      */
+    @Override
     public float sumSqr() {
         float sum = 0;
         for (int i = 0; i < values.length; i++) {
@@ -711,6 +706,7 @@ public class Tensor implements Serializable {
     }
 
     // works for 2d tensors
+    @Override
     public void randomize() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -719,22 +715,24 @@ public class Tensor implements Serializable {
         }
     }
 
-    public void multiplyElementWise(Tensor tensor2) {
+    @Override
+    public void multiply(Tensor tensor2) {
         for(int i=0; i<values.length; i++) {
-            values[i] *= tensor2.values[i];
+            values[i] *= tensor2.getValues()[i];
         }
     }
 
+    @Override
     public void multiply(float m) {
         for(int i=0; i<values.length; i++) {
             values[i] *= m;
         }
     }
 
+    @Override
     public void sqrt() {
         for (int i = 0; i < values.length; i++) {
             values[i] = (float)Math.sqrt(values[i]);
         }
     }
-
 }

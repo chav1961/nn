@@ -25,8 +25,8 @@ package chav1961.nn.core.eval;
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
 import chav1961.nn.core.interfaces.MLDataItem;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 
 /**
  * This class provides various utility methods for evaluating machine learning models.

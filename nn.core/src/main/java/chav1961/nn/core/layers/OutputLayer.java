@@ -24,9 +24,10 @@ package chav1961.nn.core.layers;
 import java.util.Arrays;
 
 import chav1961.nn.core.interfaces.ActivationType;
+import chav1961.nn.core.interfaces.LayerType;
 import chav1961.nn.core.interfaces.LossType;
+import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
-import chav1961.nn.core.utils.Tensor;
 import chav1961.nn.core.utils.Tensors;
 
 /**
@@ -53,6 +54,8 @@ public class OutputLayer extends AbstractLayer {
      * @param width layer width which represents number of network outputs
      */
     public OutputLayer(int width) {
+    	super(LayerType.OUTPUT);
+    	
         this.width = width;
         this.height = 1;
         this.depth = 1;
@@ -75,6 +78,8 @@ public class OutputLayer extends AbstractLayer {
      * @param actType activation function
      */
     public OutputLayer(int width, ActivationType actType) {
+    	super(LayerType.OUTPUT);
+    	
         this.width = width;
         this.height = 1;
         this.depth = 1;
@@ -96,6 +101,8 @@ public class OutputLayer extends AbstractLayer {
      * @param outputLabels labels for network's outputs
      */
     public OutputLayer(String[] outputLabels) {
+    	super(LayerType.OUTPUT);
+    	
         this.width = outputLabels.length;
         this.height = 1;
         this.depth = 1;
@@ -125,17 +132,17 @@ public class OutputLayer extends AbstractLayer {
     }
 
     @Override
-    public void init() {
+    public void init(final NeuralNetwork<?> network) {
         inputs = prevLayer.outputs;
-        outputs = new Tensor(width);
+        outputs = network.getTensorFactory().newInstance(width);
         outputErrors = new float[width];
-        deltas = new Tensor(width);
+        deltas = network.getTensorFactory().newInstance(width);
 
         int prevLayerWidth = prevLayer.getWidth();
-        weights = new Tensor(prevLayerWidth, width);
-        gradients = new Tensor(prevLayerWidth, width);
-        deltaWeights = new Tensor(prevLayerWidth, width);
-        prevDeltaWeights = new Tensor(prevLayerWidth, width);
+        weights = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        gradients = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        deltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        prevDeltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
         RandomWeights.xavier(weights.getValues(), prevLayerWidth, width);
 
         biases = new float[width];
@@ -204,15 +211,15 @@ public class OutputLayer extends AbstractLayer {
             Tensors.div(deltaBiases, batchSize);
         }
 
-        Tensor.copy(deltaWeights, prevDeltaWeights);
+        Tensors.copy(deltaWeights, prevDeltaWeights);
         weights.add(deltaWeights);
 
-        Tensor.copy(deltaBiases, prevDeltaBiases);
+        Tensors.copy(deltaBiases, prevDeltaBiases);
         Tensors.add(biases, deltaBiases);
 
         if (batchMode) {   
             deltaWeights.fill(0);
-            Tensor.fill(deltaBiases, 0);
+            Tensors.fill(deltaBiases, 0);
         }
     }
     

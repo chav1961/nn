@@ -24,7 +24,7 @@ package chav1961.nn.core.interfaces;
 
 import java.io.Serializable;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 
 /**
  * Mean Squared Error Loss function. Sum squared errors over all patterns and

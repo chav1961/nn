@@ -23,7 +23,7 @@ package chav1961.nn.core.interfaces;
 
 import java.io.Serializable;
 
-import chav1961.nn.core.AbstractNeuralNetwork;
+import chav1961.nn.core.network.AbstractNeuralNetwork;
 
 /**
  * Cross Entropy Loss for binary(single output, two classes) classification.
@@ -32,11 +32,13 @@ import chav1961.nn.core.AbstractNeuralNetwork;
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */
 public class BinaryCrossEntropyLoss implements LossFunction, Serializable {
-    private final float[] outputError;
+	private static final long serialVersionUID = 3271809444066219883L;
+
+	private final float[] outputError;
     private float totalError;
     private int patternCount=0;    
      
-    public BinaryCrossEntropyLoss(AbstractNeuralNetwork neuralNet) {
+    public BinaryCrossEntropyLoss(NeuralNetwork<?> neuralNet) {
         if (neuralNet.getOutputLayer().getWidth()>1) throw new IllegalArgumentException("BinaryCrossEntropyLoss can be only used with networks with single sigmoid output!");
         
         outputError = new float[1];

@@ -49,15 +49,16 @@ public class LogisticRegression {
 
         int numInputs = 60;
         
-        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/sonar.csv", numInputs, 1);
-        DataSet[] trainTestSet = DataSets.trainTestSplit(dataSet, 0.7);
-
         FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
                 .addInputLayer(numInputs)
                 .addOutputLayer(1, ActivationType.SIGMOID)
                 .lossFunction(LossType.CROSS_ENTROPY)
                 .build();
 
+        DataSet dataSet = FileIO.readCsv("./src/test/resources/datasets/sonar.csv", numInputs, 1, neuralNet.getTensorFactory());
+        DataSet[] trainTestSet = DataSets.trainTestSplit(dataSet, 0.7);
+
+        
         BackpropagationTrainer trainer = neuralNet.getTrainer();
         trainer.setLearningRate(0.01f)
                .setMaxError(0.1f)

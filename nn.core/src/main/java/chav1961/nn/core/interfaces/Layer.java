@@ -22,8 +22,6 @@
 
 package chav1961.nn.core.interfaces;
 
-import chav1961.nn.core.utils.Tensor;
-
 /**
  * Common base interface for all types of neural network layers.
  * Layer is a basic building block of a neural network, and neural network

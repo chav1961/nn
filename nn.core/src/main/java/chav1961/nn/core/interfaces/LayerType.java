@@ -27,7 +27,11 @@ package chav1961.nn.core.interfaces;
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */
 public enum LayerType {
-    INPUT("INPUT"), CONVOLUTIONAL("CONVOLUTIONAL"), MAXPOOLING("MAXPOOLING"), FULLY_CONNECTED("FULLY_CONNECTED"), OUTPUT("OUTPUT");
+    INPUT("INPUT"), 
+    CONVOLUTIONAL("CONVOLUTIONAL"), 
+    MAXPOOLING("MAXPOOLING"), 
+    FULLY_CONNECTED("FULLY_CONNECTED"), 
+    OUTPUT("OUTPUT");
 
     private final String name;
 

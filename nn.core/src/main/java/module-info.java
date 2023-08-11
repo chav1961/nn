@@ -4,7 +4,8 @@ module nn.core {
 	requires visrec.api;
 	requires commons.lang3;
 	
-	exports chav1961.nn.core;
+	exports chav1961.nn.core.network;
+	exports chav1961.nn.core.data;
 	exports chav1961.nn.core.interfaces;
 	exports chav1961.nn.core.layers;
 	exports chav1961.nn.core.train;

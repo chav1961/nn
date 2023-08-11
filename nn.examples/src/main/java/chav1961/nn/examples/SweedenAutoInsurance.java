@@ -55,15 +55,16 @@ public class SweedenAutoInsurance {
         int inputsNum = 1;
         int outputsNum = 1;
 
-        DataSet dataSet = FileIO.readCsv(datasetFile, inputsNum, outputsNum);
-        DataSet[] trainAndTestSet = dataSet.split(0.7, 0.3);
-
         FeedForwardNetwork neuralNet = FeedForwardNetwork.builder()
                 .addInputLayer(1)
                 .addOutputLayer(1, ActivationType.LINEAR)
                 .lossFunction(LossType.MEAN_SQUARED_ERROR)
                 .build();
 
+        DataSet dataSet = FileIO.readCsv(datasetFile, inputsNum, outputsNum, neuralNet.getTensorFactory());
+        DataSet[] trainAndTestSet = dataSet.split(0.7, 0.3);
+
+        
         BackpropagationTrainer trainer = neuralNet.getTrainer();
         trainer.setMaxError(0.01f)
                .setMaxEpochs(100)

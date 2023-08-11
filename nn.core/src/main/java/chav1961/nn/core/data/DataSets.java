@@ -22,19 +22,13 @@
 
 package chav1961.nn.core.data;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.regex.Pattern;
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.data.preprocessing.Scaler;
 
 import chav1961.nn.core.data.preprocessing.MaxScaler;
 import chav1961.nn.core.data.preprocessing.Standardizer;
-import chav1961.nn.core.utils.ColumnType;
-import chav1961.nn.core.utils.CsvFormat;
+import chav1961.nn.core.interfaces.NeuralNetwork;
+import chav1961.nn.core.interfaces.TensorFactory;
 
 
 /**
@@ -56,8 +50,8 @@ public class DataSets {
         return scaler;
     }
     
-    public static Scaler standardize(DataSet dataSet) {
-        Standardizer scaler = new Standardizer(dataSet);
+    public static Scaler standardize(final TensorFactory factory, DataSet dataSet) {
+        Standardizer scaler = new Standardizer(factory, dataSet);
         scaler.apply(dataSet);
         
         return scaler;

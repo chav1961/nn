@@ -19,7 +19,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.package deepnetts.core;
  */
 
-package chav1961.nn.core;
+package chav1961.nn.core.network;
 
 import java.io.Serializable;
 import java.net.URI;
@@ -38,11 +38,12 @@ import chav1961.nn.core.interfaces.MLDataItem;
 import chav1961.nn.core.interfaces.MeanSquaredErrorLoss;
 import chav1961.nn.core.interfaces.NetworkType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.interfaces.TensorFactory;
 import chav1961.nn.core.interfaces.Trainer;
 import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.layers.InputLayer;
 import chav1961.nn.core.layers.OutputLayer;
-import chav1961.nn.core.utils.Tensor;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
@@ -108,7 +109,9 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
 	public abstract boolean canServe(URI resource) throws NullPointerException;
 	@Override
 	public abstract NeuralNetwork<T> newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException;
-
+	@Override
+	public abstract TensorFactory getTensorFactory();
+	
     /**
      * Sets network input vector and triggers forward pass.
      *

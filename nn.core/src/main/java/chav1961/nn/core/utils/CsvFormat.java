@@ -23,11 +23,13 @@ package chav1961.nn.core.utils;
 
 import java.util.Arrays;
 
+import javax.visrec.ml.data.Column;
+
 public class CsvFormat {
     private String delimiter;
     private boolean hasHeader;
     private String[] columnNames;
-    private ColumnType[] columnTypes;
+    private Column.Type[] columnTypes;
     private int numColumns;
     
     // todo add numColumns
@@ -56,11 +58,11 @@ public class CsvFormat {
         this.numColumns = columnNames.length;
     }
 
-    public ColumnType[] getColumnTypes() {
+    public Column.Type[] getColumnTypes() {
         return columnTypes;
     }
 
-    public void setColumnTypes(ColumnType[] columnTypes) {
+    public void setColumnTypes(Column.Type[] columnTypes) {
         this.columnTypes = columnTypes;
     }
 

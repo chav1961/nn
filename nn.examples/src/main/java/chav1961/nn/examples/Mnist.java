@@ -58,17 +58,6 @@ public class Mnist {
         System.err.println("Training convolutional network with MNIST data set");
         System.err.println("Creating image data set...");
 
-        // create a data set from images and labels
-        ImageSet imageSet = new ImageSet(IMAGE_WIDTH, IMAGE_HEIGHT);
-        imageSet.setInvertImages(true);
-        imageSet.loadLabels(new File(LABELS_FILE));
-        imageSet.loadImages(new File(TRAINING_FILE), 1000);
-        //  imageSet.zeroMean();
-        imageSet.countByClasses();      
-        
-        ImageSet[] imageSets = imageSet.split(0.7, 0.3);
-        int labelsCount = imageSet.getLabelsCount();
-
         System.err.println("------------------------------------------------");
         System.err.println("CREATING NEURAL NETWORK");
         System.err.println("------------------------------------------------");
@@ -84,6 +73,18 @@ public class Mnist {
                 .lossFunction(LossType.CROSS_ENTROPY)
                 .randomSeed(123)
                 .build();
+
+        // create a data set from images and labels
+        ImageSet imageSet = new ImageSet(IMAGE_WIDTH, IMAGE_HEIGHT, neuralNet.getTensorFactory());
+        imageSet.setInvertImages(true);
+        imageSet.loadLabels(new File(LABELS_FILE));
+        imageSet.loadImages(new File(TRAINING_FILE), 1000);
+        //  imageSet.zeroMean();
+        imageSet.countByClasses();      
+        
+        ImageSet[] imageSets = imageSet.split(0.7, 0.3);
+        int labelsCount = imageSet.getLabelsCount();
+
         
         System.err.println(neuralNet);        
         
