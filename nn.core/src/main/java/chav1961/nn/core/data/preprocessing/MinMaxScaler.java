@@ -37,6 +37,7 @@ import chav1961.nn.core.utils.Tensors;
  */
 public class MinMaxScaler implements Scaler<DataSet<MLDataItem>>, Serializable {
 	private static final long serialVersionUID = -2898120525541009358L;
+
 	private Tensor minInput;
     private Tensor maxInput;
     private Tensor minOutput;   // ovo ne bi trebalo na outputs da se primenjuje???

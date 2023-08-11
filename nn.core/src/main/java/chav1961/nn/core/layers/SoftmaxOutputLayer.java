@@ -50,12 +50,12 @@ public class SoftmaxOutputLayer extends OutputLayer {
 
     @Override
     public void init(final NeuralNetwork<?> network) {
-        inputs = prevLayer.outputs;
+        inputs = getPrevLayer().outputs;
         outputs = network.getTensorFactory().newInstance(width);
         outputErrors = new float[width];
         deltas = network.getTensorFactory().newInstance(width);
 
-        int prevLayerWidth = prevLayer.getWidth();
+        int prevLayerWidth = getPrevLayer().getWidth();
         weights = network.getTensorFactory().newInstance(prevLayerWidth, width);
         deltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
         gradients = network.getTensorFactory().newInstance(prevLayerWidth, width);

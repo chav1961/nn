@@ -44,16 +44,6 @@ public abstract class AbstractLayer implements Layer, Serializable {
 	
 
     /**
-     * Previous layer in network
-     */
-    protected AbstractLayer prevLayer; // pokazuje na prethodnu matricu - i nje uzima ulaz za sebe
-
-    /**
-     * Next layer in network
-     */
-    protected AbstractLayer nextLayer;
-
-    /**
      * Input weight matrix / connectivity matrix for previous layer 
      */
     protected Tensor weights;
@@ -119,6 +109,10 @@ public abstract class AbstractLayer implements Layer, Serializable {
     protected RandomWeightsType randomWeightsType = RandomWeightsType.XAVIER;
 
     private final LayerType	layerType;
+
+    private AbstractLayer prevLayer;
+    private AbstractLayer nextLayer;
+
     
     protected AbstractLayer(final LayerType layerType) {
     	this.layerType = layerType;
@@ -148,15 +142,17 @@ public abstract class AbstractLayer implements Layer, Serializable {
      */
     @Override
     public abstract void backward();
-
+    
     /**
-     * Applies weight changes to current weights Must be diferent for
+     * Applies weight changes to current weights Must be different for
      * convolutional does nothing for MaxPooling Same for FullyConnected and
      * OutputLayer
      *
      */
     public abstract void applyWeightChanges();
 
+    public abstract void setPrevLayer(final AbstractLayer prevLayer);
+    public abstract void setNextlayer(AbstractLayer nextlayer);
     
     public LayerType getLayerType() {
     	return layerType;
@@ -178,18 +174,10 @@ public abstract class AbstractLayer implements Layer, Serializable {
         return prevLayer;
     }
 
-    public void setPrevLayer(AbstractLayer prevLayer) {
-        this.prevLayer = prevLayer;
-    }
-
     public AbstractLayer getNextLayer() {
         return nextLayer;
     }
     
-    public void setNextlayer(AbstractLayer nextlayer) {
-        this.nextLayer = nextlayer;
-    }
-
     public Tensor getWeights() {
         return weights;
     }
@@ -322,4 +310,11 @@ public abstract class AbstractLayer implements Layer, Serializable {
         this.regularization = reg;
     }
 
+    protected void setPrevLayerInternal(final AbstractLayer prevLayer) {
+    	this.prevLayer = prevLayer;
+    }    
+
+    protected void setNextLayerInternal(final AbstractLayer nextLayer) {
+    	this.nextLayer = nextLayer;
+    }    
 }

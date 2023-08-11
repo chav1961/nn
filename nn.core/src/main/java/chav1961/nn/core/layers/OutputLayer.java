@@ -21,6 +21,7 @@
  */
 package chav1961.nn.core.layers;
 
+import java.nio.channels.IllegalSelectorException;
 import java.util.Arrays;
 
 import chav1961.nn.core.interfaces.ActivationType;
@@ -115,6 +116,16 @@ public class OutputLayer extends AbstractLayer {
         setActivationType(actType);
     }
 
+	@Override
+	public void setPrevLayer(AbstractLayer prevLayer) {
+		setPrevLayerInternal(prevLayer);
+	}
+
+	@Override
+	public void setNextlayer(AbstractLayer nextlayer) {
+		throw new IllegalStateException("Output layer can't have next layer");
+	}    
+    
     public final void setOutputErrors(final float[] outputErrors) {
         this.outputErrors = outputErrors;
     }
@@ -133,12 +144,12 @@ public class OutputLayer extends AbstractLayer {
 
     @Override
     public void init(final NeuralNetwork<?> network) {
-        inputs = prevLayer.outputs;
+        inputs = getPrevLayer().outputs;
         outputs = network.getTensorFactory().newInstance(width);
         outputErrors = new float[width];
         deltas = network.getTensorFactory().newInstance(width);
 
-        int prevLayerWidth = prevLayer.getWidth();
+        int prevLayerWidth = getPrevLayer().getWidth();
         weights = network.getTensorFactory().newInstance(prevLayerWidth, width);
         gradients = network.getTensorFactory().newInstance(prevLayerWidth, width);
         deltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
@@ -226,5 +237,5 @@ public class OutputLayer extends AbstractLayer {
     @Override
     public String toString() {
         return "Output Layer { width:"+width+", activation:"+activationType.name()+"}";
-    }    
+    }
 }

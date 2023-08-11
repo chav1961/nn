@@ -36,7 +36,9 @@ import chav1961.nn.core.utils.Tensors;
  * @author Zoran Sevarac
  */
 public class DecimalScaler implements Scaler<DataSet<MLDataItem>>, Serializable {
-    private float[] inputDivisor;
+	private static final long serialVersionUID = 454368895122490145L;
+	
+	private float[] inputDivisor;
     private float[] outputDivisor;
                 
     /**

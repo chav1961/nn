@@ -23,11 +23,11 @@
 package chav1961.nn.core.data.preprocessing;
 
 import java.io.Serializable;
+
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.data.preprocessing.Scaler;
 
 import chav1961.nn.core.interfaces.MLDataItem;
-import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.interfaces.TensorFactory;
 
@@ -41,10 +41,9 @@ import chav1961.nn.core.interfaces.TensorFactory;
  */
 public class Standardizer implements Scaler<DataSet<MLDataItem>>, Serializable {
 	private static final long serialVersionUID = 3090230949401627734L;
-// only appy to inputs, not binary values
-    private final Tensor mean;
+
+	private final Tensor mean;
     private final Tensor std;
-    
     
     public Standardizer(final TensorFactory factory, final DataSet<MLDataItem> dataSet) {
         Tensor t = dataSet.get(0).getInput();

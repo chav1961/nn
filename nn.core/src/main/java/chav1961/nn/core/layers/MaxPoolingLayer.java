@@ -77,24 +77,31 @@ public final class MaxPoolingLayer extends AbstractLayer {
         this.stride = stride;
     }
 
-    @Override
-    final public void init(final NeuralNetwork<?> network) {
-        // max pooling layer can be only after Convolutional Layer
-    	switch (getPrevLayer().getLayerType()) {
+	@Override
+	public void setPrevLayer(AbstractLayer prevLayer) {
+    	switch (prevLayer.getLayerType()) {
 			case CONVOLUTIONAL	:
+				setPrevLayerInternal(prevLayer);
 				break;
 			case FULLY_CONNECTED: case INPUT : case MAXPOOLING : case OUTPUT :
 				throw new IllegalStateException("Illegal network architecture! MaxPooling can be only after convolutional layer!");				
 			default:
-				throw new UnsupportedOperationException("Layer type ["+getPrevLayer().getLayerType()+"] is not supported yet");
+				throw new UnsupportedOperationException("Layer type ["+prevLayer.getLayerType()+"] is not supported yet");
     	}
-//        if (!(prevLayer instanceof ConvolutionalLayer)) throw new RuntimeException("Illegal network architecture! MaxPooling can be only after convolutional layer!");
+	}
 
-        inputs = prevLayer.outputs;
+	@Override
+	public void setNextlayer(AbstractLayer nextlayer) {
+		setNextLayerInternal(nextlayer);
+	}
+    
+    @Override
+    final public void init(final NeuralNetwork<?> network) {
+        inputs = getPrevLayer().outputs;
 
         width = (inputs.getCols() - filterWidth) / stride + 1; 
         height = (inputs.getRows() - filterHeight) / stride + 1;
-        depth = prevLayer.getDepth(); 
+        depth = getPrevLayer().getDepth(); 
 
         outputs = network.getTensorFactory().newInstance(height, width, depth);
         deltas = network.getTensorFactory().newInstance(height, width,  depth);
@@ -193,9 +200,9 @@ public final class MaxPoolingLayer extends AbstractLayer {
     private void backwardFromFullyConnectedForChannel(int ch) {
         for (int row = 0; row < deltas.getRows(); row++) {
             for (int col = 0; col < deltas.getCols(); col++) {
-                for (int ndC = 0; ndC < nextLayer.deltas.getCols(); ndC++) {
-                    final float nextLayerDelta = nextLayer.deltas.get(ndC);
-                    final float weight = nextLayer.weights.get(col, row, ch, ndC);
+                for (int ndC = 0; ndC < getNextLayer().deltas.getCols(); ndC++) {
+                    final float nextLayerDelta = getNextLayer().deltas.get(ndC);
+                    final float weight = getNextLayer().weights.get(col, row, ch, ndC);
                     deltas.add(row, col, ch, nextLayerDelta * weight);
                 }
             }
@@ -211,15 +218,15 @@ public final class MaxPoolingLayer extends AbstractLayer {
     }
     
     private void backwardFromConvolutionalForChannel(int fz) {
-        final ConvolutionalLayer nextConvLayer = (ConvolutionalLayer) nextLayer;
+        final ConvolutionalLayer nextConvLayer = (ConvolutionalLayer) getNextLayer();
         final int filterCenterX = (nextConvLayer.filterWidth - 1) / 2;
         final int filterCenterY = (nextConvLayer.filterHeight - 1) / 2;
 
         // 1. Propagate deltas from next conv layer for max outputs from this layer
-        for (int ndz = 0; ndz < nextLayer.deltas.getDepth(); ndz++) { 
-            for (int ndr = 0; ndr < nextLayer.deltas.getRows(); ndr++) { 
-                for (int ndc = 0; ndc < nextLayer.deltas.getCols(); ndc++) { 
-                    final float nextLayerDelta = nextLayer.deltas.get(ndr, ndc, ndz); 
+        for (int ndz = 0; ndz < getNextLayer().deltas.getDepth(); ndz++) { 
+            for (int ndr = 0; ndr < getNextLayer().deltas.getRows(); ndr++) { 
+                for (int ndc = 0; ndc < getNextLayer().deltas.getCols(); ndc++) { 
+                    final float nextLayerDelta = getNextLayer().deltas.get(ndr, ndc, ndz); 
 
                     for (int fr = 0; fr < nextConvLayer.filterHeight; fr++) {
                         for (int fc = 0; fc < nextConvLayer.filterWidth; fc++) {

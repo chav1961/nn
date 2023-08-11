@@ -273,7 +273,9 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
                     layer.setActivationType(defaultActivationType); // ali ovo ne treba ovako!!! ako je vec nesto setovano onda nemoj to d agazis
                     layer.setActivation(InternalUtils.create(defaultActivationType));
                 }
-                layer.setPrevLayer(prevLayer);
+                if (i > 0) {
+                    layer.setPrevLayer(prevLayer);
+                }
                 if (prevLayer != null) {
                     prevLayer.setNextlayer(layer);
                 }

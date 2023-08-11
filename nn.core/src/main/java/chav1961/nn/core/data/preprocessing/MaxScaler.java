@@ -38,7 +38,9 @@ import chav1961.nn.core.utils.Tensors;
  * @author Zoran Sevarac
  */
 public final class MaxScaler implements Scaler<DataSet<MLDataItem>>, Serializable {
-    private Tensor maxInputs;
+	private static final long serialVersionUID = -7722374460204772627L;
+	
+	private Tensor maxInputs;
     private Tensor maxOutputs;
                 
     /**

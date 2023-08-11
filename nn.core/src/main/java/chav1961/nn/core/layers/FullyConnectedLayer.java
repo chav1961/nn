@@ -73,6 +73,32 @@ public final class FullyConnectedLayer extends AbstractLayer {
         setActivationType(actType);
     }
 
+	@Override
+	public void setPrevLayer(AbstractLayer prevLayer) {
+    	switch (prevLayer.getLayerType()) {
+			case CONVOLUTIONAL : case FULLY_CONNECTED : case INPUT : case MAXPOOLING :
+				setPrevLayerInternal(prevLayer);
+				break;
+			case OUTPUT:
+	            throw new IllegalStateException("Bad network architecture! Fully Connected Layer can be connected only to Input, FullyConnected, Maxpooling or Convolutional layer as previous layer.");
+			default:
+				throw new UnsupportedOperationException("Layer type ["+prevLayer.getLayerType()+"] is not supported yet");
+    	}
+	}
+
+	@Override
+	public void setNextlayer(AbstractLayer nextlayer) {
+    	switch (nextlayer.getLayerType()) {
+			case FULLY_CONNECTED : case OUTPUT :
+				setNextLayerInternal(nextlayer);
+				break;
+			case CONVOLUTIONAL : case INPUT : case MAXPOOLING :
+	            throw new IllegalStateException("Bad network architecture! Fully Connected Layer can only be connected only to Fully Connected Layer or Output layer as next layer");
+			default:
+				throw new UnsupportedOperationException("Layer type ["+nextlayer.getLayerType()+"] is not supported yet");
+    	}
+	}
+
     /**
      * Creates all internal data structures: inputs, weights, biases, outputs,
      * deltas, deltaWeights, deltaBiases prevDeltaWeights, prevDeltaBiases. Init
@@ -81,68 +107,40 @@ public final class FullyConnectedLayer extends AbstractLayer {
      */
     @Override
     public void init(final NeuralNetwork<?> network) {
-    	switch (getPrevLayer().getLayerType()) {
-			case CONVOLUTIONAL : case FULLY_CONNECTED : case INPUT : case MAXPOOLING :
-				break;
-			case OUTPUT:
-	            throw new IllegalStateException("Bad network architecture! Fully Connected Layer can be connected only to Input, FullyConnected, Maxpooling or Convolutional layer as previous layer.");
-			default:
-				throw new UnsupportedOperationException("Layer type ["+getPrevLayer().getLayerType()+"] is not supported yet");
-    	}
-    	switch (getNextLayer().getLayerType()) {
-			case FULLY_CONNECTED : case OUTPUT :
-				break;
-			case CONVOLUTIONAL : case INPUT : case MAXPOOLING :
-	            throw new IllegalStateException("Bad network architecture! Fully Connected Layer can only be connected only to Fully Connected Layer or Output layer as next layer");
-			default:
-				throw new UnsupportedOperationException("Layer type ["+getNextLayer().getLayerType()+"] is not supported yet");
-    	}
-//        if (!(prevLayer instanceof InputLayer
-//                || prevLayer instanceof FullyConnectedLayer
-//                || prevLayer instanceof MaxPoolingLayer
-//                || prevLayer instanceof ConvolutionalLayer)) {
-//            throw new IllegalStateException("Bad network architecture! Fully Connected Layer can be connected only to Input, FullyConnected, Maxpooling or Convolutional layer as previous layer.");
-//        }
-//
-//        if (!(nextLayer instanceof FullyConnectedLayer
-//                || nextLayer instanceof OutputLayer)) {
-//            throw new IllegalStateException("Bad network architecture! Fully Connected Layer can only be connected only to Fully Connected Layer or Output layer as next layer");
-//        }
-
-        inputs = prevLayer.outputs;
+        inputs = getPrevLayer().outputs;
         outputs = network.getTensorFactory().newInstance(width);
         deltas = network.getTensorFactory().newInstance(width);
 
-        if (prevLayer instanceof FullyConnectedLayer || (prevLayer instanceof InputLayer && prevLayer.height == 1 && prevLayer.depth == 1)) { // ovo ako je prethodni 1d layer, odnosno ako je prethodni fully connected
-            weights = network.getTensorFactory().newInstance(prevLayer.width, width);
-            deltaWeights = network.getTensorFactory().newInstance(prevLayer.width, width);
-            gradients = network.getTensorFactory().newInstance(prevLayer.width, width);
-            prevDeltaWeights = network.getTensorFactory().newInstance(prevLayer.width, width);
+        if (getPrevLayer() instanceof FullyConnectedLayer || (getPrevLayer() instanceof InputLayer && getPrevLayer().height == 1 && getPrevLayer().depth == 1)) { // ovo ako je prethodni 1d layer, odnosno ako je prethodni fully connected
+            weights = network.getTensorFactory().newInstance(getPrevLayer().width, width);
+            deltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, width);
+            gradients = network.getTensorFactory().newInstance(getPrevLayer().width, width);
+            prevDeltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, width);
 
-            prevGradSqrSum = network.getTensorFactory().newInstance(prevLayer.width, width);
-            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(prevLayer.width, width);
+            prevGradSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, width);
+            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, width);
             prevBiasSqrSum = network.getTensorFactory().newInstance(width);
             prevDeltaBiasSqrSum = network.getTensorFactory().newInstance(width);
 
             if (activationType == ActivationType.RELU || activationType == ActivationType.LEAKY_RELU) {
                 RandomWeights.he(weights.getValues(), outputs.size());
             } else {    // sigmoid tanh
-                RandomWeights.xavier(weights.getValues(), prevLayer.width, width);
+                RandomWeights.xavier(weights.getValues(), getPrevLayer().width, width);
             }
 
-        } else if ((prevLayer instanceof MaxPoolingLayer) || (prevLayer instanceof ConvolutionalLayer) || (prevLayer instanceof InputLayer)) {
-            weights = network.getTensorFactory().newInstance(prevLayer.width, prevLayer.height, prevLayer.depth, width);
-            deltaWeights = network.getTensorFactory().newInstance(prevLayer.width, prevLayer.height, prevLayer.depth, width);
-            gradients = network.getTensorFactory().newInstance(prevLayer.width, prevLayer.height, prevLayer.depth, width);
-            prevDeltaWeights = network.getTensorFactory().newInstance(prevLayer.width, prevLayer.height, prevLayer.depth, width);
+        } else if ((getPrevLayer() instanceof MaxPoolingLayer) || (getPrevLayer() instanceof ConvolutionalLayer) || (getPrevLayer() instanceof InputLayer)) {
+            weights = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
+            deltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
+            gradients = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
+            prevDeltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
 
-            prevGradSqrSum = network.getTensorFactory().newInstance(prevLayer.width, prevLayer.height, prevLayer.depth, width);
+            prevGradSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
             prevBiasSqrSum = network.getTensorFactory().newInstance(width);
 
-            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(prevLayer.width, prevLayer.height, prevLayer.depth, width); // ada delta
+            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width); // ada delta
             prevDeltaBiasSqrSum = network.getTensorFactory().newInstance(width);
 
-            int totalInputs = prevLayer.getWidth() * prevLayer.getHeight() * prevLayer.getDepth();
+            int totalInputs = getPrevLayer().getWidth() * getPrevLayer().getHeight() * getPrevLayer().getDepth();
 
             if (activationType == ActivationType.RELU || activationType == ActivationType.LEAKY_RELU) {
                 RandomWeights.he(weights.getValues(), totalInputs);
@@ -238,8 +236,8 @@ public final class FullyConnectedLayer extends AbstractLayer {
         deltas.fill(0);
 
         for (int deltaCol = 0; deltaCol < deltas.getCols(); deltaCol++) {
-            for (int ndCol = 0; ndCol < nextLayer.deltas.getCols(); ndCol++) {
-                deltas.add(deltaCol, nextLayer.deltas.get(ndCol) * nextLayer.weights.get(deltaCol, ndCol));
+            for (int ndCol = 0; ndCol < getNextLayer().deltas.getCols(); ndCol++) {
+                deltas.add(deltaCol, getNextLayer().deltas.get(ndCol) * getNextLayer().weights.get(deltaCol, ndCol));
             }
 
             final float delta = deltas.get(deltaCol) * activation.getPrime(outputs.get(deltaCol));
@@ -251,7 +249,7 @@ public final class FullyConnectedLayer extends AbstractLayer {
 	            backwardTo3DLayer();
 				break;
 			case INPUT				:
-				if ((prevLayer.height == 1 && prevLayer.depth == 1)) {
+				if ((getPrevLayer().height == 1 && getPrevLayer().depth == 1)) {
 		            backwardTo1DLayer();
 				}
 				else {
@@ -351,5 +349,4 @@ public final class FullyConnectedLayer extends AbstractLayer {
     public String toString() {
         return "Fully Connected Layer { width:" + width + " activation:" + activationType.name() + "}";
     }
-
 }

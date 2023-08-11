@@ -25,6 +25,7 @@ package chav1961.nn.core.interfaces;
 import javax.visrec.ml.data.DataSet;
 
 
+@FunctionalInterface
 public interface Trainer {
-        public void train(DataSet<? extends MLDataItem> trainingSet);
+	public void train(DataSet<? extends MLDataItem> trainingSet);
 }

@@ -51,7 +51,6 @@ public class InputLayer extends AbstractLayer {
         this.width = width;
         this.height = height;
         this.depth = depth;  
-//        init();
     }
 
     /**
@@ -66,7 +65,6 @@ public class InputLayer extends AbstractLayer {
         this.width = width;
         this.height = height;
         this.depth = 1; 
-//        init();
     }
 
     /**
@@ -80,9 +78,18 @@ public class InputLayer extends AbstractLayer {
         this.width = width;
         this.height = 1;
         this.depth = 1;
-//        init();
     }
 
+	@Override
+	public void setPrevLayer(final AbstractLayer prevLayer) {
+		throw new IllegalStateException("Input layer can't have previous layers"); 
+	}
+
+	@Override
+	public void setNextlayer(final AbstractLayer nextlayer) {
+		setNextLayerInternal(nextlayer);
+	}
+    
     /**
      * Initialize this layer in network.
      */

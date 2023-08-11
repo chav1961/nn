@@ -24,6 +24,7 @@ package chav1961.nn.core.train;
 
 
 
+
 import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.eval.ClassifierEvaluator;
 import chav1961.nn.core.interfaces.LossFunction;
@@ -32,6 +33,7 @@ import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.OptimizerType;
 import chav1961.nn.core.interfaces.Trainer;
 import chav1961.nn.core.utils.FileIO;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
@@ -39,9 +41,6 @@ import javax.visrec.ml.eval.Evaluator;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -56,8 +55,6 @@ import java.util.Properties;
  * @see OptimizerType
  */
 public class BackpropagationTrainer implements Trainer, Serializable {
-
-	
     private static final long serialVersionUID = -2074106047858300199L;
 	
 	
@@ -126,7 +123,7 @@ public class BackpropagationTrainer implements Trainer, Serializable {
     /**
      * Neural network to train
      */
-    private NeuralNetwork<?> neuralNet;
+    private NeuralNetwork<BackpropagationTrainer> neuralNet;
 
     private transient DataSet<? extends MLDataItem> trainingSet;
 
@@ -165,20 +162,17 @@ public class BackpropagationTrainer implements Trainer, Serializable {
     private float prevCheckpointTestLoss = 100f;
 
 
-    private transient Evaluator<NeuralNetwork, DataSet<? extends MLDataItem>> eval = new ClassifierEvaluator();
+    private final transient Evaluator<NeuralNetwork<BackpropagationTrainer>, DataSet<? extends MLDataItem>> eval = new ClassifierEvaluator<>();
+    private transient LightWeightListenerList<TrainingListener> listeners = new LightWeightListenerList<>(TrainingListener.class);
 
-    //regularization l1 or l2 add to loss
     private float regL2, regL1;
-
-
-    private transient List<TrainingListener> listeners = new ArrayList<>(); // TODO: add WeakReference for all listeners
-
+    
     /**
      * Creates and instance of Backpropagation Trainer for the specified neural network.
      *
      * @param neuralNet neural network to train using this instance of backpropagation algorithm
      */
-    public BackpropagationTrainer(NeuralNetwork neuralNet) {
+    public BackpropagationTrainer(final NeuralNetwork<BackpropagationTrainer> neuralNet) {
         this.neuralNet = neuralNet;
     }
 
@@ -412,26 +406,27 @@ public class BackpropagationTrainer implements Trainer, Serializable {
         this.shuffle = shuffle;
     }
 
-    private void fireTrainingEvent(TrainingEvent.Type type) {
-        for (TrainingListener l : listeners) {
-            l.handleEvent(new TrainingEvent(this, type));
-        }
+    private void fireTrainingEvent(final TrainingEvent.Type type) {
+    	final TrainingEvent	event = new TrainingEvent(this, type);
+    	listeners.fireEvent((l)->l.handleEvent(event));
     }
 
-    public void addListener(TrainingListener listener) {
-        Objects.requireNonNull(listener, "Training listener cannot be null!");
-
-        synchronized (listeners) {
-            if (!listeners.contains(listener)) {
-                listeners.add(listener);
-            }
-        }
+    public void addListener(final TrainingListener listener) {
+    	if (listener == null) {
+    		throw new NullPointerException("Listener to add can't be null"); 
+    	}
+    	else {
+    		listeners.addListener(listener);
+    	}
     }
 
-    public synchronized void removeListener(TrainingListener listener) {
-        synchronized (listeners) {
-            listeners.remove(listener);
-        }
+    public synchronized void removeListener(final TrainingListener listener) {
+    	if (listener == null) {
+    		throw new NullPointerException("Listener to remove can't be null"); 
+    	}
+    	else {
+    		listeners.removeListener(listener);
+    	}
     }
 
     public boolean isBatchMode() {
@@ -620,7 +615,7 @@ public class BackpropagationTrainer implements Trainer, Serializable {
 
 
     private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
-        listeners = new ArrayList<>();
+        listeners = new LightWeightListenerList<>(TrainingListener.class);
     }
 
 }

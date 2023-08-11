@@ -37,7 +37,7 @@ import chav1961.nn.core.interfaces.NeuralNetwork;
  *
  * @author Zoran Sevarac <zoran.sevarac@deepnetts.com>
  */                                         
-public class ClassifierEvaluator implements Evaluator<NeuralNetwork, DataSet<? extends MLDataItem>> { // use Classifier as a generic, wrap convolutional network with classifier
+public class ClassifierEvaluator<E> implements Evaluator<NeuralNetwork<E>, DataSet<? extends MLDataItem>> { // use Classifier as a generic, wrap convolutional network with classifier
 
     /**
      * Constants used as labels for binary classification
@@ -86,7 +86,7 @@ public class ClassifierEvaluator implements Evaluator<NeuralNetwork, DataSet<? e
      * @return 
      */
     @Override
-    public  EvaluationMetrics evaluate(NeuralNetwork neuralNet, DataSet<? extends MLDataItem> testSet) { // NeuralNetwork, DataSet<?>
+    public  EvaluationMetrics evaluate(NeuralNetwork<E> neuralNet, DataSet<? extends MLDataItem> testSet) { // NeuralNetwork, DataSet<?>
         classLabels.clear();
         classLabels.add(0, LABEL_NONE); 
         for(String label : testSet.getTargetColumnsNames()) { // ovaj treba ubaciti u data set getTargetLabels()

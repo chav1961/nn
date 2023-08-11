@@ -127,6 +127,24 @@ public final class ConvolutionalLayer extends AbstractLayer {
 //        this.activation = ActivationFunction.create(activationType);
     }
 
+	@Override
+	public void setPrevLayer(final AbstractLayer prevLayer) {
+    	switch (prevLayer.getLayerType()) {
+			case CONVOLUTIONAL: case INPUT: case MAXPOOLING:
+				setPrevLayerInternal(prevLayer);
+				break;
+			case FULLY_CONNECTED: case OUTPUT:
+	            throw new IllegalStateException("Illegal architecture: convolutional layer can be used only after input, convolutional or maxpooling layer");
+			default:
+				throw new UnsupportedOperationException("Layer type ["+prevLayer.getLayerType()+"] is not supported yet");
+    	}
+	}
+
+	@Override
+	public void setNextlayer(final AbstractLayer nextlayer) {
+		setNextLayerInternal(nextlayer);
+	}
+    
     /**
      * Init dimensions, create matrices, filters, weights, biases and all
      * internal structures etc.
@@ -136,18 +154,10 @@ public final class ConvolutionalLayer extends AbstractLayer {
     @Override
     public void init(final NeuralNetwork<?> network) {
         // prev layer can only be input, max pooling or convolutional
-    	switch (getPrevLayer().getLayerType()) {
-			case CONVOLUTIONAL: case INPUT: case MAXPOOLING:
-				break;
-			case FULLY_CONNECTED: case OUTPUT:
-	            throw new IllegalStateException("Illegal architecture: convolutional layer can be used only after input, convolutional or maxpooling layer");
-			default:
-				throw new UnsupportedOperationException("Layer type ["+getPrevLayer().getLayerType()+"] is not supported yet");
-    	}
-        inputs = prevLayer.outputs;
+        inputs = getPrevLayer().outputs;
 
-        width = (prevLayer.getWidth()) / stride;
-        height = (prevLayer.getHeight()) / stride;
+        width = (getPrevLayer().getWidth()) / stride;
+        height = (getPrevLayer().getHeight()) / stride;
         // depth is set in constructor
 
         fCenterX = (filterWidth - 1) / 2; //  padding = filter /2
@@ -158,7 +168,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
         deltas = network.getTensorFactory().newInstance(height, width, depth);
 
         // init filters(weights)
-        filterDepth = prevLayer.getDepth();
+        filterDepth = getPrevLayer().getDepth();
         filters = new Tensor[depth]; 
         deltaWeights = new Tensor[depth];
         prevDeltaWeights = new Tensor[depth];
@@ -286,8 +296,8 @@ public final class ConvolutionalLayer extends AbstractLayer {
         for (int row = 0; row < this.height; row++) {
             for (int col = 0; col < this.width; col++) {
                 final float actDerivative = activation.getPrime(outputs.get(row, col, ch)); // dy/ds
-                for (int ndC = 0; ndC < nextLayer.deltas.getCols(); ndC++) {
-                    final float delta = nextLayer.deltas.get(ndC) * nextLayer.weights.get(col, row, ch, ndC) * actDerivative;
+                for (int ndC = 0; ndC < getNextLayer().deltas.getCols(); ndC++) {
+                    final float delta = getNextLayer().deltas.get(ndC) * getNextLayer().weights.get(col, row, ch, ndC) * actDerivative;
                     deltas.add(row, col, ch, delta);
                 }
             }
@@ -297,7 +307,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
     }  
 
     private void backwardFromMaxPooling() {
-        final MaxPoolingLayer nextPoolLayer = (MaxPoolingLayer) nextLayer;
+        final MaxPoolingLayer nextPoolLayer = (MaxPoolingLayer) getNextLayer();
         maxIdx = nextPoolLayer.maxIdx; 
         deltas.fill(0);
 
@@ -313,10 +323,10 @@ public final class ConvolutionalLayer extends AbstractLayer {
      * @param ch 
      */
     private void backwardFromMaxPoolingForChannel(int ch) {
-        for (int dr = 0; dr < nextLayer.deltas.getRows(); dr++) { 
-            for (int dc = 0; dc < nextLayer.deltas.getCols(); dc++) { 
+        for (int dr = 0; dr < getNextLayer().deltas.getRows(); dr++) { 
+            for (int dc = 0; dc < getNextLayer().deltas.getCols(); dc++) { 
 
-                final float nextLayerDelta = nextLayer.deltas.get(dr, dc, ch); 
+                final float nextLayerDelta = getNextLayer().deltas.get(dr, dc, ch); 
                 final int maxR = maxIdx[ch][dr][dc][0];
                 final int maxC = maxIdx[ch][dr][dc][1];
 
@@ -337,14 +347,14 @@ public final class ConvolutionalLayer extends AbstractLayer {
     }
     
     private void backwardFromConvolutionalForChannel(int fz) {
-        ConvolutionalLayer nextConvLayer = (ConvolutionalLayer) nextLayer;  
+        ConvolutionalLayer nextConvLayer = (ConvolutionalLayer) getNextLayer();  
         int filterCenterX = (nextConvLayer.filterWidth - 1) / 2;
         int filterCenterY = (nextConvLayer.filterHeight - 1) / 2;
         
-        for (int ndZ = 0; ndZ < nextLayer.deltas.getDepth(); ndZ++) {
-            for (int ndRow = 0; ndRow < nextLayer.deltas.getRows(); ndRow++) {
-                for (int ndCol = 0; ndCol < nextLayer.deltas.getCols(); ndCol++) { 
-                    final float nextLayerDelta = nextLayer.deltas.get(ndRow, ndCol, ndZ); 
+        for (int ndZ = 0; ndZ < getNextLayer().deltas.getDepth(); ndZ++) {
+            for (int ndRow = 0; ndRow < getNextLayer().deltas.getRows(); ndRow++) {
+                for (int ndCol = 0; ndCol < getNextLayer().deltas.getCols(); ndCol++) { 
+                    final float nextLayerDelta = getNextLayer().deltas.get(ndRow, ndCol, ndZ); 
 
                         for (int fr = 0; fr < nextConvLayer.filterHeight; fr++) {
                             for (int fc = 0; fc < nextConvLayer.filterWidth; fc++) {
@@ -510,5 +520,4 @@ public final class ConvolutionalLayer extends AbstractLayer {
     public String toString() {
         return "Convolutional Layer { filter width:" + filterWidth + ", filter height: " + filterHeight + ", channels: " + depth + ", stride: " + stride + ", activation: " + activationType.name() + "}";
     }
-
 }

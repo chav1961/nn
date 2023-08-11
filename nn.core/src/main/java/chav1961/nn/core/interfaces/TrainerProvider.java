@@ -27,6 +27,6 @@ package chav1961.nn.core.interfaces;
  * @author zoran
  */
 public interface TrainerProvider<T> {
-        public T getTrainer();
-        public void setTrainer(T trainer);
+	public T getTrainer();
+    public void setTrainer(T trainer);
 }

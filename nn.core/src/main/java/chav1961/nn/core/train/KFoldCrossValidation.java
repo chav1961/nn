@@ -42,17 +42,23 @@ import chav1961.nn.core.interfaces.NeuralNetwork;
  *
  * @author Zoran
  */
-public class KFoldCrossValidation {
-
+public class KFoldCrossValidation<E> {
     private int splitsNum; 
-    private NeuralNetwork neuralNetwork; 
+    private NeuralNetwork<E> neuralNetwork; 
     private BackpropagationTrainer trainer; 
     private DataSet<MLDataItem> dataSet; 
-    private Evaluator<NeuralNetwork, DataSet<? extends MLDataItem>> evaluator;
-    private final List<NeuralNetwork> trainedNetworks = new ArrayList<>();
+    private Evaluator<NeuralNetwork<E>, DataSet<? extends MLDataItem>> evaluator;
+    private final List<NeuralNetwork<E>> trainedNetworks = new ArrayList<>();
 
+    private KFoldCrossValidation(final int splitsNum, final NeuralNetwork<E> neuralNetwork, final BackpropagationTrainer trainer, final DataSet<MLDataItem> dataSet, final Evaluator<NeuralNetwork<E>, DataSet<? extends MLDataItem>> evaluator) {
+		this.splitsNum = splitsNum;
+		this.neuralNetwork = neuralNetwork;
+		this.trainer = trainer;
+		this.dataSet = dataSet;
+		this.evaluator = evaluator;
+	}
 
-    public EvaluationMetrics runCrossValidation() {
+	public EvaluationMetrics runCrossValidation() {
         List<EvaluationMetrics> measures = new ArrayList<>();
         DataSet[] folds = (DataSet[]) dataSet.split(splitsNum);
 
@@ -84,46 +90,65 @@ public class KFoldCrossValidation {
         
     }
 
-    public List<NeuralNetwork> getTrainedNetworks() {
+    public List<NeuralNetwork<E>> getTrainedNetworks() {
         return trainedNetworks;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static <E> Builder<E> builder() {
+        return new Builder<E>();
     }
 
-    public static class Builder {
+    public static class Builder<E> {
+        private int splitsNum = -1; 
+        private NeuralNetwork<E> neuralNetwork = null; 
+        private BackpropagationTrainer trainer = null; 
+        private DataSet<MLDataItem> dataSet = null; 
+        private Evaluator<NeuralNetwork<E>, DataSet<? extends MLDataItem>> evaluator = null;
 
-        KFoldCrossValidation kFoldCV = new KFoldCrossValidation();
-
-        public Builder splitsNum(int k) {
-           kFoldCV.splitsNum = k;
+        public Builder<E> splitsNum(int k) {
+           this.splitsNum = k;
            return this;
         }
 
-        public Builder model(NeuralNetwork neuralNet) {
-            kFoldCV.neuralNetwork = neuralNet;
+        public Builder<E> model(NeuralNetwork<E> neuralNet) {
+        	this.neuralNetwork = neuralNet;
             return this;
         }
 
-        public Builder trainer(BackpropagationTrainer trainer) {
-            kFoldCV.trainer = trainer;
+        public Builder<E> trainer(BackpropagationTrainer trainer) {
+        	this.trainer = trainer;
             return this;
         }
 
-        public Builder dataSet(DataSet dataSet) {
-            kFoldCV.dataSet = dataSet;
+        public Builder<E> dataSet(DataSet<? extends MLDataItem> dataSet) {
+        	this.dataSet = (DataSet<MLDataItem>) dataSet;
             return this;
         }
 
-        public Builder evaluator(Evaluator<NeuralNetwork, DataSet<? extends MLDataItem>> evaluator) {
-            kFoldCV.evaluator = evaluator;
+        public Builder<E> evaluator(Evaluator<NeuralNetwork<E>, DataSet<? extends MLDataItem>> evaluator) {
+        	this.evaluator = evaluator;
             return this;
         }
 
-        public KFoldCrossValidation build() {
-            return kFoldCV;
+        public KFoldCrossValidation<E> build() {
+        	if (splitsNum == -1) {
+        		throw new IllegalStateException("Can't build instance: splitsNum parameter is not defined");
+        	}
+        	else if (neuralNetwork == null) {
+        		throw new IllegalStateException("Can't build instance: neuralNetwork parameter is not defined");
+        	}
+        	else if (trainer == null) {
+        		throw new IllegalStateException("Can't build instance: trainer parameter is not defined");
+        	}
+        	else if (dataSet == null) {
+        		throw new IllegalStateException("Can't build instance: dataSet parameter is not defined");
+        	}
+        	else if (evaluator == null) {
+        		throw new IllegalStateException("Can't build instance: evaluator parameter is not defined");
+        	}
+        	else {
+                return new KFoldCrossValidation<E>(splitsNum, neuralNetwork, trainer, dataSet, evaluator);
+        	}
         }
-
     }
 }

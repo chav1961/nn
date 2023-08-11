@@ -1,7 +1,7 @@
 module nn.core {
 	requires transitive chav1961.purelib;
 	requires java.base;
-	requires visrec.api;
+	requires transitive visrec.api;
 	requires commons.lang3;
 	
 	exports chav1961.nn.core.network;

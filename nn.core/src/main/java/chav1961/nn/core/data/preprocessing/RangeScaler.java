@@ -37,7 +37,9 @@ import chav1961.nn.core.interfaces.MLDataItem;
  * @author Zoran Sevarac
  */
 public class RangeScaler implements Scaler<DataSet<MLDataItem>>, Serializable {
-    private final float min;
+	private static final long serialVersionUID = -8080416599121557553L;
+	
+	private final float min;
     private final float max;
     
     /**
