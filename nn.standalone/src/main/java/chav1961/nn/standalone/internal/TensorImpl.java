@@ -24,6 +24,7 @@ package chav1961.nn.standalone.internal;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import chav1961.nn.core.interfaces.ActivationFunction;
 import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.utils.RandomGenerator;
 
@@ -36,9 +37,7 @@ public class TensorImpl implements Tensor {
 	private static final long serialVersionUID = -2345745004528761209L;
 	
 	
-    // tensor dimensions - better use shape
     private final int cols, rows, depth, fourthDim, dimensions;
-    private final int[] shape = new int[4];
     private int rank; 
     private int size; 
 
@@ -393,7 +392,7 @@ public class TensorImpl implements Tensor {
 
     @Override
     public final float getWithStride(final int[] idxs) {
-        final int idx = idxs[0] * shape[1] * shape[2] * shape[3] + idxs[1] * shape[2] * shape[3] + idxs[2] * shape[3] + idxs[3];
+        final int idx = idxs[0] * rows * cols * depth + idxs[1] * rows * cols + idxs[2] * cols + idxs[3];
         return values[idx];
     }
 
@@ -607,6 +606,13 @@ public class TensorImpl implements Tensor {
     }
 
     @Override
+    public void apply(final ActivationFunction f) {
+        for(int i=0; i<values.length; i++) {
+            values[i] = f.getValue(values[i]);
+        }
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -734,5 +740,17 @@ public class TensorImpl implements Tensor {
         for (int i = 0; i < values.length; i++) {
             values[i] = (float)Math.sqrt(values[i]);
         }
+    }
+
+    @Override
+    public Tensor clone() throws CloneNotSupportedException {
+    	final TensorImpl	result = (TensorImpl) super.clone();
+    	
+    	result.values = this.values.clone();
+    	return result;
+    }
+    
+    @Override
+    public void done() {
     }
 }

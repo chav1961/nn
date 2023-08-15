@@ -111,6 +111,10 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
 	public abstract NeuralNetwork<T> newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException;
 	@Override
 	public abstract TensorFactory getTensorFactory();
+	@Override 
+	public abstract NeuralNetwork<T> forward();
+	@Override 
+	public abstract NeuralNetwork<T> backward();
 	
     /**
      * Sets network input vector and triggers forward pass.
@@ -165,22 +169,6 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
         return this;
     }
 
-	@Override
-	public NeuralNetwork<T> forward() {
-        for (int i = 1; i < layers.size(); i++) {   // starts from 1 to skip input layer
-            layers.get(i).forward();
-        }
-        return this;
-    }
-
-	@Override
-	public NeuralNetwork<T> backward() {
-        // perfrom backward pass on all layers starting from last
-        for (int i = layers.size() - 1; i > 0; i--) {
-            layers.get(i).backward();
-        }
-        return this;
-    }
 
 	@Override
     public NeuralNetwork<T> addLayer(final AbstractLayer layer) {

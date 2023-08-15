@@ -135,13 +135,13 @@ public abstract class AbstractLayer implements Layer, Serializable {
      * This method should implement forward pass in subclasses
      */
     @Override
-    public abstract void forward();
+    public abstract <Tr> void forward(final NeuralNetwork<Tr> network);
 
     /**
      * This method should implement backward pass in subclasses
      */
     @Override
-    public abstract void backward();
+    public abstract <Tr> void backward(final NeuralNetwork<Tr> network);
     
     /**
      * Applies weight changes to current weights Must be different for
@@ -154,6 +154,7 @@ public abstract class AbstractLayer implements Layer, Serializable {
     public abstract void setPrevLayer(final AbstractLayer prevLayer);
     public abstract void setNextlayer(AbstractLayer nextlayer);
     
+    @Override
     public LayerType getLayerType() {
     	return layerType;
     }

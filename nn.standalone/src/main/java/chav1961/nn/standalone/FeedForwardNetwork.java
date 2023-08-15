@@ -21,10 +21,6 @@
  */
 package chav1961.nn.standalone;
 
-//import deepnetts.net.loss.BinaryCrossEntropyLoss;
-//import deepnetts.net.loss.CrossEntropyLoss;
-//import deepnetts.net.loss.MeanSquaredErrorLoss;
-//import deepnetts.net.train.BackpropagationTrainer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URI;
@@ -43,7 +39,6 @@ import chav1961.nn.core.layers.FullyConnectedLayer;
 import chav1961.nn.core.layers.InputLayer;
 import chav1961.nn.core.layers.OutputLayer;
 import chav1961.nn.core.layers.SoftmaxOutputLayer;
-import chav1961.nn.core.network.AbstractNeuralNetwork;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.RandomGenerator;
 import chav1961.nn.standalone.internal.TensorImpl;
@@ -109,6 +104,22 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
             cur.init(this);
         }
     }    
+    
+	@Override
+	public NeuralNetwork<BackpropagationTrainer> forward() {
+        for (int i = 1; i < getLayers().size(); i++) {   // starts from 1 to skip input layer
+        	getLayers().get(i).forward(this);
+        }
+        return this;
+    }
+
+	@Override
+	public NeuralNetwork<BackpropagationTrainer> backward() {
+        for (int i = getLayers().size() - 1; i > 0; i--) {
+        	getLayers().get(i).backward(this);
+        }
+        return this;
+    }
     
     /**
      * Returns builder for Feed Forward Network

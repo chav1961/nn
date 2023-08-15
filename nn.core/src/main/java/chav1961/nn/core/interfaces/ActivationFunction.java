@@ -37,6 +37,11 @@ package chav1961.nn.core.interfaces;
  * @author Zoran Sevarac
  */
 public interface ActivationFunction {
+	/**
+	 * <p>Get activation type for the given function</p>
+	 * @return activation type. Can't be null.
+	 */
+	ActivationType getActivationType();
 
     /**
      * Returns the value of activation function for specified input x

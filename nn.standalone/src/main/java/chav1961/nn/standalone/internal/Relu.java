@@ -3,6 +3,7 @@ package chav1961.nn.standalone.internal;
 import java.io.Serializable;
 
 import chav1961.nn.core.interfaces.ActivationFunction;
+import chav1961.nn.core.interfaces.ActivationType;
 
 /**
  * Rectified Linear Activation and its Derivative.
@@ -28,4 +29,9 @@ public final class Relu implements ActivationFunction, Serializable {
          return ( y > 0 ? 1 : 0);
     }
     
+
+	@Override
+	public ActivationType getActivationType() {
+		return ActivationType.RELU;
+	}
 }

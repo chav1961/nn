@@ -33,8 +33,6 @@ import chav1961.nn.core.interfaces.RandomWeights;
  * @author Zoran Sevarac
  */
 public class SoftmaxOutputLayer extends OutputLayer {
-
-	
 	private static final long serialVersionUID = -5557183169491335524L;
 	
 	
@@ -77,7 +75,7 @@ public class SoftmaxOutputLayer extends OutputLayer {
      * layer outputs using softmax function
      */
     @Override
-    public void forward() {
+    public <Tr> void forward(final NeuralNetwork<Tr> network) {
         float maxWs = Float.NEGATIVE_INFINITY;
 
         for (int outCol = 0; outCol < outputs.getCols(); outCol++) {                    
@@ -102,7 +100,7 @@ public class SoftmaxOutputLayer extends OutputLayer {
 
 
     @Override
-    public void backward() {
+    public <Tr> void backward(final NeuralNetwork<Tr> network) {
         if (!batchMode) {
             deltaWeights.fill(0);
             Arrays.fill(deltaBiases, 0);

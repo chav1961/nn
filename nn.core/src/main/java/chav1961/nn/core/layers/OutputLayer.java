@@ -21,7 +21,6 @@
  */
 package chav1961.nn.core.layers;
 
-import java.nio.channels.IllegalSelectorException;
 import java.util.Arrays;
 
 import chav1961.nn.core.interfaces.ActivationType;
@@ -38,8 +37,6 @@ import chav1961.nn.core.utils.Tensors;
  * @author Zoran Sevarac
  */
 public class OutputLayer extends AbstractLayer {
-
-	
 	private static final long serialVersionUID = 537944573867996766L;
 	
 	
@@ -169,7 +166,7 @@ public class OutputLayer extends AbstractLayer {
      * Calculates weighted input and layer outputs using sigmoid function.
      */
     @Override
-    public void forward() {
+    public <Tr> void forward(final NeuralNetwork<Tr> network) {
         outputs.copyFrom(biases);  
 
         for (int outCol = 0; outCol < outputs.getCols(); outCol++) {  
@@ -185,7 +182,7 @@ public class OutputLayer extends AbstractLayer {
      * This method implements backward pass for the output layer.
      */
     @Override
-    public void backward() {
+    public <Tr> void backward(final NeuralNetwork<Tr> network) {
         if (!batchMode) {   
             deltaWeights.fill(0);
             Arrays.fill(deltaBiases, 0);

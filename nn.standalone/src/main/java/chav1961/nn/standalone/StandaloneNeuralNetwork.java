@@ -3,6 +3,7 @@ package chav1961.nn.standalone;
 
 import java.net.URI;
 
+import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.interfaces.TensorFactory;
 import chav1961.nn.core.interfaces.Trainer;

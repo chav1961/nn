@@ -39,8 +39,6 @@ import chav1961.nn.core.utils.Tensors;
  * @author Zoran Sevarac
  */
 public final class FullyConnectedLayer extends AbstractLayer {
-
-	
 	private static final long serialVersionUID = -8383673021557469094L;
 	
 	
@@ -162,7 +160,7 @@ public final class FullyConnectedLayer extends AbstractLayer {
     }
 
     @Override
-    public void forward() {
+    public <Tr> void forward(final NeuralNetwork<Tr> network) {
         outputs.copyFrom(biases);
 
         switch (getPrevLayer().getLayerType()) {
@@ -227,7 +225,7 @@ public final class FullyConnectedLayer extends AbstractLayer {
     }
 
     @Override
-    public void backward() {
+    public <Tr> void backward(final NeuralNetwork<Tr> network) {
         if (!batchMode) {
             deltaWeights.fill(0);
             Arrays.fill(deltaBiases, 0);

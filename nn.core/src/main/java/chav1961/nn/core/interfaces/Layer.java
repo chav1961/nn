@@ -31,16 +31,21 @@ package chav1961.nn.core.interfaces;
  * @author Zoran Sevarac
  */
 public interface Layer {
+	/**
+	 * <p>Get layer type</p>
+	 * @return layer type. Can't be null
+	 */
+	LayerType getLayerType();
 
     /**
      * Performs layer calculation in forward pass of a neural network.
      */
-    public void forward();
+    public <Tr> void forward(NeuralNetwork<Tr> network);
 
     /**
      * Performs weight parameters adjustment in backward pass during training of a neural network.
      */
-    public void backward();
+    public <Tr> void backward(NeuralNetwork<Tr> network);
 
     /**
      * Returns layer outputs (as a tensor).

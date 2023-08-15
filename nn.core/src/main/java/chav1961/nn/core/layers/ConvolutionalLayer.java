@@ -200,7 +200,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
      * output from previous layer using filters in this layer, on all channels.
      */
     @Override
-    public void forward() {
+    public <Tr> void forward(final NeuralNetwork<Tr> network) {
         for (int ch = 0; ch < this.depth; ch++) {
             forwardForChannel(ch);
         }
@@ -250,7 +250,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
      *
      */
     @Override
-    public void backward() {
+    public <Tr> void backward(final NeuralNetwork<Tr> network) {
     	switch (getNextLayer().getLayerType()) {
 			case CONVOLUTIONAL		:
 	            backwardFromConvolutional();

@@ -32,8 +32,6 @@ import chav1961.nn.core.interfaces.Tensor;
  * @author Zoran Sevarac
  */
 public class InputLayer extends AbstractLayer {
-
-	
 	private static final long serialVersionUID = 4852747073698145422L;
 	
 	
@@ -104,7 +102,7 @@ public class InputLayer extends AbstractLayer {
      *
      * @param in input matrix/array
      */
-    public void setInput(Tensor in) {
+    public void setInput(final Tensor in) {
         // TODO: check input tensor dimensions and throw exception if they dont match
         inputs.setValues(in.getValues());
     }
@@ -113,7 +111,7 @@ public class InputLayer extends AbstractLayer {
      * This method does nothing in input layer
      */
     @Override
-    public void forward() {
+    public <Tr> void forward(final NeuralNetwork<Tr> network) {
         throw new IllegalStateException("This method does nothing and should never be called");
     }
 
@@ -121,7 +119,7 @@ public class InputLayer extends AbstractLayer {
      * This method does nothing in input layer
      */
     @Override
-    public void backward() {
+    public <Tr> void backward(final NeuralNetwork<Tr> network) {
         throw new IllegalStateException("This method does nothing and should never be called");
     }
 

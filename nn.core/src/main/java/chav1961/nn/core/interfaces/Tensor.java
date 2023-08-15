@@ -2,14 +2,13 @@ package chav1961.nn.core.interfaces;
 
 import java.io.Serializable;
 
-public interface Tensor extends Serializable {
+public interface Tensor extends Serializable, Cloneable {
 	@FunctionalInterface
 	public static interface FloatFunction {
 		float apply(float value);
 	}
 	
-    void fill(final float value);
-	
+    void fill(float value);
 	
     float get(final int idx);
     float set(final int idx, final float val);
@@ -38,17 +37,19 @@ public interface Tensor extends Serializable {
     void div(final float[] divisors);
     
     Tensor copy();
-    void add(final Tensor t);
-    void sub(final Tensor t);
-    void multiply(Tensor t);
-    void div(final Tensor t);
-
-    void apply(final FloatFunction f);
     
-    float getWithStride(final int[] idxs);
+    void add(Tensor t);
+    void sub(Tensor t);
+    void multiply(Tensor t);
+    void div(Tensor t);
+
+    void apply(FloatFunction f);
+    void apply(ActivationFunction f);
+    
+    float getWithStride(int[] idxs);
     float[] getValues();
-    void setValues(final float... values);
-    void copyFrom(final float... src);
+    void setValues(float... values);
+    void copyFrom(float... src);
     int getCols();
     int getRows();
     int getDepth();
@@ -64,5 +65,5 @@ public interface Tensor extends Serializable {
     void randomize();
     
     void setValuesFromString(String values);
-
+    void done();
 }

@@ -36,8 +36,6 @@ import chav1961.nn.core.interfaces.NeuralNetwork;
  * @author Zoran Sevarac
  */
 public final class MaxPoolingLayer extends AbstractLayer {
-
-	
 	private static final long serialVersionUID = -5187033033631855969L;
 	
 	
@@ -116,7 +114,7 @@ public final class MaxPoolingLayer extends AbstractLayer {
      * Max pooling forward pass outputs the max value for each filter position.
      */
     @Override
-    public void forward() {
+    public <Tr> void forward(final NeuralNetwork<Tr> network) {
         for (int ch = 0; ch < this.depth; ch++) {  
             forwardForChannel(ch);
         }
@@ -163,7 +161,7 @@ public final class MaxPoolingLayer extends AbstractLayer {
      *
      */
     @Override
-    public void backward() {
+    public <Tr> void backward(final NeuralNetwork<Tr> network) {
     	switch (getNextLayer().getLayerType()) {
 			case CONVOLUTIONAL	:
 	            backwardFromConvolutional();
@@ -180,13 +178,6 @@ public final class MaxPoolingLayer extends AbstractLayer {
 			default :
 				throw new UnsupportedOperationException("Layer type ["+getNextLayer().getLayerType()+"] is not supported yet");
     	}
-//        if (nextLayer instanceof FullyConnectedLayer) {
-//            backwardFromFullyConnected();
-//        }
-//        else if (nextLayer instanceof ConvolutionalLayer) {
-//             backwardFromConvolutional();
-//        }
-
     }
 
     private void backwardFromFullyConnected() {

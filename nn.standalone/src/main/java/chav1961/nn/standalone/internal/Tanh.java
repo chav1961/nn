@@ -3,6 +3,7 @@ package chav1961.nn.standalone.internal;
 import java.io.Serializable;
 
 import chav1961.nn.core.interfaces.ActivationFunction;
+import chav1961.nn.core.interfaces.ActivationType;
 
 /**
  * Hyperbolic tangens activation function
@@ -22,4 +23,9 @@ public final class Tanh implements ActivationFunction, Serializable {
         return (1-y*y);
     }
     
+
+	@Override
+	public ActivationType getActivationType() {
+		return ActivationType.TANH;
+	}
 }

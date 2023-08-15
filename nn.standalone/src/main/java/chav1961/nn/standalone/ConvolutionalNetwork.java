@@ -101,7 +101,22 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
         }
     }
     
-    
+	@Override
+	public NeuralNetwork<BackpropagationTrainer> forward() {
+        for (int i = 1; i < getLayers().size(); i++) {   // starts from 1 to skip input layer
+        	getLayers().get(i).forward(this);
+        }
+        return this;
+    }
+
+	@Override
+	public NeuralNetwork<BackpropagationTrainer> backward() {
+        for (int i = getLayers().size() - 1; i > 0; i--) {
+        	getLayers().get(i).backward(this);
+        }
+        return this;
+    }
+
     public static ConvolutionalNetwork.Builder builder() {
         return new Builder();
     }

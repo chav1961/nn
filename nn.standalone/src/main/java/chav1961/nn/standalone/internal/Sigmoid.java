@@ -3,6 +3,7 @@ package chav1961.nn.standalone.internal;
 import java.io.Serializable;
 
 import chav1961.nn.core.interfaces.ActivationFunction;
+import chav1961.nn.core.interfaces.ActivationType;
 
 /**
  * Sigmoid activation function
@@ -24,4 +25,9 @@ public final class Sigmoid implements ActivationFunction, Serializable {
         return y*(1-y);
     }
        
+
+	@Override
+	public ActivationType getActivationType() {
+		return ActivationType.SIGMOID;
+	}
 }
