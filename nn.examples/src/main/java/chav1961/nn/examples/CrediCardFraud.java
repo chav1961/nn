@@ -34,7 +34,7 @@ import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.MLDataItem;
 import chav1961.nn.core.utils.FileIO;
-import chav1961.nn.standalone.FeedForwardNetwork;
+import chav1961.nn.standalone.network.FeedForwardNetwork;
 
 /**
  * Spam  Classification Problem. This example is using  activation in

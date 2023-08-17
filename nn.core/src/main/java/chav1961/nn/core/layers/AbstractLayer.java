@@ -151,7 +151,7 @@ public abstract class AbstractLayer implements Layer, Serializable {
      */
     public abstract void applyWeightChanges();
 
-    public abstract void setPrevLayer(final AbstractLayer prevLayer);
+    public abstract void setPrevLayer(AbstractLayer prevLayer);
     public abstract void setNextlayer(AbstractLayer nextlayer);
     
     @Override
@@ -159,26 +159,30 @@ public abstract class AbstractLayer implements Layer, Serializable {
     	return layerType;
     }
     
+    @Override
     public int getWidth() {
         return width;
     }
 
+    @Override
     public int getHeight() {
         return height;
     }
 
+    @Override
     public int getDepth() {
         return depth;
     }
 
-    public AbstractLayer getPrevLayer() {
+    public Layer getPrevLayer() {
         return prevLayer;
     }
 
-    public AbstractLayer getNextLayer() {
+    public Layer getNextLayer() {
         return nextLayer;
     }
     
+    @Override
     public Tensor getWeights() {
         return weights;
     }

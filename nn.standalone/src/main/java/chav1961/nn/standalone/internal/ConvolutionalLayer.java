@@ -19,13 +19,15 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
 import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.utils.Tensors;
 
 
@@ -38,8 +40,6 @@ import chav1961.nn.core.utils.Tensors;
  * @author Zoran Sevarac
  */
 public final class ConvolutionalLayer extends AbstractLayer {
-
-	
 	private static final long serialVersionUID = -1136065373511990910L;
 	
 	
@@ -154,7 +154,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
     @Override
     public void init(final NeuralNetwork<?> network) {
         // prev layer can only be input, max pooling or convolutional
-        inputs = getPrevLayer().outputs;
+        inputs = getPrevLayer().getOutputs();
 
         width = (getPrevLayer().getWidth()) / stride;
         height = (getPrevLayer().getHeight()) / stride;
@@ -296,8 +296,8 @@ public final class ConvolutionalLayer extends AbstractLayer {
         for (int row = 0; row < this.height; row++) {
             for (int col = 0; col < this.width; col++) {
                 final float actDerivative = activation.getPrime(outputs.get(row, col, ch)); // dy/ds
-                for (int ndC = 0; ndC < getNextLayer().deltas.getCols(); ndC++) {
-                    final float delta = getNextLayer().deltas.get(ndC) * getNextLayer().weights.get(col, row, ch, ndC) * actDerivative;
+                for (int ndC = 0; ndC < getNextLayer().getDeltas().getCols(); ndC++) {
+                    final float delta = getNextLayer().getDeltas().get(ndC) * getNextLayer().getWeights().get(col, row, ch, ndC) * actDerivative;
                     deltas.add(row, col, ch, delta);
                 }
             }
@@ -323,10 +323,10 @@ public final class ConvolutionalLayer extends AbstractLayer {
      * @param ch 
      */
     private void backwardFromMaxPoolingForChannel(int ch) {
-        for (int dr = 0; dr < getNextLayer().deltas.getRows(); dr++) { 
-            for (int dc = 0; dc < getNextLayer().deltas.getCols(); dc++) { 
+        for (int dr = 0; dr < getNextLayer().getDeltas().getRows(); dr++) { 
+            for (int dc = 0; dc < getNextLayer().getDeltas().getCols(); dc++) { 
 
-                final float nextLayerDelta = getNextLayer().deltas.get(dr, dc, ch); 
+                final float nextLayerDelta = getNextLayer().getDeltas().get(dr, dc, ch); 
                 final int maxR = maxIdx[ch][dr][dc][0];
                 final int maxC = maxIdx[ch][dr][dc][1];
 
@@ -351,10 +351,10 @@ public final class ConvolutionalLayer extends AbstractLayer {
         int filterCenterX = (nextConvLayer.filterWidth - 1) / 2;
         int filterCenterY = (nextConvLayer.filterHeight - 1) / 2;
         
-        for (int ndZ = 0; ndZ < getNextLayer().deltas.getDepth(); ndZ++) {
-            for (int ndRow = 0; ndRow < getNextLayer().deltas.getRows(); ndRow++) {
-                for (int ndCol = 0; ndCol < getNextLayer().deltas.getCols(); ndCol++) { 
-                    final float nextLayerDelta = getNextLayer().deltas.get(ndRow, ndCol, ndZ); 
+        for (int ndZ = 0; ndZ < getNextLayer().getDeltas().getDepth(); ndZ++) {
+            for (int ndRow = 0; ndRow < getNextLayer().getDeltas().getRows(); ndRow++) {
+                for (int ndCol = 0; ndCol < getNextLayer().getDeltas().getCols(); ndCol++) { 
+                    final float nextLayerDelta = getNextLayer().getDeltas().get(ndRow, ndCol, ndZ); 
 
                         for (int fr = 0; fr < nextConvLayer.filterHeight; fr++) {
                             for (int fc = 0; fc < nextConvLayer.filterWidth; fc++) {
@@ -516,6 +516,21 @@ public final class ConvolutionalLayer extends AbstractLayer {
         return deltaWeights;
     }
 
+	@Override
+	public void setInput(Tensor input) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+
+	@Override
+	public void setLossType(LossType loss) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+
+	@Override
+	public void setOutputErrors(float... errors) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
     @Override
     public String toString() {
         return "Convolutional Layer { filter width:" + filterWidth + ", filter height: " + filterHeight + ", channels: " + depth + ", stride: " + stride + ", activation: " + activationType.name() + "}";

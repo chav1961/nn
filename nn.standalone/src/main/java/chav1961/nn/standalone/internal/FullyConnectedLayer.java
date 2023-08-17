@@ -19,14 +19,17 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import java.util.Arrays;
 
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.utils.Tensors;
 
 /**
@@ -105,37 +108,37 @@ public final class FullyConnectedLayer extends AbstractLayer {
      */
     @Override
     public void init(final NeuralNetwork<?> network) {
-        inputs = getPrevLayer().outputs;
+        inputs = getPrevLayer().getOutputs();
         outputs = network.getTensorFactory().newInstance(width);
         deltas = network.getTensorFactory().newInstance(width);
 
-        if (getPrevLayer() instanceof FullyConnectedLayer || (getPrevLayer() instanceof InputLayer && getPrevLayer().height == 1 && getPrevLayer().depth == 1)) { // ovo ako je prethodni 1d layer, odnosno ako je prethodni fully connected
-            weights = network.getTensorFactory().newInstance(getPrevLayer().width, width);
-            deltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, width);
-            gradients = network.getTensorFactory().newInstance(getPrevLayer().width, width);
-            prevDeltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, width);
+        if (getPrevLayer() instanceof FullyConnectedLayer || (getPrevLayer() instanceof InputLayer && getPrevLayer().getHeight() == 1 && getPrevLayer().getDepth() == 1)) { // ovo ako je prethodni 1d layer, odnosno ako je prethodni fully connected
+            weights = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), width);
+            deltaWeights = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), width);
+            gradients = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), width);
+            prevDeltaWeights = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), width);
 
-            prevGradSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, width);
-            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, width);
+            prevGradSqrSum = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), width);
+            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), width);
             prevBiasSqrSum = network.getTensorFactory().newInstance(width);
             prevDeltaBiasSqrSum = network.getTensorFactory().newInstance(width);
 
             if (activationType == ActivationType.RELU || activationType == ActivationType.LEAKY_RELU) {
                 RandomWeights.he(weights.getValues(), outputs.size());
             } else {    // sigmoid tanh
-                RandomWeights.xavier(weights.getValues(), getPrevLayer().width, width);
+                RandomWeights.xavier(weights.getValues(), getPrevLayer().getWidth(), width);
             }
 
         } else if ((getPrevLayer() instanceof MaxPoolingLayer) || (getPrevLayer() instanceof ConvolutionalLayer) || (getPrevLayer() instanceof InputLayer)) {
-            weights = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
-            deltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
-            gradients = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
-            prevDeltaWeights = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
+            weights = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), getPrevLayer().getHeight(), getPrevLayer().getDepth(), width);
+            deltaWeights = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), getPrevLayer().getHeight(), getPrevLayer().getDepth(), width);
+            gradients = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), getPrevLayer().getHeight(), getPrevLayer().getDepth(), width);
+            prevDeltaWeights = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), getPrevLayer().getHeight(), getPrevLayer().getDepth(), width);
 
-            prevGradSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width);
+            prevGradSqrSum = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), getPrevLayer().getHeight(), getPrevLayer().getDepth(), width);
             prevBiasSqrSum = network.getTensorFactory().newInstance(width);
 
-            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(getPrevLayer().width, getPrevLayer().height, getPrevLayer().depth, width); // ada delta
+            prevDeltaWeightSqrSum = network.getTensorFactory().newInstance(getPrevLayer().getWidth(), getPrevLayer().getHeight(), getPrevLayer().getDepth(), width); // ada delta
             prevDeltaBiasSqrSum = network.getTensorFactory().newInstance(width);
 
             int totalInputs = getPrevLayer().getWidth() * getPrevLayer().getHeight() * getPrevLayer().getDepth();
@@ -234,8 +237,8 @@ public final class FullyConnectedLayer extends AbstractLayer {
         deltas.fill(0);
 
         for (int deltaCol = 0; deltaCol < deltas.getCols(); deltaCol++) {
-            for (int ndCol = 0; ndCol < getNextLayer().deltas.getCols(); ndCol++) {
-                deltas.add(deltaCol, getNextLayer().deltas.get(ndCol) * getNextLayer().weights.get(deltaCol, ndCol));
+            for (int ndCol = 0; ndCol < getNextLayer().getDeltas().getCols(); ndCol++) {
+                deltas.add(deltaCol, getNextLayer().getDeltas().get(ndCol) * getNextLayer().getWeights().get(deltaCol, ndCol));
             }
 
             final float delta = deltas.get(deltaCol) * activation.getPrime(outputs.get(deltaCol));
@@ -247,7 +250,7 @@ public final class FullyConnectedLayer extends AbstractLayer {
 	            backwardTo3DLayer();
 				break;
 			case INPUT				:
-				if ((getPrevLayer().height == 1 && getPrevLayer().depth == 1)) {
+				if ((getPrevLayer().getHeight() == 1 && getPrevLayer().getDepth() == 1)) {
 		            backwardTo1DLayer();
 				}
 				else {
@@ -343,6 +346,21 @@ public final class FullyConnectedLayer extends AbstractLayer {
 
     }
 
+	@Override
+	public void setInput(Tensor input) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+
+	@Override
+	public void setLossType(LossType loss) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
+	@Override
+	public void setOutputErrors(float... errors) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
     @Override
     public String toString() {
         return "Fully Connected Layer { width:" + width + " activation:" + activationType.name() + "}";

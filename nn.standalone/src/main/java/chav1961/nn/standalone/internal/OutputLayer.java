@@ -19,7 +19,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import java.util.Arrays;
 
@@ -28,6 +28,9 @@ import chav1961.nn.core.interfaces.LayerType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.interfaces.TensorFactory;
+import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.utils.Tensors;
 
 /**
@@ -123,7 +126,8 @@ public class OutputLayer extends AbstractLayer {
 		throw new IllegalStateException("Output layer can't have next layer");
 	}    
     
-    public final void setOutputErrors(final float[] outputErrors) {
+	@Override
+    public final void setOutputErrors(final float... outputErrors) {
         this.outputErrors = outputErrors;
     }
 
@@ -135,29 +139,31 @@ public class OutputLayer extends AbstractLayer {
         return lossType;
     }
 
+	@Override
     public void setLossType(LossType lossType) {
         this.lossType = lossType;
     }
 
     @Override
     public void init(final NeuralNetwork<?> network) {
-        inputs = getPrevLayer().outputs;
-        outputs = network.getTensorFactory().newInstance(width);
+    	final TensorFactory	tf = network.getTensorFactory(); 
+    			
+        inputs = getPrevLayer().getOutputs();
+        outputs = tf.newInstance(width);
         outputErrors = new float[width];
-        deltas = network.getTensorFactory().newInstance(width);
+        deltas = tf.newInstance(width);
 
         int prevLayerWidth = getPrevLayer().getWidth();
-        weights = network.getTensorFactory().newInstance(prevLayerWidth, width);
-        gradients = network.getTensorFactory().newInstance(prevLayerWidth, width);
-        deltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
-        prevDeltaWeights = network.getTensorFactory().newInstance(prevLayerWidth, width);
+        weights = tf.newInstance(prevLayerWidth, width);
+        gradients = tf.newInstance(prevLayerWidth, width);
+        deltaWeights = tf.newInstance(prevLayerWidth, width);
+        prevDeltaWeights = tf.newInstance(prevLayerWidth, width);
         RandomWeights.xavier(weights.getValues(), prevLayerWidth, width);
 
         biases = new float[width];
         deltaBiases = new float[width];
         prevDeltaBiases = new float[width];
         RandomWeights.randomize(biases);
-
     }
 
     /**
@@ -169,8 +175,8 @@ public class OutputLayer extends AbstractLayer {
     public <Tr> void forward(final NeuralNetwork<Tr> network) {
         outputs.copyFrom(biases);  
 
-        for (int outCol = 0; outCol < outputs.getCols(); outCol++) {  
-            for (int inCol = 0; inCol < inputs.getCols(); inCol++) {
+        for (int outCol = 0, outColMax = outputs.getCols(); outCol < outColMax; outCol++) {  
+            for (int inCol = 0, inColMax = inputs.getCols(); inCol < inColMax; inCol++) {
                 outputs.add(outCol, inputs.get(inCol) * weights.get(inCol, outCol));
             }
         }
@@ -235,4 +241,9 @@ public class OutputLayer extends AbstractLayer {
     public String toString() {
         return "Output Layer { width:"+width+", activation:"+activationType.name()+"}";
     }
+
+	@Override
+	public void setInput(Tensor input) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
 }

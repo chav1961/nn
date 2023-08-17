@@ -27,7 +27,7 @@ import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.examples.util.ExampleDataSets;
-import chav1961.nn.standalone.FeedForwardNetwork;
+import chav1961.nn.standalone.network.FeedForwardNetwork;
 
 /**
  * Solve XOR problem to confirm that backpropagation is working, and that it can

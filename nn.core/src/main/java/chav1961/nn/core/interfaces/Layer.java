@@ -36,7 +36,21 @@ public interface Layer {
 	 * @return layer type. Can't be null
 	 */
 	LayerType getLayerType();
+	
+    int getWidth();
+    int getHeight();
+    int getDepth();	
 
+    Tensor getWeights();
+
+    void setInput(Tensor input);
+    
+    ActivationType getActivationType();
+    
+    void setLossType(LossType loss);
+    
+    void setOutputErrors(float... errors);
+    
     /**
      * Performs layer calculation in forward pass of a neural network.
      */
@@ -59,4 +73,6 @@ public interface Layer {
      * @return layer deltas tensor
      */
     public Tensor getDeltas();
+    
+    
 }

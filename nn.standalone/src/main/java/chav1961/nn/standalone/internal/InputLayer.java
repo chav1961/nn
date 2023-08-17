@@ -19,11 +19,13 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.layers.AbstractLayer;
 
 /**
  * Input layer in neural network, which accepts external input, and sends it to next layer in a network.
@@ -129,7 +131,17 @@ public class InputLayer extends AbstractLayer {
     @Override
     public void applyWeightChanges() {
     }
-    
+
+	@Override
+	public void setLossType(LossType loss) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
+	@Override
+	public void setOutputErrors(float... errors) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
     @Override
     public String toString() {
         if (height==1 && depth==1)

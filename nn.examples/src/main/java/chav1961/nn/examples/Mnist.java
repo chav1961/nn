@@ -29,7 +29,7 @@ import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.FileIO;
-import chav1961.nn.standalone.ConvolutionalNetwork;
+import chav1961.nn.standalone.network.ConvolutionalNetwork;
 
 import java.io.File;
 import java.io.IOException;

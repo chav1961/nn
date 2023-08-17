@@ -31,8 +31,7 @@ import chav1961.nn.core.eval.Evaluators;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.utils.FileIO;
-import chav1961.nn.standalone.FeedForwardNetwork;
-import chav1961.nn.standalone.internal.TensorImpl;
+import chav1961.nn.standalone.network.FeedForwardNetwork;
 
 /**
  * Minimal example for linear regression using FeedForwardNetwork.
@@ -71,7 +70,7 @@ public class BostonHouses {
             System.out.println(pm);
 
             // perform prediction for some input value
-            neuralNet.setInput(new TensorImpl(1, 1, new float[] {0.2f}));
+            neuralNet.setInput(neuralNet.getTensorFactory().newInstance(1, 1, new float[] {0.2f}));
             System.out.println("Predicted price of the house is for 8 :" + neuralNet.getOutput()[0]);//*50);
     }
 

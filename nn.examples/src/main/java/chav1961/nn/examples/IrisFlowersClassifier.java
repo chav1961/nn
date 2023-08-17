@@ -35,7 +35,7 @@ import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.OptimizerType;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.FileIO;
-import chav1961.nn.standalone.FeedForwardNetwork;
+import chav1961.nn.standalone.network.FeedForwardNetwork;
 
 /**
  * Iris Flowers Classification Problem.

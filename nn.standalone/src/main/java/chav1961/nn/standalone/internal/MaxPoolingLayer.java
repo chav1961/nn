@@ -19,14 +19,17 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.package deepnetts.core;
  */
 
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Logger;
 
 import chav1961.nn.core.interfaces.LayerType;
+import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
+import chav1961.nn.core.interfaces.Tensor;
+import chav1961.nn.core.layers.AbstractLayer;
 
 /**
  * This layer performs max pooling operation in convolutional neural network, which
@@ -95,7 +98,7 @@ public final class MaxPoolingLayer extends AbstractLayer {
     
     @Override
     final public void init(final NeuralNetwork<?> network) {
-        inputs = getPrevLayer().outputs;
+        inputs = getPrevLayer().getOutputs();
 
         width = (inputs.getCols() - filterWidth) / stride + 1; 
         height = (inputs.getRows() - filterHeight) / stride + 1;
@@ -191,9 +194,9 @@ public final class MaxPoolingLayer extends AbstractLayer {
     private void backwardFromFullyConnectedForChannel(int ch) {
         for (int row = 0; row < deltas.getRows(); row++) {
             for (int col = 0; col < deltas.getCols(); col++) {
-                for (int ndC = 0; ndC < getNextLayer().deltas.getCols(); ndC++) {
-                    final float nextLayerDelta = getNextLayer().deltas.get(ndC);
-                    final float weight = getNextLayer().weights.get(col, row, ch, ndC);
+                for (int ndC = 0; ndC < getNextLayer().getDeltas().getCols(); ndC++) {
+                    final float nextLayerDelta = getNextLayer().getDeltas().get(ndC);
+                    final float weight = getNextLayer().getWeights().get(col, row, ch, ndC);
                     deltas.add(row, col, ch, nextLayerDelta * weight);
                 }
             }
@@ -214,10 +217,10 @@ public final class MaxPoolingLayer extends AbstractLayer {
         final int filterCenterY = (nextConvLayer.filterHeight - 1) / 2;
 
         // 1. Propagate deltas from next conv layer for max outputs from this layer
-        for (int ndz = 0; ndz < getNextLayer().deltas.getDepth(); ndz++) { 
-            for (int ndr = 0; ndr < getNextLayer().deltas.getRows(); ndr++) { 
-                for (int ndc = 0; ndc < getNextLayer().deltas.getCols(); ndc++) { 
-                    final float nextLayerDelta = getNextLayer().deltas.get(ndr, ndc, ndz); 
+        for (int ndz = 0; ndz < getNextLayer().getDeltas().getDepth(); ndz++) { 
+            for (int ndr = 0; ndr < getNextLayer().getDeltas().getRows(); ndr++) { 
+                for (int ndc = 0; ndc < getNextLayer().getDeltas().getCols(); ndc++) { 
+                    final float nextLayerDelta = getNextLayer().getDeltas().get(ndr, ndc, ndz); 
 
                     for (int fr = 0; fr < nextConvLayer.filterHeight; fr++) {
                         for (int fc = 0; fc < nextConvLayer.filterWidth; fc++) {
@@ -255,7 +258,22 @@ public final class MaxPoolingLayer extends AbstractLayer {
     public int getStride() {
         return stride;
     }
-    
+ 
+	@Override
+	public void setInput(Tensor input) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+
+	@Override
+	public void setLossType(LossType loss) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
+	@Override
+	public void setOutputErrors(float... errors) {
+		throw new UnsupportedOperationException("Dont' call this method");
+	}
+	
     @Override
     public String toString() {
         return "Max Pooling Layer { filter width:"+filterWidth+", filter height: "+filterHeight+", stride:"+stride+"}";

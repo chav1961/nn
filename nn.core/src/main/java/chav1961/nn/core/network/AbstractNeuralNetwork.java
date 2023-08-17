@@ -32,6 +32,7 @@ import javax.visrec.ml.eval.EvaluationMetrics;
 import chav1961.nn.core.eval.Evaluators;
 import chav1961.nn.core.interfaces.BinaryCrossEntropyLoss;
 import chav1961.nn.core.interfaces.CrossEntropyLoss;
+import chav1961.nn.core.interfaces.Layer;
 import chav1961.nn.core.interfaces.LossFunction;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.MLDataItem;
@@ -42,8 +43,6 @@ import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.interfaces.TensorFactory;
 import chav1961.nn.core.interfaces.Trainer;
 import chav1961.nn.core.layers.AbstractLayer;
-import chav1961.nn.core.layers.InputLayer;
-import chav1961.nn.core.layers.OutputLayer;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
@@ -78,13 +77,13 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
      * Input layer.
      * This layer accepts external inputs and sends them to the next layer
      */
-    private InputLayer inputLayer;
+    private Layer inputLayer;
 
     /**
      * Output layer.
      * This layer is the final step of processing network's input and its output is network's output.
      */
-    private OutputLayer outputLayer;
+    private Layer outputLayer;
 
     /**
      * Labels for network outputs (classes)
@@ -182,23 +181,23 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
     }
 
 	@Override
-    public InputLayer getInputLayer() {
+    public Layer getInputLayer() {
        return inputLayer;
     }
 
 	@Override
-    public OutputLayer getOutputLayer() {
+    public Layer getOutputLayer() {
         return outputLayer;
     }
   
 	@Override
-	public NeuralNetwork<T> setInputLayer(InputLayer inputLayer) {
+	public NeuralNetwork<T> setInputLayer(final Layer inputLayer) {
         this.inputLayer = inputLayer;
         return this;
     }
 
 	@Override
-	public NeuralNetwork<T> setOutputLayer(OutputLayer outputLayer) {
+	public NeuralNetwork<T> setOutputLayer(final Layer outputLayer) {
         this.outputLayer = outputLayer;
         return this;
     }

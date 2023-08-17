@@ -1,4 +1,4 @@
-package chav1961.nn.standalone;
+package chav1961.nn.standalone.network;
 
 import chav1961.nn.core.interfaces.ActivationFunction;
 import chav1961.nn.core.interfaces.ActivationType;

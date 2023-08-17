@@ -19,7 +19,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import java.util.Arrays;
 
@@ -48,7 +48,7 @@ public class SoftmaxOutputLayer extends OutputLayer {
 
     @Override
     public void init(final NeuralNetwork<?> network) {
-        inputs = getPrevLayer().outputs;
+        inputs = getPrevLayer().getOutputs();
         outputs = network.getTensorFactory().newInstance(width);
         outputErrors = new float[width];
         deltas = network.getTensorFactory().newInstance(width);

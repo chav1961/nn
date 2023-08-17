@@ -9,8 +9,6 @@ import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
 
 import chav1961.nn.core.layers.AbstractLayer;
-import chav1961.nn.core.layers.InputLayer;
-import chav1961.nn.core.layers.OutputLayer;
 import chav1961.purelib.basic.interfaces.SpiServiceFactory;
 
 public interface NeuralNetwork<Tr> extends SpiServiceFactory<NeuralNetwork<Tr>>, TrainerProvider<Tr>, Serializable, Cloneable {
@@ -18,6 +16,7 @@ public interface NeuralNetwork<Tr> extends SpiServiceFactory<NeuralNetwork<Tr>>,
 	
 	NetworkType getNetworkType();
 	TensorFactory getTensorFactory();
+	LayerFactory getLayerFactory();
 	
     String getLabel();
     NeuralNetwork<Tr> setLabel(String label);
@@ -27,10 +26,10 @@ public interface NeuralNetwork<Tr> extends SpiServiceFactory<NeuralNetwork<Tr>>,
 	
 	NeuralNetwork<Tr> addLayer(AbstractLayer layer);
     List<AbstractLayer> getLayers();
-    InputLayer getInputLayer();
-    NeuralNetwork<Tr> setInputLayer(InputLayer inputLayer);
-    OutputLayer getOutputLayer();
-    NeuralNetwork<Tr> setOutputLayer(OutputLayer outputLayer);    
+    Layer getInputLayer();
+    NeuralNetwork<Tr> setInputLayer(Layer inputLayer);
+    Layer getOutputLayer();
+    NeuralNetwork<Tr> setOutputLayer(Layer outputLayer);    
 	
     LossFunction getLossFunction();
     NeuralNetwork<Tr> setLossFunction(LossFunction lossFunction);
