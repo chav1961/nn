@@ -27,7 +27,6 @@ import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
 import chav1961.nn.core.interfaces.Tensor;
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.utils.Tensors;
 
 
@@ -385,7 +384,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
      * @param ch channel/depth index
      */
     private void calculateDeltaWeightsForChannel(int ch) {
-        if (!batchMode) {
+        if (!isBatchMode()) {
             deltaWeights[ch].fill(0); 
             deltaBiases[ch] = 0;
         }
@@ -413,7 +412,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
                             
                             
                             float deltaWeight = 0;  
-                            switch (optimizerType) {
+                            switch (getOptimizerType()) {
                                 case SGD:
                                       deltaWeight = optim.calculateDeltaWeight(grad);
                                     break;
@@ -426,7 +425,7 @@ public final class ConvolutionalLayer extends AbstractLayer {
                     }
                 }
                 float deltaBias = 0;
-                switch (optimizerType) {
+                switch (getOptimizerType()) {
                     case SGD:
                          deltaBias = optim.calculateDeltaBias(deltas.get(deltaRow, deltaCol, ch), deltaCol);
                         break;
@@ -445,15 +444,15 @@ public final class ConvolutionalLayer extends AbstractLayer {
     @Override
     public void applyWeightChanges() {
 
-        if (batchMode) {
-            Tensors.div(deltaBiases, batchSize);
+        if (isBatchMode()) {
+            Tensors.div(deltaBiases, getBiases());
         }
 
         Tensors.copy(deltaBiases, prevDeltaBiases);  // save this for momentum
 
         for (int ch = 0; ch < depth; ch++) {
-            if (batchMode) { 
-                deltaWeights[ch].div(batchSize);
+            if (isBatchMode()) { 
+                deltaWeights[ch].div(getBatchSize());
             }
 
             Tensors.copy(deltaWeights[ch], prevDeltaWeights[ch]); 
@@ -461,12 +460,12 @@ public final class ConvolutionalLayer extends AbstractLayer {
             filters[ch].add(deltaWeights[ch]);
             biases[ch] += deltaBiases[ch];
 
-            if (batchMode) {    // reset delta weights for next batch
+            if (isBatchMode()) {    // reset delta weights for next batch
                 deltaWeights[ch].fill(0);
             }
         }
 
-        if (batchMode) { // reset delta biases for next batch
+        if (isBatchMode()) { // reset delta biases for next batch
             Tensors.fill(deltaBiases, 0);
         }
 
@@ -535,4 +534,10 @@ public final class ConvolutionalLayer extends AbstractLayer {
     public String toString() {
         return "Convolutional Layer { filter width:" + filterWidth + ", filter height: " + filterHeight + ", channels: " + depth + ", stride: " + stride + ", activation: " + activationType.name() + "}";
     }
+
+	@Override
+	public float getRegularization() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

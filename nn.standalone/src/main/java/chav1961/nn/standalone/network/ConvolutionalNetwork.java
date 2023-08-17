@@ -35,24 +35,24 @@ import java.util.logging.Logger;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.BinaryCrossEntropyLoss;
 import chav1961.nn.core.interfaces.CrossEntropyLoss;
+import chav1961.nn.core.interfaces.Layer;
 import chav1961.nn.core.interfaces.LossFunction;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.MeanSquaredErrorLoss;
 import chav1961.nn.core.interfaces.NetworkType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.network.AbstractNeuralNetwork;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.RandomGenerator;
 import chav1961.nn.core.utils.Tensors;
+import chav1961.nn.standalone.internal.AbstractLayer;
 import chav1961.nn.standalone.internal.ConvolutionalLayer;
 import chav1961.nn.standalone.internal.FullyConnectedLayer;
 import chav1961.nn.standalone.internal.InputLayer;
 import chav1961.nn.standalone.internal.MaxPoolingLayer;
 import chav1961.nn.standalone.internal.OutputLayer;
 import chav1961.nn.standalone.internal.SoftmaxOutputLayer;
-import chav1961.nn.standalone.internal.ConvolutionalLayer;
 import chav1961.nn.standalone.internal.TensorImpl;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
@@ -97,8 +97,8 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
      * In most cases if the field is not null, than init method should not touch it.
      */
     private void initClassFieldsOfNetAndAllLayers() {
-    	List<AbstractLayer> layers = this.getLayers();
-        for (AbstractLayer cur: layers) {
+    	List<Layer> layers = this.getLayers();
+        for (Layer cur: layers) {
             cur.init(this);
         }
     }
@@ -335,7 +335,7 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
             AbstractLayer prevLayer = null;
 
             for (int i = 0; i < neuralNet.getLayers().size(); i++) {
-                AbstractLayer layer = neuralNet.getLayers().get(i);
+                AbstractLayer layer = (AbstractLayer) neuralNet.getLayers().get(i);
                  if (setDefaultActivation && !(layer instanceof InputLayer) && !(layer instanceof OutputLayer)) { // ne za izlazni layer
                     layer.setActivationType(defaultActivationType); // ali ovo ne treba ovako!!! ako je vec nesto setovano onda nemoj to d agazis
                     layer.setActivation(InternalUtils.create(defaultActivationType));
@@ -367,13 +367,13 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
      */
     public List<String> getWeights() {
         List weightsList = new ArrayList();
-        for (AbstractLayer layer : getLayers()) {
+        for (Layer layer : getLayers()) {
             if (layer instanceof ConvolutionalLayer) {
                 Tensor[] filters = ((ConvolutionalLayer)layer).getFilters();
                 String filterStr = Tensors.valuesAsString(filters);
                 weightsList.add(filterStr);
             } else {
-                weightsList.add(layer.getDeltaWeights().toString());
+                weightsList.add(((AbstractLayer)layer).getDeltaWeights().toString());
             }
         }
         return weightsList;
@@ -383,12 +383,12 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
         int weightsIdx=0;
 
         for (int layerIdx = 1; layerIdx < getLayers().size(); layerIdx++) {
-            AbstractLayer layer = getLayers().get(layerIdx);
+            Layer layer = getLayers().get(layerIdx);
             if (layer instanceof ConvolutionalLayer) {
                 ((ConvolutionalLayer)layer).setFilters(weights.get(weightsIdx));
                 weightsIdx++;
             } else if (layer instanceof FullyConnectedLayer || layer instanceof OutputLayer) {
-                layer.setWeights(weights.get(weightsIdx));
+                ((AbstractLayer)layer).setWeights(weights.get(weightsIdx));
                 weightsIdx++;
             }
         }
@@ -399,15 +399,15 @@ public class ConvolutionalNetwork extends StandaloneNeuralNetwork<Backpropagatio
 
     public List<String> getDeltaWeights() {
         List weightsList = new ArrayList();
-        for (AbstractLayer layer : getLayers()) {
-                weightsList.add(layer.getDeltaWeights().toString());
+        for (Layer layer : getLayers()) {
+                weightsList.add(((AbstractLayer)layer).getDeltaWeights().toString());
         }
         return weightsList;
     }
 
     public List<String> getAllOutputs() {
         List outputsList = new ArrayList();
-        for (AbstractLayer layer : getLayers()) {
+        for (Layer layer : getLayers()) {
             outputsList.add(layer.getOutputs());
         }
         return outputsList;

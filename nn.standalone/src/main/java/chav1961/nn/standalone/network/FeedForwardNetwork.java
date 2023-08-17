@@ -29,14 +29,15 @@ import java.util.List;
 import chav1961.nn.core.interfaces.ActivationType;
 import chav1961.nn.core.interfaces.BinaryCrossEntropyLoss;
 import chav1961.nn.core.interfaces.CrossEntropyLoss;
+import chav1961.nn.core.interfaces.Layer;
 import chav1961.nn.core.interfaces.LossFunction;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.MeanSquaredErrorLoss;
 import chav1961.nn.core.interfaces.NetworkType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.train.BackpropagationTrainer;
 import chav1961.nn.core.utils.RandomGenerator;
+import chav1961.nn.standalone.internal.AbstractLayer;
 import chav1961.nn.standalone.internal.FullyConnectedLayer;
 import chav1961.nn.standalone.internal.InputLayer;
 import chav1961.nn.standalone.internal.OutputLayer;
@@ -99,8 +100,8 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
      * In most cases if the field is not null, than init method should not touch it.
      */
     private void initClassFieldsOfNetAndAllLayers() {
-    	List<AbstractLayer> layers = this.getLayers();
-        for (AbstractLayer cur: layers) {
+    	List<Layer> layers = this.getLayers();
+        for (Layer cur: layers) {
             cur.init(this);
         }
     }    
@@ -285,7 +286,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
 
             // connect layers
             for (int i = 0; i < network.getLayers().size(); i++) {
-                AbstractLayer layer = network.getLayers().get(i);
+                AbstractLayer layer = (AbstractLayer)network.getLayers().get(i);
                 if (setDefaultActivation && !(layer instanceof InputLayer) && !(layer instanceof OutputLayer)) { // ne za izlazni layer
                     layer.setActivationType(defaultActivationType); // ali ovo ne treba ovako!!! ako je vec nesto setovano onda nemoj to d agazis
                     layer.setActivation(InternalUtils.create(defaultActivationType));
@@ -300,7 +301,7 @@ public final class FeedForwardNetwork extends StandaloneNeuralNetwork<Backpropag
             }
 
             // init internal layer structures (weights, outputs, deltas etc. for each layer)
-            for (AbstractLayer layer : network.getLayers()) {
+            for (Layer layer : network.getLayers()) {
                 layer.init(network);
             }
 

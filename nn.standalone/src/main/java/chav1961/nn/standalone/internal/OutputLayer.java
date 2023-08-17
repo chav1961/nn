@@ -30,7 +30,6 @@ import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
 import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.interfaces.TensorFactory;
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.utils.Tensors;
 
 /**
@@ -189,7 +188,7 @@ public class OutputLayer extends AbstractLayer {
      */
     @Override
     public <Tr> void backward(final NeuralNetwork<Tr> network) {
-        if (!batchMode) {   
+        if (!isBatchMode()) {   
             deltaWeights.fill(0);
             Arrays.fill(deltaBiases, 0);
         }
@@ -220,9 +219,9 @@ public class OutputLayer extends AbstractLayer {
      */
     @Override
     public void applyWeightChanges() {
-        if (batchMode) { 
-            deltaWeights.div(batchSize);
-            Tensors.div(deltaBiases, batchSize);
+        if (isBatchMode()) { 
+            deltaWeights.div(getBatchSize());
+            Tensors.div(deltaBiases, getBatchSize());
         }
 
         Tensors.copy(deltaWeights, prevDeltaWeights);
@@ -231,7 +230,7 @@ public class OutputLayer extends AbstractLayer {
         Tensors.copy(deltaBiases, prevDeltaBiases);
         Tensors.add(biases, deltaBiases);
 
-        if (batchMode) {   
+        if (isBatchMode()) {   
             deltaWeights.fill(0);
             Tensors.fill(deltaBiases, 0);
         }

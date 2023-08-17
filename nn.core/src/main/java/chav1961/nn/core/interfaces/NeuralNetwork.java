@@ -8,7 +8,6 @@ import java.util.ServiceLoader;
 import javax.visrec.ml.data.DataSet;
 import javax.visrec.ml.eval.EvaluationMetrics;
 
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.purelib.basic.interfaces.SpiServiceFactory;
 
 public interface NeuralNetwork<Tr> extends SpiServiceFactory<NeuralNetwork<Tr>>, TrainerProvider<Tr>, Serializable, Cloneable {
@@ -24,8 +23,8 @@ public interface NeuralNetwork<Tr> extends SpiServiceFactory<NeuralNetwork<Tr>>,
     String[] getOutputLabels();
     String getOutputLabel(int i);
 	
-	NeuralNetwork<Tr> addLayer(AbstractLayer layer);
-    List<AbstractLayer> getLayers();
+	NeuralNetwork<Tr> addLayer(Layer layer);
+    List<Layer> getLayers();
     Layer getInputLayer();
     NeuralNetwork<Tr> setInputLayer(Layer inputLayer);
     Layer getOutputLayer();

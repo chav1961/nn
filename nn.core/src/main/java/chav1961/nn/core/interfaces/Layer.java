@@ -45,11 +45,44 @@ public interface Layer {
 
     void setInput(Tensor input);
     
+    void init(NeuralNetwork<?> network);
+    
     ActivationType getActivationType();
     
     void setLossType(LossType loss);
     
     void setOutputErrors(float... errors);
+    void applyWeightChanges();
+    
+    float getLearningRate();
+    void setLearningRate(float learningRate);
+    
+    float getMomentum();
+    void setMomentum(float momentum);
+    
+    float getRegularization();
+    float getL1();
+    float getL2();
+    void setRegularization(float reg);
+    
+    boolean isBatchMode();
+    void setBatchMode(boolean batchMode);
+    
+    int getBatchSize();
+    void setBatchSize(int batchSize);
+    
+    OptimizerType getOptimizerType();
+    void setOptimizerType(OptimizerType optType);
+    
+    Tensor getPrevDeltaWeights();
+    void setPrevDeltaWeights(Tensor prevDeltaWeights);
+    
+    float[] getPrevDeltaBiases();
+    
+    float[] getBiases();
+    void setBiases(float[] biases);
+    
+    
     
     /**
      * Performs layer calculation in forward pass of a neural network.

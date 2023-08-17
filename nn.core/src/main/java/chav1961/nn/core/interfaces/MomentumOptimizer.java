@@ -24,8 +24,6 @@ package chav1961.nn.core.interfaces;
 
 import java.io.Serializable;
 
-import chav1961.nn.core.layers.AbstractLayer;
-
 class MomentumOptimizer implements Optimizer, Serializable {
 	private static final long serialVersionUID = 3214230909953355084L;
 	
@@ -37,9 +35,9 @@ class MomentumOptimizer implements Optimizer, Serializable {
     private final Tensor prevDeltaWeights;  
     private final float[] prevDeltaBiases;
     
-    AbstractLayer layer;
+    Layer layer;
     
-    public MomentumOptimizer(AbstractLayer layer) {
+    public MomentumOptimizer(Layer layer) {
         this.layer = layer;
         this.learningRate = layer.getLearningRate();
         this.momentum = layer.getMomentum();

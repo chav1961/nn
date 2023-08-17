@@ -22,14 +22,12 @@
 
 package chav1961.nn.core.interfaces;
 
-import chav1961.nn.core.layers.AbstractLayer;
-
 public interface Optimizer {
     
     public float calculateDeltaWeight(final float gradient, final int... index);
     public float calculateDeltaBias(final float gradient, final int idx);
          
-    public static Optimizer create(final OptimizerType type, final AbstractLayer layer) throws NullPointerException, UnsupportedOperationException {
+    public static Optimizer create(final OptimizerType type, final Layer layer) throws NullPointerException, UnsupportedOperationException {
     	if (type == null) {
     		throw new NullPointerException("Optimizer type can't be null");
     	}

@@ -42,7 +42,6 @@ import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
 import chav1961.nn.core.interfaces.TensorFactory;
 import chav1961.nn.core.interfaces.Trainer;
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
@@ -64,7 +63,7 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
      * Collection of all layers in this network (including input(first), output(last) and hidden(in between)).
      * As a minimum neural network must have an input and output layer.
      */
-    private final List<AbstractLayer> layers = new ArrayList<>();
+    private final List<Layer> layers = new ArrayList<>();
 
     /**
      * Loss function
@@ -170,13 +169,13 @@ public abstract class AbstractNeuralNetwork<T extends Trainer> implements Neural
 
 
 	@Override
-    public NeuralNetwork<T> addLayer(final AbstractLayer layer) {
+    public NeuralNetwork<T> addLayer(final Layer layer) {
         layers.add(layer);
         return this;
     }
 
 	@Override
-    public List<AbstractLayer> getLayers() {
+    public List<Layer> getLayers() {
         return layers;
     }
 

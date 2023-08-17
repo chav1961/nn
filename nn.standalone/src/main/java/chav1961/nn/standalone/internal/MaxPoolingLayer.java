@@ -29,7 +29,6 @@ import chav1961.nn.core.interfaces.LayerType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
-import chav1961.nn.core.layers.AbstractLayer;
 
 /**
  * This layer performs max pooling operation in convolutional neural network, which

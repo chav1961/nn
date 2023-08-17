@@ -25,8 +25,8 @@ package chav1961.nn.core.train;
 
 
 
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.eval.ClassifierEvaluator;
+import chav1961.nn.core.interfaces.Layer;
 import chav1961.nn.core.interfaces.LossFunction;
 import chav1961.nn.core.interfaces.MLDataItem;
 import chav1961.nn.core.interfaces.NeuralNetwork;
@@ -236,7 +236,7 @@ public class BackpropagationTrainer implements Trainer, Serializable {
         }
 
         // set same lr to all layers!
-        for (AbstractLayer layer : neuralNet.getLayers()) {
+        for (Layer layer : neuralNet.getLayers()) {
             layer.setLearningRate(learningRate);
             layer.setMomentum(momentum);
             layer.setRegularization(regL2);

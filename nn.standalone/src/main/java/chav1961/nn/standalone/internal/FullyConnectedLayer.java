@@ -29,7 +29,6 @@ import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.RandomWeights;
 import chav1961.nn.core.interfaces.Tensor;
-import chav1961.nn.core.layers.AbstractLayer;
 import chav1961.nn.core.utils.Tensors;
 
 /**
@@ -229,7 +228,7 @@ public final class FullyConnectedLayer extends AbstractLayer {
 
     @Override
     public <Tr> void backward(final NeuralNetwork<Tr> network) {
-        if (!batchMode) {
+        if (!isBatchMode()) {
             deltaWeights.fill(0);
             Arrays.fill(deltaBiases, 0);
         }
@@ -265,28 +264,6 @@ public final class FullyConnectedLayer extends AbstractLayer {
 			default:
 				throw new UnsupportedOperationException("Layer type ["+getPrevLayer().getLayerType()+"] is not supported yet");
         }
-
-//        if ((prevLayer instanceof FullyConnectedLayer)
-//                || ((prevLayer instanceof InputLayer) && (prevLayer.height == 1 && prevLayer.depth == 1))) { 
-//
-//            for (int deltaCol = 0; deltaCol < deltas.getCols(); deltaCol++) { 
-//                for (int inCol = 0; inCol < inputs.getCols(); inCol++) {
-//                    final float grad = deltas.get(deltaCol) * inputs.get(inCol);
-//                    gradients.set(inCol, deltaCol, grad);
-//
-//                    final float deltaWeight = optim.calculateDeltaWeight(grad, inCol, deltaCol);
-//                    deltaWeights.add(inCol, deltaCol, deltaWeight);
-//                }
-//
-//                final float deltaBias = optim.calculateDeltaBias(deltas.get(deltaCol), deltaCol);
-//                deltaBiases[deltaCol] += deltaBias;
-//            }
-//        } else if ((prevLayer instanceof InputLayer)
-//                || (prevLayer instanceof ConvolutionalLayer)
-//                || (prevLayer instanceof MaxPoolingLayer)) {
-//
-//            backwardTo3DLayer();
-//        }
     }
     
     private void backwardTo1DLayer() {
@@ -328,9 +305,9 @@ public final class FullyConnectedLayer extends AbstractLayer {
 
     @Override
     public void applyWeightChanges() {
-        if (batchMode) {
-            deltaWeights.div(batchSize);
-            Tensors.div(deltaBiases, batchSize);
+        if (isBatchMode()) {
+            deltaWeights.div(getBatchSize());
+            Tensors.div(deltaBiases, getBatchSize());
         }
 
         Tensors.copy(deltaWeights, prevDeltaWeights); // save as prev delta weight
@@ -339,7 +316,7 @@ public final class FullyConnectedLayer extends AbstractLayer {
         weights.add(deltaWeights);
         Tensors.add(biases, deltaBiases);
 
-        if (batchMode) {
+        if (isBatchMode()) {
             deltaWeights.fill(0);
             Tensors.fill(deltaBiases, 0);
         }

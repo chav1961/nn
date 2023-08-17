@@ -25,7 +25,6 @@ import chav1961.nn.core.interfaces.LayerType;
 import chav1961.nn.core.interfaces.LossType;
 import chav1961.nn.core.interfaces.NeuralNetwork;
 import chav1961.nn.core.interfaces.Tensor;
-import chav1961.nn.core.layers.AbstractLayer;
 
 /**
  * Input layer in neural network, which accepts external input, and sends it to next layer in a network.

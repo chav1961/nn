@@ -24,8 +24,6 @@ package chav1961.nn.core.interfaces;
 
 import java.io.Serializable;
 
-import chav1961.nn.core.layers.AbstractLayer;
-
 /**
  *
  * @author zoran
@@ -37,7 +35,7 @@ class SgdOptimizer implements Optimizer, Serializable  {
     private float learningRate;
     // bias lr?
     
-    public SgdOptimizer(AbstractLayer layer) {
+    public SgdOptimizer(Layer layer) {
         this.learningRate = layer.getLearningRate();
     }
     

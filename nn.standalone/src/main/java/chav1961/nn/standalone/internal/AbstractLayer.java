@@ -19,7 +19,7 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.package
  * deepnetts.core;
  */
-package chav1961.nn.core.layers;
+package chav1961.nn.standalone.internal;
 
 import java.io.Serializable;
 
@@ -92,11 +92,10 @@ public abstract class AbstractLayer implements Layer, Serializable {
      */
     protected ActivationType activationType;
 
-    protected OptimizerType optimizerType = OptimizerType.SGD;
-
-    protected boolean batchMode = false;
-    protected int batchSize = 0;
-
+    private OptimizerType optimizerType = OptimizerType.SGD;
+    private boolean batchMode = false;
+    private int batchSize = 0;
+    
     protected int width, height, depth; // layer dimensions - width and height
 
     // biases are used by output, fully connected and convolutional layers
@@ -253,26 +252,32 @@ public abstract class AbstractLayer implements Layer, Serializable {
         this.activation = activation;
     }
 
+    @Override
     public float getLearningRate() {
         return learningRate;
     }
 
+    @Override
     public void setLearningRate(float learningRate) {
         this.learningRate = learningRate;
     }
 
+    @Override
     public boolean isBatchMode() {
         return batchMode;
     }
 
+    @Override
     public void setBatchMode(boolean batchMode) {
         this.batchMode = batchMode;
     }
 
-    public float getBatchSize() {
+    @Override
+    public int getBatchSize() {
         return batchSize;
     }
 
+    @Override
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
     }
@@ -285,10 +290,12 @@ public abstract class AbstractLayer implements Layer, Serializable {
         return momentum;
     }
 
+    @Override
     public OptimizerType getOptimizerType() {
         return optimizerType;
     }
 
+    @Override
     public void setOptimizerType(OptimizerType optType) {
         this.optimizerType = optType;
         optim = Optimizer.create(optType, this);
@@ -303,18 +310,27 @@ public abstract class AbstractLayer implements Layer, Serializable {
 //        if (activationType != ActivationType.SOFTMAX) this.activation = ActivationFunction.create(activationType); // we use different layer for softmax
     }
 
+    @Override
     public float getL1() {
         return weights.sumAbs();
     }
 
+    @Override
     public float getL2() {
         return weights.sumSqr();
     }
 
+    @Override
     public void setRegularization(float reg) {
         this.regularization = reg;
     }
 
+    @Override
+    public float getRegularization() {
+        return this.regularization;
+    }
+
+    
     protected void setPrevLayerInternal(final AbstractLayer prevLayer) {
     	this.prevLayer = prevLayer;
     }    

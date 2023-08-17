@@ -101,7 +101,7 @@ public class SoftmaxOutputLayer extends OutputLayer {
 
     @Override
     public <Tr> void backward(final NeuralNetwork<Tr> network) {
-        if (!batchMode) {
+        if (!isBatchMode()) {
             deltaWeights.fill(0);
             Arrays.fill(deltaBiases, 0);
         }
