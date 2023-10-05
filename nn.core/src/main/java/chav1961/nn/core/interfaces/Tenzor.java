@@ -88,7 +88,7 @@ public interface Tenzor extends Serializable {
 	void forEach(ProcessCallback callback);
 	
 	
-	public static Tenzor valueOf(final CharSequence content) {
+	public static Tenzor valueOf(final CharSequence content, final int[] indices) {
 		return null;
 	}
 	
