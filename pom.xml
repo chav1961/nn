@@ -20,9 +20,11 @@
 	</dependencies>
 
   <modules>
+  	<module>nn.api</module>
   	<module>nn.core</module>
   	<module>nn.standalone</module>
   	<module>nn.opencl</module>
   	<module>nn.examples</module>
+  	<module>nn.utils</module>
   </modules>
 </project>

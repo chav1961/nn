@@ -5,7 +5,7 @@
     <artifactId>nn</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>nn.standalone</artifactId>
+  <artifactId>nn.api</artifactId>
 
 	<developers>
 		<developer>
@@ -58,21 +58,8 @@
 	    </repository>
 	</distributionManagement>
   
-	<dependencies>
-        <dependency>
-            <groupId>com.github.chav1961</groupId>
-            <artifactId>nn.api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.chav1961</groupId>
-            <artifactId>nn.core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-	</dependencies>
-  
      <build>
-       <finalName>nn.standalone-${project.parent.version}</finalName>
+       <finalName>nn.api-${project.parent.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -105,7 +92,6 @@
                        <manifest>
                            <addClasspath>true</addClasspath>
                            <classpathPrefix>./</classpathPrefix>
-<!--                            <mainClass>chav1961.da.converter.Application</mainClass> -->
                        </manifest>
                    </archive>
                </configuration>

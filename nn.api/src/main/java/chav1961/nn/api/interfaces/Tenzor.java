@@ -1,4 +1,4 @@
-package chav1961.nn.core.interfaces;
+package chav1961.nn.api.interfaces;
 
 import java.io.Serializable;
 import java.net.URI;

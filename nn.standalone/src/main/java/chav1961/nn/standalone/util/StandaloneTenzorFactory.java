@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import chav1961.nn.core.interfaces.Tenzor;
-import chav1961.nn.core.interfaces.Tenzor.TenzorFactory;
+import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.URIUtils;
@@ -276,7 +276,6 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	static Tenzor calculateInternal(final char[] charArray, final Tenzor[] parameters) throws SyntaxException {
-		// TODO Auto-generated method stub
 		final List<Lexema>							lex = new ArrayList<>();
 		final SyntaxNode<Command, SyntaxNode<?,?>> 	root = new SyntaxNode<>(0, 0, Command.Root, 0, null);  
 		
