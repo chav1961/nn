@@ -19,6 +19,11 @@
             <version>1.0.5</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.github.chav1961</groupId>
+            <artifactId>nn.api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 

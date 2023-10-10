@@ -3,10 +3,15 @@ package chav1961.nn.standalone.util;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
+import chav1961.nn.utils.calc.TenzorUtils;
+import chav1961.nn.utils.calc.TenzorUtils.Command;
+import chav1961.nn.utils.calc.TenzorUtils.FunctionType;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.URIUtils;
@@ -18,7 +23,6 @@ import chav1961.purelib.cdb.SyntaxNode;
 
 public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	private static final URI	TENZOR_TYPE = URI.create(TENZOR_FACTORY_SCHEMA +":standalone:/");
-	private static final SyntaxTreeInterface<FunctionType>	FUNCTIONS = new AndOrTree<>();
 
 	private static interface FunctionInterface extends Cloneable, Tenzor.ConvertCallback, Tenzor.ProcessCallback {
 		FunctionInterface clone() throws CloneNotSupportedException;
@@ -27,6 +31,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		float after();
 	}
 
+	
 	private static FunctionInterface	FI_SQRT = new FunctionInterface() {
 											@Override public void process(float value, int... indices) {}
 											@Override public void before() {}
@@ -167,48 +172,14 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 												return max;
 											};
 										};
-	
+	private static final Map<FunctionType, FunctionInterface>	FUNCTIONS = new HashMap<>();
+
 	static {
-		FUNCTIONS.placeName((CharSequence)"sqrt", FunctionType.Sqrt);
-		FUNCTIONS.placeName((CharSequence)"sumAbs", FunctionType.SumAbs);
-		FUNCTIONS.placeName((CharSequence)"sumSqr", FunctionType.SumSqr);
-		FUNCTIONS.placeName((CharSequence)"min", FunctionType.Min);
-		FUNCTIONS.placeName((CharSequence)"max", FunctionType.Max);
-	}
-
-	private static enum Command {
-		Root,
-		LoadTenzor,
-		LoadConstant,
-		UnaryOper,
-		AddOper,
-		MulOper,
-		Function,
-	}
-
-	private static enum FunctionType {
-		Sqrt(FI_SQRT),
-		SumAbs(FI_SUMABS),
-		SumSqr(FI_SUMSQR),
-		Min(FI_MIN),
-		Max(FI_MAX);
-		
-		private final FunctionInterface	fi;
-		
-		private FunctionType(final FunctionInterface fi) {
-			this.fi = fi;
-		}
-		
-		private FunctionInterface getFunctionInterface() {
-			return fi;
-		}
-	}
-
-	private static enum Depth {
-		Add,
-		Mul,
-		Unary,
-		Term
+		FUNCTIONS.put(FunctionType.Max, FI_MAX);
+		FUNCTIONS.put(FunctionType.Min, FI_MIN);
+		FUNCTIONS.put(FunctionType.Sqrt, FI_SQRT);
+		FUNCTIONS.put(FunctionType.SumAbs, FI_SUMABS);
+		FUNCTIONS.put(FunctionType.SumSqr, FI_SUMSQR);
 	}
 	
 	public StandaloneTenzorFactory() {
@@ -241,33 +212,43 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	@Override
-	public Tenzor newInstance(final int... sizes) {
-		if (sizes == null || sizes.length == 0) {
-			throw new IllegalArgumentException("Sizes can't be null or empty array");
+	public Tenzor newInstance(final int size, final int... advanced) {
+		if (size <= 0) {
+			throw new IllegalArgumentException("Size ["+size+"] must be greater than 0");
+		}
+		else if (advanced == null) {
+			throw new NullPointerException("Advanced sizes can't be null");
 		}
 		else {
-			for(int index = 0; index < sizes.length; index++) {
-				if (sizes[index] <= 0) {
+			for(int index = 0; index < advanced.length; index++) {
+				if (advanced[index] <= 0) {
 					throw new IllegalArgumentException("Sizes at position ["+index+"] contains negative or zero value");
 				}
 			}
-			return new TenzorImpl(sizes);
+			return new TenzorImpl(TenzorUtils.joinWithArray(size, advanced));
 		}
 	}
 
 	@Override
-	public Tenzor newInstance(final float[] content, final int... sizes) {
-		if (sizes == null || sizes.length == 0) {
-			throw new IllegalArgumentException("Sizes can't be null or empty array");
+	public Tenzor newInstance(final float[] content, final int size, final int... advanced) {
+		if (content == null) {
+			throw new NullPointerException("Content to fill can't be null");
+		}
+		else if (size <= 0) {
+			throw new IllegalArgumentException("Size ["+size+"] must be greater than 0");
+		}
+		else if (advanced == null) {
+			throw new NullPointerException("Advanced sizes can't be null");
 		}
 		else {
-			for(int index = 0; index < sizes.length; index++) {
-				if (sizes[index] <= 0) {
+			for(int index = 0; index < advanced.length; index++) {
+				if (advanced[index] <= 0) {
 					throw new IllegalArgumentException("Sizes at position ["+index+"] contains negative or zero value");
 				}
 			}
-			final TenzorImpl	result = new TenzorImpl(sizes);
-			final int[]			dim = new int[sizes.length];
+			final int[]			arities = TenzorUtils.joinWithArray(size, advanced);
+			final TenzorImpl	result = new TenzorImpl(arities);
+			final int[]			dim = new int[arities.length];
 			
 			Arrays.fill(dim, -1);
 			result.set(content, dim);
@@ -275,204 +256,14 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		}
 	}
 
-	static Tenzor calculateInternal(final char[] charArray, final Tenzor[] parameters) throws SyntaxException {
-		final List<Lexema>							lex = new ArrayList<>();
-		final SyntaxNode<Command, SyntaxNode<?,?>> 	root = new SyntaxNode<>(0, 0, Command.Root, 0, null);  
-		
-		lexParse(charArray, lex);
-		final Lexema[]	content = lex.toArray(new Lexema[lex.size()]);
-		final int		pos = buildSyntaxTree(Depth.Add, content, 0, root); 
-		
-		if (content[pos].type != Lexema.LexType.EOF) {
-			throw new SyntaxException(0, content[pos].pos, "Unparsed tail in the expression"); 
-		}
-		else {
-			return calculate(root, parameters);
-		}
-	}
-
-	/*
-	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
-	 */
-	
-	private static void lexParse(final char[] source, final List<Lexema> lex) throws SyntaxException {
-		final float[]	forNumber = new float[1]; 
-		final long[]	forIds = new long[1]; 
-		final int[]		forNames = new int[2]; 
-		int 			from = 0;
-		
-		for(;;) {
-			from = CharUtils.skipBlank(source, from, true);
-			switch (source[from]) {
-				case '\uFFFF'	:
-					lex.add(new Lexema(from, Lexema.LexType.EOF));
-					return;
-				case '('		:
-					lex.add(new Lexema(from++, Lexema.LexType.Open));
-					break;
-				case ')'		: 
-					lex.add(new Lexema(from++, Lexema.LexType.Close));
-					break;
-				case ','		: 
-					lex.add(new Lexema(from++, Lexema.LexType.Div));
-					break;
-				case '+'		: 
-					lex.add(new Lexema(from++, Lexema.LexType.AddOperator, '+'));
-					break;
-				case '-'		: 
-					lex.add(new Lexema(from++, Lexema.LexType.AddOperator, '-'));
-					break;
-				case '*'		: 
-					lex.add(new Lexema(from++, Lexema.LexType.MulOperator, '*'));
-					break;
-				case '/'		: 
-					lex.add(new Lexema(from++, Lexema.LexType.MulOperator, '/'));
-					break;
-				case '%'		: 
-					if (source[from + 1] >= '0' && source[from + 1] <= '9') {
-						from = CharUtils.parseLong(source, from, forIds, true);
-						lex.add(new Lexema(from, Lexema.LexType.Tensor, (int)forIds[0]));
-						break;
-					}
-					else {
-						throw new SyntaxException(0, from, "Number is missing");
-					}
-				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-					from = CharUtils.parseFloat(source, from, forNumber, true);
-					lex.add(new Lexema(from, Lexema.LexType.Constant, forNumber[0]));
-					break;
-				default :
-					if (Character.isJavaIdentifierStart(source[from])) {
-						from = CharUtils.parseName(source, from, forNames);
-						final long	funcId = FUNCTIONS.seekNameI(source, forNames[0], forNames[1]);
-						
-						if (funcId < 0) {
-							throw new SyntaxException(0, from, "Unknown function");
-						}
-						else {
-							lex.add(new Lexema(from, Lexema.LexType.Function, FUNCTIONS.getCargo(funcId)));
-						}
-						break;
-					}
-					else {
-						throw new SyntaxException(0, from, "Unknown symbol");
-					}
-			}
-		}
-	}
-
-	private static int buildSyntaxTree(final Depth depth, final Lexema[] source, int from, final SyntaxNode<Command, SyntaxNode<?,?>> node) throws SyntaxException {
-		node.row = 0;
-		node.col = source[from].pos;
-		
-		switch (depth) {
-			case Add	:
-				from = buildSyntaxTree(Depth.Mul, source, from, node);
-				if (source[from].getType() == Lexema.LexType.AddOperator) {
-					final List<SyntaxNode<Command, SyntaxNode<?,?>>>	list = new ArrayList<>();
-					final StringBuilder 								sb = new StringBuilder();
-					
-					list.add((SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone());
-					do {final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
-		
-						sb.append(source[from++].operator);
-						from = buildSyntaxTree(Depth.Mul, source, from, node);
-						list.add(right);
-					} while (source[from].getType() == Lexema.LexType.AddOperator);
-					node.type = Command.AddOper;
-					node.cargo = sb.toString().toCharArray();
-					node.children = list.toArray(new SyntaxNode[list.size()]);
-				}
-				break;
-			case Mul	:
-				from = buildSyntaxTree(Depth.Unary, source, from, node);
-				if (source[from].getType() == Lexema.LexType.MulOperator) {
-					final List<SyntaxNode<Command, SyntaxNode<?,?>>>	list = new ArrayList<>();
-					final StringBuilder 								sb = new StringBuilder();
-					
-					list.add((SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone());
-					do {final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
-						
-						sb.append(source[from++].operator);
-						from = buildSyntaxTree(Depth.Unary, source, from, node);
-						list.add(right);
-					} while (source[from].getType() == Lexema.LexType.MulOperator);
-					node.type = Command.MulOper;
-					node.cargo = sb.toString().toCharArray();
-					node.children = list.toArray(new SyntaxNode[list.size()]);
-				}
-				break;
-			case Unary	:
-				if (source[from].getType() == Lexema.LexType.AddOperator && source[from].operator == '-') {
-					final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
-					
-					from = buildSyntaxTree(Depth.Term, source, from + 1, right);
-					node.type = Command.UnaryOper;
-					node.cargo = new char[] {'-'};
-					node.children = new SyntaxNode[] {right};
-				}
-				else {
-					from = buildSyntaxTree(Depth.Term, source, from, node);
-				}
-				break;
-			case Term	:
-				switch (source[from].getType()) {
-					case Constant		:
-						node.type = Command.LoadTenzor;
-						node.value = Double.doubleToLongBits(source[from].getValue());
-						from++;
-						break;
-					case AddOperator : case MulOperator : case Close : case EOF : case UnaryOperator	:
-						throw new SyntaxException(0, source[from].pos, "tenzor, constant or function awaited");
-					case Function		:
-						final FunctionType									type = source[from].funcType;
-						final List<SyntaxNode<Command, SyntaxNode<?,?>>>	args= new ArrayList<>();
-						
-						do {final SyntaxNode<Command, SyntaxNode<?,?>>		parm = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
-							
-							from = buildSyntaxTree(Depth.Add, source, from + 1, parm);
-							args.add(parm);
-						} while (source[from].getType() == Lexema.LexType.Div);
-						
-						if (source[from].type == Lexema.LexType.Close) {
-							node.type = Command.Function;
-							node.cargo = type;
-							node.children = args.toArray(new SyntaxNode[args.size()]);
-							from++;
-						}
-						else {
-							throw new SyntaxException(0, source[from].pos, "Missing ')'");
-						}
-						break;
-					case Open			:
-						from = buildSyntaxTree(Depth.Add, source, from + 1, node);
-						if (source[from].type == Lexema.LexType.Close) {
-							from++;
-						}
-						else {
-							throw new SyntaxException(0, source[from].pos, "Missing ')'");
-						}
-						break;
-					case Tensor			:
-						node.type = Command.LoadTenzor;
-						node.value = source[from].getTenzorId();
-						from++;
-						break;
-					default:
-						break;
-				
-				}
-				break;
-			default:
-				throw new UnsupportedOperationException("Depth ["+depth+"] is not supported yet");
-		}
-		return from;
+	static Tenzor calculateInternal(final CharSequence charArray, final Tenzor[] parameters) throws SyntaxException {
+		return calculate(TenzorUtils.parseCalcExpression(charArray), parameters);
 	}
 
 	private static Tenzor calculate(final SyntaxNode<Command, SyntaxNode<?, ?>> node, final Tenzor[] parameters) {
 		switch (node.getType()) {
 			case Function		:
-				try{final FunctionInterface	fi = ((FunctionType)node.cargo).getFunctionInterface().clone();
+				try{final FunctionInterface	fi = FUNCTIONS.get((FunctionType)node.cargo).clone();
 					final Tenzor			value = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
 				
 					if (fi.isAggregate()) {
@@ -588,102 +379,6 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		return totalSize;
 	}
 
-	private static class Lexema {
-		private static enum LexType {
-			Tensor,
-			Constant,
-			Function,
-			Div,
-			Open,
-			Close,
-			UnaryOperator,
-			MulOperator,
-			AddOperator,
-			EOF
-		}
-
-		private final int 			pos;
-		private final LexType		type;
-		private final char			operator;
-		private final int			tenzorId;
-		private final float			value;
-		private final FunctionType	funcType;
-
-		private Lexema(final int pos, final LexType type) {
-			this.pos = pos;
-			this.type = type;
-			this.operator = ' ';
-			this.tenzorId = -1;
-			this.value = 0;
-			this.funcType = null;
-		}
-		
-		private Lexema(final int pos, final LexType type, final char operator) {
-			this.pos = pos;
-			this.type = type;
-			this.operator = operator;
-			this.tenzorId = -1;
-			this.value = 0f;
-			this.funcType = null;
-		}
-		
-		private Lexema(final int pos, final LexType type, final float value) {
-			this.pos = pos;
-			this.type = type;
-			this.operator = ' ';
-			this.tenzorId = -1;
-			this.value = value;
-			this.funcType = null;
-		}
-
-		private Lexema(final int pos, final LexType type, final int tenzorId) {
-			this.pos = pos;
-			this.type = type;
-			this.operator = ' ';
-			this.tenzorId = tenzorId;
-			this.value = 0;
-			this.funcType = null;
-		}
-
-		private Lexema(final int pos, final LexType type, final FunctionType funcType) {
-			this.pos = pos;
-			this.type = type;
-			this.operator = ' ';
-			this.tenzorId = -1;
-			this.value = 0;
-			this.funcType = funcType;
-		}
-		
-		public int getPos() {
-			return pos;
-		}
-
-		public LexType getType() {
-			return type;
-		}
-
-		public char getOperator() {
-			return operator;
-		}
-
-		public int getTenzorId() {
-			return tenzorId;
-		}
-
-		public float getValue() {
-			return value;
-		}
-
-		public FunctionType getFuncType() {
-			return funcType;
-		}
-
-		@Override
-		public String toString() {
-			return "Lexema [pos=" + pos + ", type=" + type + ", operator=" + operator + ", tenzorId=" + tenzorId + ", value=" + value + ", funcType=" + funcType + "]";
-		}
-	}
-	
 	private static class TenzorImpl implements Tenzor {
 		private static final long serialVersionUID = -4849576541841339261L;
 		
@@ -856,18 +551,18 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			else {
 				final float[] target = this.content;
 				final int[] dim = this.dimensions;
-				final int[] couurentIndices = new int[getArity()];
+				final int[] curentIndices = new int[getArity()];
 				
 				for(int index = 0; index < target.length; index++) {
-					if (canUse(couurentIndices, indices)) {
+					if (canUse(curentIndices, indices)) {
 						target[index] = value;
 					}
-					for(int dimIndex = couurentIndices.length; dimIndex >= 0; dimIndex--) {
-						if (++couurentIndices[dimIndex] < dim[dimIndex]) {
+					for(int dimIndex = curentIndices.length; dimIndex >= 0; dimIndex--) {
+						if (++curentIndices[dimIndex] < dim[dimIndex]) {
 							break;
 						}
 						else {
-							couurentIndices[dimIndex] = 0;
+							curentIndices[dimIndex] = 0;
 						}
 					}
 				}
@@ -895,7 +590,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				final float[] content = toAdd.getContent();
 				final float[] target = this.content;
 				
-				for(int index = 0; index < this.content.length; index++) {
+				for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 					target[index] += content[index];
 				}
 				return this;
@@ -906,7 +601,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		public Tenzor add(final float toAdd) {
 			final float[] target = this.content;
 			
-			for(int index = 0; index < this.content.length; index++) {
+			for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 				target[index] += toAdd;
 			}
 			return this;
@@ -924,7 +619,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				final float[] content = toSubtract.getContent();
 				final float[] target = this.content;
 				
-				for(int index = 0; index < this.content.length; index++) {
+				for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 					target[index] -= content[index];
 				}
 				return this;
@@ -935,7 +630,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		public Tenzor sub(final float toSubtract) {
 			final float[] target = this.content;
 			
-			for(int index = 0; index < this.content.length; index++) {
+			for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 				target[index] -= toSubtract;
 			}
 			return this;
@@ -953,7 +648,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				final float[] content = toMultiply.getContent();
 				final float[] target = this.content;
 				
-				for(int index = 0; index < this.content.length; index++) {
+				for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 					target[index] *= content[index];
 				}
 				return this;
@@ -964,7 +659,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		public Tenzor mul(final float toMultiply) {
 			final float[] target = this.content;
 			
-			for(int index = 0; index < this.content.length; index++) {
+			for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 				target[index] *= toMultiply;
 			}
 			return this;
@@ -982,7 +677,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				final float[] content = toDivide.getContent();
 				final float[] target = this.content;
 				
-				for(int index = 0; index < this.content.length; index++) {
+				for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 					target[index] /= content[index];
 				}
 				return this;
@@ -994,7 +689,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			final float[] target = this.content;
 			final float inv = 1/toDivide;
 			
-			for(int index = 0; index < this.content.length; index++) {
+			for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 				target[index] *= inv;
 			}
 			return this;
@@ -1013,7 +708,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				
 				temp[0] = this;
 				System.arraycopy(parameters, 0, temp, 1, parameters.length);
-				return calculateInternal(CharUtils.toCharArray(expression, '\uFFFF'), parameters);
+				return calculateInternal(expression, parameters);
 			}
 		}
 

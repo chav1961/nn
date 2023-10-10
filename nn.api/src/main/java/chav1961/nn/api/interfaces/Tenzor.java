@@ -11,8 +11,8 @@ public interface Tenzor extends Serializable {
 		String TENZOR_FACTORY_SCHEMA = "tenzorfactory"; 
 		
 		URI getDefaultTensorType();
-		Tenzor newInstance(final int... sizes);		
-		Tenzor newInstance(final float[] content, final int... sizes);
+		Tenzor newInstance(int size, int... advanced);		
+		Tenzor newInstance(float[] content, int size, int... advanced);
 	}
 	
 	@FunctionalInterface

@@ -69,6 +69,11 @@
             <artifactId>nn.core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.chav1961</groupId>
+            <artifactId>nn.utils</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
 	</dependencies>
   
      <build>

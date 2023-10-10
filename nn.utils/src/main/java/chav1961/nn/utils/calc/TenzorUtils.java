@@ -6,12 +6,14 @@ import java.util.List;
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
 
-public class TenzorCalcUtils {
+public class TenzorUtils {
 	private static final SyntaxTreeInterface<FunctionType>	FUNCTIONS = new AndOrTree<>();
+	private static final char								EOF = '\uFFFF';
 	
 	static {
 		FUNCTIONS.placeName((CharSequence)"sqrt", FunctionType.Sqrt);
@@ -21,7 +23,7 @@ public class TenzorCalcUtils {
 		FUNCTIONS.placeName((CharSequence)"max", FunctionType.Max);
 	}
 
-	private static enum Command {
+	public static enum Command {
 		Root,
 		LoadTenzor,
 		LoadConstant,
@@ -31,14 +33,14 @@ public class TenzorCalcUtils {
 		Function,
 	}
 
-	private static enum FunctionType {
+	public static enum FunctionType {
 		Sqrt,
 		SumAbs,
 		SumSqr,
 		Min,
 		Max;
 	}
-
+	
 	private static enum Depth {
 		Add,
 		Mul,
@@ -47,22 +49,41 @@ public class TenzorCalcUtils {
 	}
 
 	/*
-	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
+	 * %0 + 2 * %1 * ( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */
 
-	public static SyntaxNode<Command, SyntaxNode<?,?>> parseCalcExpression(final char[] charArray) throws SyntaxException {
-		final List<Lexema>							lex = new ArrayList<>();
-		final SyntaxNode<Command, SyntaxNode<?,?>> 	root = new SyntaxNode<>(0, 0, Command.Root, 0, null);  
-		
-		lexParse(charArray, lex);
-		final Lexema[]	content = lex.toArray(new Lexema[lex.size()]);
-		final int		pos = buildSyntaxTree(Depth.Add, content, 0, root); 
-		
-		if (content[pos].type != Lexema.LexType.EOF) {
-			throw new SyntaxException(0, content[pos].pos, "Unparsed tail in the expression"); 
+	public static SyntaxNode<Command, SyntaxNode<?,?>> parseCalcExpression(final CharSequence expr) throws SyntaxException {
+		if (Utils.checkEmptyOrNullString(expr)) {
+			throw new IllegalArgumentException("Expression can't be null or empty");
 		}
 		else {
-			return root;
+			final SyntaxNode<Command, SyntaxNode<?,?>> 	root = new SyntaxNode<>(0, 0, Command.Root, 0, null);  
+			final List<Lexema>	lex = new ArrayList<>();
+			final char[] 		charArray = CharUtils.terminateAndConvert2CharArray(expr, EOF);  
+			
+			lexParse(charArray, lex);
+			final Lexema[]	content = lex.toArray(new Lexema[lex.size()]);
+			final int		pos = buildSyntaxTree(Depth.Add, content, 0, root); 
+			
+			if (content[pos].type != Lexema.LexType.EOF) {
+				throw new SyntaxException(0, content[pos].pos, "Unparsed tail in the expression"); 
+			}
+			else {
+				return root;
+			}
+		}
+	}
+	
+	public static int[] joinWithArray(final int value, final int... array) {
+		if (array == null) {
+			throw new NullPointerException("Array to join can't be null");
+		}
+		else {
+			final int[]	result = new int[array.length + 1];
+			
+			result[0] = value;
+			System.arraycopy(array, 0, result, 1, array.length);
+			return result;
 		}
 	}
 	
@@ -75,7 +96,7 @@ public class TenzorCalcUtils {
 		for(;;) {
 			from = CharUtils.skipBlank(source, from, true);
 			switch (source[from]) {
-				case '\uFFFF'	:
+				case EOF		:
 					lex.add(new Lexema(from, Lexema.LexType.EOF));
 					return;
 				case '('		:
@@ -101,7 +122,7 @@ public class TenzorCalcUtils {
 					break;
 				case '%'		: 
 					if (source[from + 1] >= '0' && source[from + 1] <= '9') {
-						from = CharUtils.parseLong(source, from, forIds, true);
+						from = CharUtils.parseLong(source, from + 1, forIds, true);
 						lex.add(new Lexema(from, Lexema.LexType.Tensor, (int)forIds[0]));
 						break;
 					}
@@ -115,7 +136,7 @@ public class TenzorCalcUtils {
 				default :
 					if (Character.isJavaIdentifierStart(source[from])) {
 						from = CharUtils.parseName(source, from, forNames);
-						final long	funcId = FUNCTIONS.seekNameI(source, forNames[0], forNames[1]);
+						final long	funcId = FUNCTIONS.seekNameI(source, forNames[0], forNames[1] + 1);
 						
 						if (funcId < 0) {
 							throw new SyntaxException(0, from, "Unknown function");
@@ -147,7 +168,7 @@ public class TenzorCalcUtils {
 					do {final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
 		
 						sb.append(source[from++].operator);
-						from = buildSyntaxTree(Depth.Mul, source, from, node);
+						from = buildSyntaxTree(Depth.Mul, source, from, right);
 						list.add(right);
 					} while (source[from].getType() == Lexema.LexType.AddOperator);
 					node.type = Command.AddOper;
@@ -165,7 +186,7 @@ public class TenzorCalcUtils {
 					do {final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
 						
 						sb.append(source[from++].operator);
-						from = buildSyntaxTree(Depth.Unary, source, from, node);
+						from = buildSyntaxTree(Depth.Unary, source, from, right);
 						list.add(right);
 					} while (source[from].getType() == Lexema.LexType.MulOperator);
 					node.type = Command.MulOper;
@@ -189,7 +210,7 @@ public class TenzorCalcUtils {
 			case Term	:
 				switch (source[from].getType()) {
 					case Constant		:
-						node.type = Command.LoadTenzor;
+						node.type = Command.LoadConstant;
 						node.value = Double.doubleToLongBits(source[from].getValue());
 						from++;
 						break;
@@ -199,20 +220,25 @@ public class TenzorCalcUtils {
 						final FunctionType									type = source[from].funcType;
 						final List<SyntaxNode<Command, SyntaxNode<?,?>>>	args= new ArrayList<>();
 						
-						do {final SyntaxNode<Command, SyntaxNode<?,?>>		parm = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
+						if (source[++from].getType() == Lexema.LexType.Open) {
+							do {final SyntaxNode<Command, SyntaxNode<?,?>>		parm = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
+								
+								from = buildSyntaxTree(Depth.Add, source, from + 1, parm);
+								args.add(parm);
+							} while (source[from].getType() == Lexema.LexType.Div);
 							
-							from = buildSyntaxTree(Depth.Add, source, from + 1, parm);
-							args.add(parm);
-						} while (source[from].getType() == Lexema.LexType.Div);
-						
-						if (source[from].type == Lexema.LexType.Close) {
-							node.type = Command.Function;
-							node.cargo = type;
-							node.children = args.toArray(new SyntaxNode[args.size()]);
-							from++;
+							if (source[from].type == Lexema.LexType.Close) {
+								node.type = Command.Function;
+								node.cargo = type;
+								node.children = args.toArray(new SyntaxNode[args.size()]);
+								from++;
+							}
+							else {
+								throw new SyntaxException(0, source[from].pos, "Missing ')'");
+							}
 						}
 						else {
-							throw new SyntaxException(0, source[from].pos, "Missing ')'");
+							throw new SyntaxException(0, source[from].pos, "Missing '('");
 						}
 						break;
 					case Open			:
