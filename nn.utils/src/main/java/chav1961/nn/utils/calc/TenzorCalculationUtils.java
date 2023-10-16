@@ -11,7 +11,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
 
-public class TenzorUtils {
+public class TenzorCalculationUtils {
 	private static final SyntaxTreeInterface<FunctionType>	FUNCTIONS = new AndOrTree<>();
 	private static final char								EOF = '\uFFFF';
 	

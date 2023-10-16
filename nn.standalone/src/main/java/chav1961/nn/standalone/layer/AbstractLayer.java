@@ -1,0 +1,118 @@
+package chav1961.nn.standalone.layer;
+
+import chav1961.nn.api.interfaces.Layer;
+
+abstract class AbstractLayer implements Layer {
+	private final LayerType	type;
+	private final int[]		dimensions;
+	private ActivationType	activationType = ActivationType.LINEAR;
+	private LossType		lossType = LossType.CROSS_ENTROPY;
+	private OptimizerType	optimizerType = OptimizerType.MOMENTUM;
+	
+	AbstractLayer(final LayerType type, final int... dimensions) {
+		if (type == null) {
+			throw new NullPointerException("Layer type can't be null");
+		}
+		else if (dimensions == null || dimensions.length == 0) {
+			throw new IllegalArgumentException("Dimensions can't be null or empty array");
+		}
+		else {
+			this.type = type;
+			this.dimensions = dimensions;
+		}
+	}
+	
+	@Override
+	public LayerType getLayerType() {
+		return type;
+	}
+
+	@Override
+	public int getArity() {
+		return dimensions.length;
+	}
+
+	@Override
+	public int getSize(final int index) {
+		if (index < 0 || index >= getArity()) {
+			throw new IllegalArgumentException("Size index ["+index+"] out of range 0.."+(getArity()-1));
+		}
+		else {
+			return dimensions[index];
+		}
+	}
+
+	@Override
+	public ActivationType getActivationType() {
+		return activationType;
+	}
+
+	@Override
+	public Layer setActivationType(ActivationType activationType) {
+		if (activationType == null) {
+			throw new NullPointerException("Activation type can't be null");
+		}
+		else {
+			this.activationType = activationType;
+			return this;
+		}
+	}
+
+	@Override
+	public LossType getLossType() {
+		return lossType;
+	}
+
+	@Override
+	public Layer setLossType(LossType lossType) {
+		if (lossType == null) {
+			throw new NullPointerException("Loss type can't be null");
+		}
+		else {
+			this.lossType = lossType;
+			return this;
+		}
+	}
+
+	@Override
+	public OptimizerType getOptimizerType() {
+		return optimizerType;
+	}
+
+	@Override
+	public Layer setOptimizerType(OptimizerType optimizerType) {
+		if (optimizerType == null) {
+			throw new NullPointerException("Loss type can't be null");
+		}
+		else {
+			this.optimizerType = optimizerType;
+			return this;
+		}
+	}
+
+	String getActivationFunctionName() {
+		switch (getActivationType()) {
+			case LEAKY_RELU	: return "leakyReLu";
+			case LINEAR		: return "linear";
+			case RELU		: return "relu";
+			case SIGMOID	: return "sigmoid";
+			case SOFTMAX	: return "softmax";
+			case TANH		: return "tanh";
+			default :
+				throw new UnsupportedOperationException("Activation type ["+getActivationType()+"] is not supported yet");
+		}
+	}
+
+	String getActivationFunctionPrimeName() {
+		switch (getActivationType()) {
+			case LEAKY_RELU	: return "leakyReLu";
+			case LINEAR		: return "linear";
+			case RELU		: return "relu";
+			case SIGMOID	: return "sigmoid";
+			case SOFTMAX	: return "softmax";
+			case TANH		: return "tanh";
+			default :
+				throw new UnsupportedOperationException("Activation type ["+getActivationType()+"] is not supported yet");
+		}
+	}
+}

@@ -7,9 +7,9 @@ import java.util.Map;
 
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
-import chav1961.nn.utils.calc.TenzorUtils;
-import chav1961.nn.utils.calc.TenzorUtils.Command;
-import chav1961.nn.utils.calc.TenzorUtils.FunctionType;
+import chav1961.nn.utils.calc.TenzorCalculationUtils;
+import chav1961.nn.utils.calc.TenzorCalculationUtils.Command;
+import chav1961.nn.utils.calc.TenzorCalculationUtils.FunctionType;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -220,7 +220,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					throw new IllegalArgumentException("Sizes at position ["+index+"] contains negative or zero value");
 				}
 			}
-			return new TenzorImpl(TenzorUtils.joinWithArray(size, advanced));
+			return new TenzorImpl(TenzorCalculationUtils.joinWithArray(size, advanced));
 		}
 	}
 
@@ -241,7 +241,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					throw new IllegalArgumentException("Sizes at position ["+index+"] contains negative or zero value");
 				}
 			}
-			final int[]			arities = TenzorUtils.joinWithArray(size, advanced);
+			final int[]			arities = TenzorCalculationUtils.joinWithArray(size, advanced);
 			final TenzorImpl	result = new TenzorImpl(arities);
 			final int[]			dim = new int[arities.length];
 			
@@ -252,7 +252,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	static Tenzor calculateInternal(final CharSequence charArray, final Tenzor[] parameters) throws SyntaxException {
-		return calculate(TenzorUtils.parseCalcExpression(charArray), parameters);
+		return calculate(TenzorCalculationUtils.parseCalcExpression(charArray), parameters);
 	}
 
 	private static Tenzor calculate(final SyntaxNode<Command, SyntaxNode<?, ?>> node, final Tenzor[] parameters) {
@@ -294,7 +294,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 							term = calculate(term, temp, ((char[])node.cargo)[index-1]);
 							break;
 						default :
-							throw new UnsupportedOperationException("Additional operator ["+((char[])node.cargo)[index-1]+"] is not supported yet");
+							throw new UnsupportedOperationException("Add/mul operator ["+((char[])node.cargo)[index-1]+"] is not supported yet");
 					}
 				}
 				return term;

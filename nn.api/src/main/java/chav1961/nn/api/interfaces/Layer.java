@@ -10,7 +10,7 @@ public interface Layer {
 	int HEIGHT = 1;
 	int DEPTH = 2;
 	
-	public enum ActivationType {
+	public static enum ActivationType {
 	    LINEAR,
 	    LEAKY_RELU,
 	    RELU,
@@ -20,19 +20,25 @@ public interface Layer {
 	}	
 	
 	public static enum LayerType {
+		INPUT,
 		FEED_FORWARD,
 		CONVOLUTIONAL,
-		POOLING
+		POOLING,
+		OUTPUT
 	}
 	
-	public enum LossType {
+	public static enum LossType {
 	    CROSS_ENTROPY,
 	    MEAN_SQUARED_ERROR;
 	}
 
-	public enum OptimizerType {
+	public static enum OptimizerType {
 	    MOMENTUM,
 	    SGD;
+	}
+	
+	public static enum InternalTenzorType {
+		WEIGHTS
 	}
 	
 	public static interface LayerFactory extends SpiService<Layer.LayerFactory> {
@@ -52,9 +58,13 @@ public interface Layer {
 	OptimizerType getOptimizerType();
 	Layer setOptimizerType(OptimizerType optimizerType);
 	
+	Tenzor getInternalTenzor(InternalTenzorType type);
+	
 	Layer prepare(NeuralNetwork nn);
 	boolean canConnectBefore(NeuralNetwork nn, Layer before);
+	Layer connectBefore(NeuralNetwork nn, Layer before);
 	boolean canConnectAfter(NeuralNetwork nn, Layer after);
+	Layer connectAfter(NeuralNetwork nn, Layer after);
 	Tenzor forward(NeuralNetwork nn, Tenzor input);
 	Tenzor backward(NeuralNetwork nn, Tenzor errors);
 	Layer unprepare(NeuralNetwork nn);
