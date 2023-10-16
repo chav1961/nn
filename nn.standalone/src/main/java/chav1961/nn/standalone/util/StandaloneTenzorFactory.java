@@ -1,10 +1,8 @@
 package chav1961.nn.standalone.util;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import chav1961.nn.api.interfaces.Tenzor;
@@ -12,17 +10,14 @@ import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
 import chav1961.nn.utils.calc.TenzorUtils;
 import chav1961.nn.utils.calc.TenzorUtils.Command;
 import chav1961.nn.utils.calc.TenzorUtils.FunctionType;
-import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
 
 public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
-	private static final URI	TENZOR_TYPE = URI.create(TENZOR_FACTORY_SCHEMA +":standalone:/");
+	public static final URI				TENZOR_TYPE = URI.create(TENZOR_FACTORY_SCHEMA +":standalone:/");
 
 	private static interface FunctionInterface extends Cloneable, Tenzor.ConvertCallback, Tenzor.ProcessCallback {
 		FunctionInterface clone() throws CloneNotSupportedException;
@@ -231,8 +226,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 
 	@Override
 	public Tenzor newInstance(final float[] content, final int size, final int... advanced) {
-		if (content == null) {
-			throw new NullPointerException("Content to fill can't be null");
+		if (content == null || content.length == 0) {
+			throw new IllegalArgumentException("Content to fill can't be null or empty array");
 		}
 		else if (size <= 0) {
 			throw new IllegalArgumentException("Size ["+size+"] must be greater than 0");
@@ -296,13 +291,13 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					
 					switch (((char[])node.cargo)[index-1]) {
 						case '+' : case '-' : case '*' : case '/' :
-							term = calculate(term, temp,((char[])node.cargo)[index-1]);
+							term = calculate(term, temp, ((char[])node.cargo)[index-1]);
 							break;
 						default :
 							throw new UnsupportedOperationException("Additional operator ["+((char[])node.cargo)[index-1]+"] is not supported yet");
 					}
 				}
-				break;
+				return term;
 			case Root			:
 				throw new IllegalArgumentException("Root node can't be in the tree");
 			case UnaryOper		:
@@ -310,7 +305,6 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			default :
 				throw new UnsupportedOperationException("Command ["+node.getType()+"] is not supported yet");
 		}
-		return null;
 	}
 	
 	private static Tenzor calculate(final Tenzor left, final Tenzor right, final char operator) {
@@ -417,7 +411,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				return Arrays.equals(this.dimensions, ((TenzorImpl)another).dimensions) && compare(this.content, ((TenzorImpl)another).content, epsilon); 
 			}
 			else {
-				return Arrays.equals(this.dimensions, buildDimensions(another)) && compare(this.content, content, epsilon);
+				return Arrays.equals(this.dimensions, buildDimensions(another)) && compare(this.content, another.getContent(), epsilon);
 			}
 		}
 
@@ -429,7 +423,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		@Override
 		public float get(final int... indices) {
 			if (indices == null || indices.length != getArity()) {
-				throw new IllegalArgumentException("Indices list is null or it's size differ than ["+getArity()+"]"); 
+				throw new IllegalArgumentException("Wrong number of indices ["+indices.length+"]. Must contans exactly ["+getArity()+"] elements"); 
 			}
 			else {
 				return content[calculateDispl(dimensions, indices)];
@@ -442,7 +436,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				throw new IllegalArgumentException("Target is null or empty array"); 
 			}
 			else if (indices == null || indices.length > getArity()) {
-				throw new IllegalArgumentException("Indices list is null or contains more than ["+getArity()+"] elements"); 
+				throw new IllegalArgumentException("Wrong number of indices ["+indices.length+"]. Must contans exactly ["+getArity()+"] elements"); 
 			}
 			else {
 				final float[] source = this.content;
@@ -456,9 +450,9 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						underflow = true;
 					}
 					else if (canUse(currentIndices, indices)) {
-						target[index] = source[targetIndex++];
+						target[targetIndex++] = source[index];
 					}
-					for(int dimIndex = currentIndices.length; dimIndex >= 0; dimIndex--) {
+					for(int dimIndex = currentIndices.length - 1; dimIndex >= 0; dimIndex--) {
 						if (++currentIndices[dimIndex] < dim[dimIndex]) {
 							break;
 						}
@@ -479,7 +473,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		@Override
 		public Tenzor set(final float value, final int... indices) {
 			if (indices == null || indices.length != getArity()) {
-				throw new IllegalArgumentException("Indices list is null or it's size differ than ["+getArity()+"]"); 
+				throw new IllegalArgumentException("Wrong number of indices ["+indices.length+"]. Must contans exactly ["+getArity()+"] elements"); 
 			}
 			else {
 				content[calculateDispl(dimensions, indices)] = value;
@@ -492,8 +486,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			if (source == null || source.length == 0) {
 				throw new IllegalArgumentException("Source content is null or empty array"); 
 			}
-			else if (indices == null || indices.length > getArity()) {
-				throw new IllegalArgumentException("Indices list is null or contains more than ["+getArity()+"] elements"); 
+			else if (indices == null || indices.length != getArity()) {
+				throw new IllegalArgumentException("Wrong number of indices ["+indices.length+"]. Must contans exactly ["+getArity()+"] elements"); 
 			}
 			else {
 				final float[] target = this.content;
@@ -503,13 +497,15 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				int sourceIndex = 0, count = 0;
 				
 				for(int index = 0; index < target.length; index++, count++) {
-					if (sourceIndex >= source.length) {
-						underflow = true;
+					if (canUse(currentIndices, indices)) {
+						if (sourceIndex >= source.length) {
+							underflow = true;
+						}
+						else {
+							target[index] = source[sourceIndex++];
+						}
 					}
-					else if (canUse(currentIndices, indices)) {
-						target[index] = source[sourceIndex++];
-					}
-					for(int dimIndex = currentIndices.length; dimIndex >= 0; dimIndex--) {
+					for(int dimIndex = currentIndices.length - 1; dimIndex >= 0; dimIndex--) {
 						if (++currentIndices[dimIndex] < dim[dimIndex]) {
 							break;
 						}
@@ -545,8 +541,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 
 		@Override
 		public Tenzor fill(final float value, final int... indices) {
-			if (indices == null || indices.length > getArity()) {
-				throw new IllegalArgumentException("Indices list is null or contains more than ["+getArity()+"] elements"); 
+			if (indices == null || indices.length != getArity()) {
+				throw new IllegalArgumentException("Wrong number of indices ["+indices.length+"]. Must contans exactly ["+getArity()+"] elements"); 
 			}
 			else {
 				final float[] target = this.content;
@@ -557,7 +553,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					if (canUse(curentIndices, indices)) {
 						target[index] = value;
 					}
-					for(int dimIndex = curentIndices.length; dimIndex >= 0; dimIndex--) {
+					for(int dimIndex = curentIndices.length - 1; dimIndex >= 0; dimIndex--) {
 						if (++curentIndices[dimIndex] < dim[dimIndex]) {
 							break;
 						}
@@ -708,7 +704,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				
 				temp[0] = this;
 				System.arraycopy(parameters, 0, temp, 1, parameters.length);
-				return calculateInternal(expression, parameters);
+				return calculateInternal(expression, temp);
 			}
 		}
 
@@ -725,7 +721,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				for(int index = 0; index < target.length; index++) {
 					target[index] = callback.convert(target[index], indices);
 					
-					for(int dimIndex = indices.length; dimIndex >= 0; dimIndex--) {
+					for(int dimIndex = indices.length - 1; dimIndex >= 0; dimIndex--) {
 						if (++indices[dimIndex] < dim[dimIndex]) {
 							break;
 						}
@@ -751,7 +747,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				for(int index = 0; index < target.length; index++) {
 					callback.process(target[index], indices);
 					
-					for(int dimIndex = indices.length; dimIndex >= 0; dimIndex--) {
+					for(int dimIndex = indices.length - 1; dimIndex >= 0; dimIndex--) {
 						if (++indices[dimIndex] < dim[dimIndex]) {
 							break;
 						}
@@ -780,12 +776,17 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		}
 
 		private static int[] buildDimensions(final Tenzor another) {
-			final int[] result = new int[another.getArity()];
-			
-			for(int index = 0; index < result.length; index++) {
-				result[index] = another.getSize(index);
+			if (another instanceof TenzorImpl) {
+				return ((TenzorImpl)another).dimensions;
 			}
-			return result;
+			else {
+				final int[] result = new int[another.getArity()];
+				
+				for(int index = 0; index < result.length; index++) {
+					result[index] = another.getSize(index);
+				}
+				return result;
+			}
 		}
 
 		private int calculateDispl(final int[] dimensions, final int[] indices) {

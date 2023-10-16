@@ -2,6 +2,8 @@ package chav1961.nn.api.interfaces;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.ServiceLoader;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SpiService;
@@ -76,7 +78,7 @@ public interface Tenzor extends Serializable {
 	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */
 	Tenzor calculate(CharSequence expression, Tenzor... parameters) throws SyntaxException; 
-	default Tenzor calculateN(String expression, Tenzor... parameters) throws SyntaxException {
+	default Tenzor calculateN(CharSequence expression, Tenzor... parameters) throws SyntaxException {
 		return duplicate().calculate(expression, parameters);
 	}
 	
@@ -93,28 +95,96 @@ public interface Tenzor extends Serializable {
 	}
 	
 	public class Factory {
+		private static Tenzor.TenzorFactory	factory;
+		private static URI	tenzorType;
+		
+		static {
+			for(Tenzor.TenzorFactory item : ServiceLoader.load(Tenzor.TenzorFactory.class)) {
+				tenzorType = item.getDefaultTensorType();
+				break;
+			}
+		}
+		
 		public static URI getDefaultTensorType() {
-			return null;
+			return tenzorType;
 		}
 
-		public static void setDefaultTensorType(final URI TenzorType) {
-			
+		public static void setDefaultTensorType(final URI newTenzorType) {
+			if (newTenzorType == null) {
+				throw new NullPointerException("Tenzor type to set cen't be null");
+			}
+			else {
+				tenzorType = newTenzorType;
+				factory = null;
+			}
 		}
 		
 		public static Tenzor newInstance(final int... sizes) {
-			return null;
+			if (tenzorType == null) {
+				throw new IllegalStateException("No default tensor type defines. Call setDefaultTensorType(...) before");
+			}
+			else {
+				return newInstance(tenzorType, sizes);
+			}
 		}
 		
 		public static Tenzor newInstance(final float[] content, final int... sizes) {
-			return null;
+			if (tenzorType == null) {
+				throw new IllegalStateException("No default tensor type defines. Call setDefaultTensorType(...) before");
+			}
+			else {
+				return newInstance(tenzorType, content, sizes);
+			}
 		}
 
-		public static Tenzor newInstance(final URI TenzorType, final int... sizes) {
-			return null;
+		public static Tenzor newInstance(final URI tenzorType, final int... sizes) {
+			if (tenzorType == null) {
+				throw new NullPointerException("Tenzor type can't be null");
+			}
+			else if (sizes == null || sizes.length == 0) {
+				throw new IllegalArgumentException("Size list can't be null or empty array");
+			}
+			else {
+				Tenzor.TenzorFactory	f = null;
+				
+				if (tenzorType.equals(getDefaultTensorType())) {
+					if (factory == null) {
+						for(Tenzor.TenzorFactory item : ServiceLoader.load(Tenzor.TenzorFactory.class)) {
+							if (item.canServe(tenzorType)) {
+								f = item;
+								break;
+							}
+						}
+						if (f == null) {
+							throw new IllegalStateException("No tenzor factory found for ["+tenzorType+"]");
+						}
+					}
+					else {
+						f = factory;
+					}
+				}
+				else {
+					for(Tenzor.TenzorFactory item : ServiceLoader.load(Tenzor.TenzorFactory.class)) {
+						if (item.canServe(tenzorType)) {
+							f = item;
+							break;
+						}
+					}
+					if (f == null) {
+						throw new IllegalStateException("No tenzor factory found for ["+tenzorType+"]");
+					}
+				}
+				return f.newInstance(sizes[0], Arrays.copyOfRange(sizes, 1, sizes.length));
+			}
 		}
 		
-		public static Tenzor newInstance(final URI TenzorType, final float[] content, final int... sizes) {
-			return null;
+		public static Tenzor newInstance(final URI tenzorType, final float[] content, final int... sizes) {
+			final Tenzor	result = newInstance(tenzorType, sizes);
+			final int[]		dimensions = new int[sizes.length];
+			
+			Arrays.fill(dimensions, -1);
+			result.set(content, dimensions);			
+			return result;
 		}
 	}
 }
