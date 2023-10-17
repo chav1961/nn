@@ -692,6 +692,40 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		}
 
 		@Override
+		public Tenzor matrixMul(final Tenzor toMultiply) {
+			if (toMultiply == null) {
+				throw new NullPointerException("Tenzor to multiply can't be null"); 
+			}
+			else if (toMultiply.getArity() != 2) {
+				throw new IllegalArgumentException("Tenzor to matrix multiply mus have arity [2] but really has ["+toMultiply.getArity()+"]"); 
+			}
+			else if (getArity() != 2) {
+				throw new IllegalStateException("Self tenzor to matrix multiply mus have arity [2] but really has ["+getArity()+"]"); 
+			}
+			else if (getSize(1) != toMultiply.getSize(0)) {
+				throw new IllegalStateException("Self tenzor size ["+getSize(1)+"] doesn't corresponding mupltiply tenzor size ["+toMultiply.getSize(0)+"]"); 
+			}
+			else {
+				final int		xDim = getSize(0), yDim = toMultiply.getSize(1), zDim = getSize(1);
+				final float[]	temp = new float[xDim * yDim];
+				final float[]	thisData = getContent(), anotherData = toMultiply.getContent();
+				
+				for(int x = 0; x < xDim; x++) {
+					for(int y = 0; y < yDim; y++) {
+						double	sum = 0;
+						
+						for(int z = 0; z < zDim; z++) {
+							sum += thisData/*[x][z]*/[x * zDim + z] * anotherData/*[z][y]*/[z * zDim + y];
+						}
+						temp/*[x][y]*/[x * xDim + y] = (float)sum;
+					}
+				}
+				content = temp;
+				return this;
+			}
+		}
+		
+		@Override
 		public Tenzor calculate(final CharSequence expression, final Tenzor... parameters) throws SyntaxException {
 			if (expression == null || expression.isEmpty()) {
 				throw new IllegalArgumentException("Expression can't be null or empty");

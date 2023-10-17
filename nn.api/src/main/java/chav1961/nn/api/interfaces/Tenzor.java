@@ -74,6 +74,10 @@ public interface Tenzor extends Serializable {
 	default Tenzor divN(float toDivide) {
 		return duplicate().div(toDivide);
 	}
+	Tenzor matrixMul(Tenzor toMultiply);
+	default Tenzor matrixMulN(Tenzor toMultiply) {
+		return duplicate().matrixMul(toMultiply);
+	}
 	/*
 	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */
