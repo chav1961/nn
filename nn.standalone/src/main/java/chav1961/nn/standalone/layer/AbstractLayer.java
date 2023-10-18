@@ -6,6 +6,7 @@ abstract class AbstractLayer implements Layer {
 	private final LayerType	type;
 	private final int[]		dimensions;
 	private ActivationType	activationType = ActivationType.LINEAR;
+	private Object[]		activationParameters = new Object[0];
 	private LossType		lossType = LossType.CROSS_ENTROPY;
 	private OptimizerType	optimizerType = OptimizerType.MOMENTUM;
 	
@@ -48,12 +49,18 @@ abstract class AbstractLayer implements Layer {
 	}
 
 	@Override
-	public Layer setActivationType(ActivationType activationType) {
+	public Object[] getActivationParameters() {
+		return activationParameters;
+	}
+	
+	@Override
+	public Layer setActivationType(final ActivationType activationType, final Object... activationParameters) {
 		if (activationType == null) {
 			throw new NullPointerException("Activation type can't be null");
 		}
 		else {
 			this.activationType = activationType;
+			this.activationParameters = activationParameters;
 			return this;
 		}
 	}
@@ -64,7 +71,7 @@ abstract class AbstractLayer implements Layer {
 	}
 
 	@Override
-	public Layer setLossType(LossType lossType) {
+	public Layer setLossType(final LossType lossType) {
 		if (lossType == null) {
 			throw new NullPointerException("Loss type can't be null");
 		}
@@ -80,7 +87,7 @@ abstract class AbstractLayer implements Layer {
 	}
 
 	@Override
-	public Layer setOptimizerType(OptimizerType optimizerType) {
+	public Layer setOptimizerType(final OptimizerType optimizerType) {
 		if (optimizerType == null) {
 			throw new NullPointerException("Loss type can't be null");
 		}

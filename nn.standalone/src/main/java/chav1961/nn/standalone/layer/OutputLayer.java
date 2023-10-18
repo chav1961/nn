@@ -9,7 +9,7 @@ public class OutputLayer extends AbstractLayer {
 	private Tenzor	weights;
 	private Tenzor	output;
 	
-	OutputLayer(int[] dimensions) {
+	OutputLayer(final int[] dimensions) {
 		super(LayerType.OUTPUT, dimensions);
 	}
 
@@ -119,7 +119,7 @@ public class OutputLayer extends AbstractLayer {
 		else {
 			try {
 				final Tenzor	result = errors.calculate("trans("+getActivationFunctionPrimeName()+"(%1 - %0) x %2)", output, weights);
-				final Tenzor	temp = weights.calculate("", output, errors);
+				final Tenzor	temp = weights.calculate("trans("+getActivationFunctionPrimeName()+"(%1 - %0) x %2)", output, errors);
 				
 				weights.set(temp);
 				return result;

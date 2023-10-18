@@ -52,7 +52,8 @@ public interface Layer {
 	int getArity();
 	int getSize(int index);
 	ActivationType getActivationType();
-	Layer setActivationType(ActivationType activationType);
+	Object[] getActivationParameters();
+	Layer setActivationType(ActivationType activationType, Object... parameters);
 	LossType getLossType();
 	Layer setLossType(LossType lossType);
 	OptimizerType getOptimizerType();
