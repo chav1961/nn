@@ -78,6 +78,9 @@ public interface Tenzor extends Serializable {
 	default Tenzor matrixMulN(Tenzor toMultiply) {
 		return duplicate().matrixMul(toMultiply);
 	}
+	
+	Tenzor trans();
+	
 	/*
 	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */

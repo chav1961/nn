@@ -185,6 +185,7 @@ public class StandaloneTenzorFactoryTest {
 		final StandaloneTenzorFactory	stf = new StandaloneTenzorFactory(); 
 		final Tenzor	t1 = stf.newInstance(new float[] {1,2,3, 4,5,6}, 2, 3);
 		final Tenzor	t2 = stf.newInstance(new float[] {1,2,3, 4,5,6}, 2, 3);
+		final Tenzor	t2x = stf.newInstance(new float[] {1,2, 3,4, 5,6}, 3, 2);
 
 		// add
 		Assert.assertArrayEquals(new float[] {2,4,6, 8,10,12}, t1.addN(t2).getContent(), 0.001f);
@@ -224,7 +225,19 @@ public class StandaloneTenzorFactoryTest {
 			Assert.fail("Mandatory exception was not detected (incompatible dimensions)");
 		} catch (IllegalArgumentException exc) {
 		}
-	
+
+		// matrix mul
+		Assert.assertArrayEquals(new float[] {22,28, 49,64}, t1.duplicate().matrixMul(t2x).getContent(), 0.001f);
+
+		try{t1.matrixMul(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{t1.matrixMul(t2);
+			Assert.fail("Mandatory exception was not detected (incompatible dimensions)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 		// div
 		Assert.assertArrayEquals(new float[] {1,1,1, 1,1,1}, t1.divN(t2).getContent(), 0.001f);
 		Assert.assertArrayEquals(new float[] {2,4,6, 8,10,12}, t1.divN(0.5f).getContent(), 0.001f);
@@ -238,6 +251,9 @@ public class StandaloneTenzorFactoryTest {
 		} catch (IllegalArgumentException exc) {
 		}
 
+		// trans
+		Assert.assertArrayEquals(new float[] {1,4, 2,5, 3,6}, t1.duplicate().trans().getContent(), 0.001f);
+		
 		// convert and forEach
 		Assert.assertArrayEquals(new float[] {-1,-2,-3, -4,-5,-6}, t1.convertN((v,i)->-v).getContent(), 0.001f);
 		

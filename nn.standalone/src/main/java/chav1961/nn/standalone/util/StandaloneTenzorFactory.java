@@ -47,6 +47,171 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 												return (float)Math.sqrt(value);
 											}
 										};
+	private static FunctionInterface	FI_LINEAR = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												return value;
+											}
+										};
+	private static FunctionInterface	FI_D_LINEAR = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												return 1;
+											}
+										};
+	private static FunctionInterface	FI_RELU = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												return value >= 0 ? value : 0;
+											}
+										};
+	private static FunctionInterface	FI_D_RELU = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												return value >= 0 ? 1 : 0;
+											}
+										};
+	private static FunctionInterface	FI_SIGMOID = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												return (float) (1.0/(1.0 + Math.exp(-value)));
+											}
+										};
+	private static FunctionInterface	FI_D_SIGMOID = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												final double	temp = 1.0/(1.0 + Math.exp(-value));
+												
+												return (float) (temp * (1 - temp));
+											}
+										};
+	private static FunctionInterface	FI_TANH = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												return (float)Math.tanh(value);
+											}
+										};
+	private static FunctionInterface	FI_D_TANH = new FunctionInterface() {
+											@Override public void process(float value, int... indices) {}
+											@Override public void before() {}
+											@Override public float after() {return 0;};
+											
+											@Override
+											public FunctionInterface clone() throws CloneNotSupportedException {
+												return (FunctionInterface)super.clone();
+											}
+											
+											@Override
+											public boolean isAggregate() {
+												return false;
+											}
+
+											@Override
+											public float convert(float value, int... indices) {
+												final double	temp = Math.tanh(value); 
+												
+												return (float) (1 - temp * temp);
+											}
+										};
+
 	private static FunctionInterface	FI_SUMABS = new FunctionInterface() {
 											private float	sum = 0;
 											
@@ -175,6 +340,16 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		FUNCTIONS.put(FunctionType.Sqrt, FI_SQRT);
 		FUNCTIONS.put(FunctionType.SumAbs, FI_SUMABS);
 		FUNCTIONS.put(FunctionType.SumSqr, FI_SUMSQR);
+		
+		FUNCTIONS.put(FunctionType.linear, FI_LINEAR);
+		FUNCTIONS.put(FunctionType.relu, FI_RELU);
+		FUNCTIONS.put(FunctionType.sigmoid, FI_SIGMOID);
+		FUNCTIONS.put(FunctionType.tanh, FI_TANH);
+
+		FUNCTIONS.put(FunctionType.Dlinear, FI_D_LINEAR);
+		FUNCTIONS.put(FunctionType.Drelu, FI_D_RELU);
+		FUNCTIONS.put(FunctionType.Dsigmoid, FI_D_SIGMOID);
+		FUNCTIONS.put(FunctionType.Dtanh, FI_D_TANH);
 	}
 	
 	public StandaloneTenzorFactory() {
@@ -258,20 +433,73 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	private static Tenzor calculate(final SyntaxNode<Command, SyntaxNode<?, ?>> node, final Tenzor[] parameters) {
 		switch (node.getType()) {
 			case Function		:
-				try{final FunctionInterface	fi = FUNCTIONS.get((FunctionType)node.cargo).clone();
-					final Tenzor			value = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
+				try{final Tenzor			value = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
 				
-					if (fi.isAggregate()) {
-						final Tenzor	result = new TenzorImpl(1);
-						
-						fi.before();
-						value.forEach(fi);
-						result.fill(fi.after(), 0);
-						return result;
+					if (FUNCTIONS.containsKey((FunctionType)node.cargo)) {
+						final FunctionInterface	fi = FUNCTIONS.get((FunctionType)node.cargo).clone();
+					
+						if (fi.isAggregate()) {
+							final Tenzor	result = new TenzorImpl(1);
+							
+							fi.before();
+							value.forEach(fi);
+							result.fill(fi.after(), 0);
+							return result;
+						}
+						else {
+							value.convert(fi);
+							return value;
+						}
 					}
 					else {
-						value.convert(fi);
-						return value;
+						switch ((FunctionType)node.cargo) {
+							case Trans		:
+								return value.trans();
+							case DleakyReLu	:
+								final float 	koeffD = node.children.length > 1 ? calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 0.1f;
+								
+								value.convert((n,i)->n >= 0 ? 1 : koeffD);
+								return value;
+							case leakyReLu	:
+								final float 	koeff = node.children.length > 1 ? calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 0.1f;
+								
+								value.convert((n,i)->n >= 0 ? n : koeff * n);
+								return value;
+							case Dsoftmax	:
+								final float[]	sourceD = value.getContent();
+								final double[]	tempD = new double[sourceD.length]; 
+								double			sumD = 0;
+								
+								for(int index = 0; index < tempD.length; index++) {
+									final double	val = Math.exp(sourceD[index]);
+									
+									tempD[index] = val;
+									sumD += val;
+								}
+								sumD = 1/sumD;
+								for(int index = 0; index < tempD.length; index++) {
+									sourceD[index] = (float) ((tempD[index] * sumD) * (1 - (tempD[index] * sumD)));
+								}
+								return value;
+							case softmax	:
+								final float[]	source = value.getContent();
+								final double[]	temp = new double[source.length]; 
+								double			sum = 0;
+								
+								for(int index = 0; index < temp.length; index++) {
+									final double	val = Math.exp(source[index]);
+									
+									temp[index] = val;
+									sum += val;
+								}
+								sum = 1/sum;
+								for(int index = 0; index < temp.length; index++) {
+									source[index] = (float) (temp[index] * sum);
+								}
+								return value;
+							default :
+								throw new UnsupportedOperationException("Function type ["+(FunctionType)node.cargo+"] is not supported yet");
+						}
 					}
 				} catch (CloneNotSupportedException e) {
 					throw new IllegalArgumentException(e);
@@ -316,6 +544,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					return left.sub(right);
 				case '*' :
 					return left.mul(right);
+				case 'x' :
+					return left.matrixMul(right);
 				case '/' :
 					return left.div(right);
 			}
@@ -329,6 +559,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						return left.sub(right);
 					case '*' :
 						return left.mul(right);
+					case 'x' :
+						return left.matrixMul(right);
 					case '/' :
 						return left.div(right);
 				}
@@ -341,6 +573,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						return right.sub(left.get(0));
 					case '*' :
 						return right.mul(left.get(0));
+					case 'x' :
+						return right.matrixMul(left);
 					case '/' :
 						return right.div(left.get(0));
 				}
@@ -353,6 +587,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						return left.sub(right.get(0));
 					case '*' :
 						return left.mul(right.get(0));
+					case 'x' :
+						return left.mul(right);
 					case '/' :
 						return left.div(right.get(0));
 				}
@@ -703,7 +939,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				throw new IllegalStateException("Self tenzor to matrix multiply mus have arity [2] but really has ["+getArity()+"]"); 
 			}
 			else if (getSize(1) != toMultiply.getSize(0)) {
-				throw new IllegalStateException("Self tenzor size ["+getSize(1)+"] doesn't corresponding mupltiply tenzor size ["+toMultiply.getSize(0)+"]"); 
+				throw new IllegalArgumentException("Self tenzor size ["+getSize(1)+"] doesn't corresponding mupltiply tenzor size ["+toMultiply.getSize(0)+"]"); 
 			}
 			else {
 				final int		xDim = getSize(0), yDim = toMultiply.getSize(1), zDim = getSize(1);
@@ -715,12 +951,33 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						double	sum = 0;
 						
 						for(int z = 0; z < zDim; z++) {
-							sum += thisData/*[x][z]*/[x * zDim + z] * anotherData/*[z][y]*/[z * zDim + y];
+							sum += thisData/*[x][z]*/[x * zDim + z] * anotherData/*[z][y]*/[z * yDim + y];
 						}
 						temp/*[x][y]*/[x * xDim + y] = (float)sum;
 					}
 				}
 				content = temp;
+				return this;
+			}
+		}
+
+		@Override
+		public Tenzor trans() {
+			if (getArity() != 2) {
+				throw new IllegalStateException("Only matrices (two-dimensional tenzors) support the operation");
+			}
+			else {
+				final float[]	content = getContent(), result = content.clone();
+				final int 		maxX = getSize(0), maxY = getSize(1);
+				
+				for(int x = 0; x < maxX; x++) {
+					for(int y = 0; y < maxY; y++) {
+						result/*[x][y]*/[y*maxX + x] = content/*[y][x]*/[x*maxY + y];
+					}
+				}
+				System.arraycopy(result, 0, content, 0, content.length);
+				this.dimensions[0] = maxY;  
+				this.dimensions[1] = maxX;  
 				return this;
 			}
 		}

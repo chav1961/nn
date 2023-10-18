@@ -21,6 +21,21 @@ public class TenzorCalculationUtils {
 		FUNCTIONS.placeName((CharSequence)"sumSqr", FunctionType.SumSqr);
 		FUNCTIONS.placeName((CharSequence)"min", FunctionType.Min);
 		FUNCTIONS.placeName((CharSequence)"max", FunctionType.Max);
+		FUNCTIONS.placeName((CharSequence)"trans", FunctionType.Trans);
+		
+		FUNCTIONS.placeName((CharSequence)"leakyReLu", FunctionType.leakyReLu);
+		FUNCTIONS.placeName((CharSequence)"linear", FunctionType.linear);
+		FUNCTIONS.placeName((CharSequence)"relu", FunctionType.relu);
+		FUNCTIONS.placeName((CharSequence)"sigmoid", FunctionType.sigmoid);
+		FUNCTIONS.placeName((CharSequence)"softmax", FunctionType.softmax);
+		FUNCTIONS.placeName((CharSequence)"tanh", FunctionType.tanh);
+		
+		FUNCTIONS.placeName((CharSequence)"DleakyReLu", FunctionType.DleakyReLu);
+		FUNCTIONS.placeName((CharSequence)"Dlinear", FunctionType.Dlinear);
+		FUNCTIONS.placeName((CharSequence)"Drelu", FunctionType.Drelu);
+		FUNCTIONS.placeName((CharSequence)"Dsigmoid", FunctionType.Dsigmoid);
+		FUNCTIONS.placeName((CharSequence)"Dsoftmax", FunctionType.Dsoftmax);
+		FUNCTIONS.placeName((CharSequence)"Dtanh", FunctionType.Dtanh);
 	}
 
 	public static enum Command {
@@ -38,7 +53,20 @@ public class TenzorCalculationUtils {
 		SumAbs,
 		SumSqr,
 		Min,
-		Max;
+		Max,
+		Trans,
+		leakyReLu,
+		linear,
+		relu,
+		sigmoid,
+		softmax,
+		tanh,
+		DleakyReLu,
+		Dlinear,
+		Drelu,
+		Dsigmoid,
+		Dsoftmax,
+		Dtanh;
 	}
 	
 	private static enum Depth {
@@ -117,6 +145,9 @@ public class TenzorCalculationUtils {
 				case '*'		: 
 					lex.add(new Lexema(from++, Lexema.LexType.MulOperator, '*'));
 					break;
+				case 'x'		: 
+					lex.add(new Lexema(from++, Lexema.LexType.MulOperator, 'x'));
+					break;
 				case '/'		: 
 					lex.add(new Lexema(from++, Lexema.LexType.MulOperator, '/'));
 					break;
@@ -167,7 +198,7 @@ public class TenzorCalculationUtils {
 					list.add((SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone());
 					do {final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
 		
-						sb.append(source[from++].operator);
+						sb.append(source[from++].getOperator());
 						from = buildSyntaxTree(Depth.Mul, source, from, right);
 						list.add(right);
 					} while (source[from].getType() == Lexema.LexType.AddOperator);
@@ -185,7 +216,7 @@ public class TenzorCalculationUtils {
 					list.add((SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone());
 					do {final SyntaxNode<Command, SyntaxNode<?,?>>		right = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
 						
-						sb.append(source[from++].operator);
+						sb.append(source[from++].getOperator());
 						from = buildSyntaxTree(Depth.Unary, source, from, right);
 						list.add(right);
 					} while (source[from].getType() == Lexema.LexType.MulOperator);

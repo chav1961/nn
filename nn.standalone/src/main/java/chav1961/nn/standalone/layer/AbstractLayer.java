@@ -105,12 +105,12 @@ abstract class AbstractLayer implements Layer {
 
 	String getActivationFunctionPrimeName() {
 		switch (getActivationType()) {
-			case LEAKY_RELU	: return "leakyReLu";
-			case LINEAR		: return "linear";
-			case RELU		: return "relu";
-			case SIGMOID	: return "sigmoid";
-			case SOFTMAX	: return "softmax";
-			case TANH		: return "tanh";
+			case LEAKY_RELU	: return "DleakyReLu";
+			case LINEAR		: return "Dlinear";
+			case RELU		: return "Drelu";
+			case SIGMOID	: return "Dsigmoid";
+			case SOFTMAX	: return "Dsoftmax";
+			case TANH		: return "Dtanh";
 			default :
 				throw new UnsupportedOperationException("Activation type ["+getActivationType()+"] is not supported yet");
 		}
