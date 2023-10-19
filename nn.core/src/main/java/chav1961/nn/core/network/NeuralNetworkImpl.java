@@ -12,23 +12,32 @@ import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
 
 public class NeuralNetworkImpl implements NeuralNetwork {
+	private final TenzorFactory	tf;
+	private final LayerFactory	lf;
 	private final List<Layer>	layers = new ArrayList<>();
 	private boolean				prepared = false;
 	
-	public NeuralNetworkImpl() {
-		
+	public NeuralNetworkImpl(final TenzorFactory tf, final LayerFactory lf) {
+		if (tf == null) {
+			throw new NullPointerException("Tenzor factory can't be null");
+		}
+		else if (lf == null) {
+			throw new NullPointerException("Layer factory can't be null");
+		}
+		else {
+			this.tf = tf;
+			this.lf = lf;
+		}
 	}
 
 	@Override
 	public TenzorFactory getTenzorFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return tf;
 	}
 
 	@Override
 	public LayerFactory getLayerFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return lf;
 	}
 
 	@Override

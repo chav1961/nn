@@ -14,7 +14,7 @@ public class OutputLayer extends AbstractLayer {
 	}
 
 	@Override
-	public Tenzor getInternalTenzor(InternalTenzorType type) {
+	public Tenzor getInternalTenzor(final InternalTenzorType type) {
 		if (type == null) {
 			throw new NullPointerException("Internal tenzor type can't be null");
 		}
@@ -91,8 +91,8 @@ public class OutputLayer extends AbstractLayer {
 		else if (input == null) {
 			throw new NullPointerException("Input tenzor can't be null");
 		}
-		else if (input.getArity() != getArity()) { 
-			throw new IllegalArgumentException("Input tenzor arity ["+input.getArity()+"] differ with layer declared arity ["+getArity()+"]");
+		else if (input.getArity() != weights.getSize(0)) { 
+			throw new IllegalArgumentException("Input tenzor arity ["+input.getArity()+"] differ with arity awaited ["+weights.getSize(0)+"]");
 		}
 		else {
 			try {
@@ -113,7 +113,10 @@ public class OutputLayer extends AbstractLayer {
 		else if (errors == null) {
 			throw new NullPointerException("Errors tenzor can't be null");
 		}
-		else if (errors.getArity() != getArity()) { 
+		else if (output == null) {
+			throw new IllegalStateException("Calling backward(...) without calling forward(...). Call forward(...) before!");
+		}
+		else if (errors.getArity() != output.getArity()) { 
 			throw new IllegalArgumentException("Errors tenzor arity ["+errors.getArity()+"] differ with layer declared arity ["+getArity()+"]");
 		}
 		else {

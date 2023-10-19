@@ -62,7 +62,7 @@
         <dependency>
             <groupId>com.github.chav1961</groupId>
             <artifactId>nn.api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
 	</dependencies>
   

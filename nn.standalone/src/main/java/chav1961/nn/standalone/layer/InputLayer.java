@@ -17,7 +17,7 @@ class InputLayer extends AbstractLayer {
 		else {
 			switch (type) {
 				case WEIGHTS :
-					throw new UnsupportedOperationException("Tenzor type ["+type+"] doesn't contaion in the layer");
+					throw new UnsupportedOperationException("Tenzor type ["+type+"] is missing in the layer");
 				default :
 					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
 			}

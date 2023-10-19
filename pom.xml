@@ -26,5 +26,6 @@
   	<module>nn.opencl</module>
   	<module>nn.examples</module>
   	<module>nn.utils</module>
+  	<module>nn.test</module>
   </modules>
 </project>
