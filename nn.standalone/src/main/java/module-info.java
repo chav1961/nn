@@ -4,8 +4,8 @@ import chav1961.nn.api.interfaces.Tenzor;
 module nn.standalone {
 	requires transitive chav1961.purelib;
 	requires java.base;
-	requires nn.api;
-	requires nn.utils;
+	requires transitive nn.api;
+	requires tenzor;
 	
 	exports chav1961.nn.standalone.layer to nn.test;
 	exports chav1961.nn.standalone.util to nn.test;

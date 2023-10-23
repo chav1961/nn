@@ -1,7 +1,7 @@
-module nn.utils {
+module tenzor {
 	requires transitive chav1961.purelib;
 	requires java.base;
-	requires nn.api;
+	requires transitive nn.api;
 	
-	exports chav1961.nn.utils.calc to nn.standalone;
+	exports chav1961.nn.utils.calc to nn.standalone, nn.opencl, nn.test;
 }

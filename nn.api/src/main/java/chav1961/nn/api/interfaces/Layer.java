@@ -38,14 +38,15 @@ public interface Layer {
 	}
 	
 	public static enum InternalTenzorType {
-		WEIGHTS
+		WEIGHTS,
+		UNKNOWN
 	}
 	
 	public static interface LayerFactory extends SpiService<Layer.LayerFactory> {
 		String LAYER_FACTORY_SCHEMA = "layerfactory"; 
 		
 		URI getDefaultLayerType();
-		Layer newInstance(LayerType type);		
+		Layer newInstance(LayerType type, final Object... parameters);		
 	}
 	
 	LayerType getLayerType();
@@ -92,7 +93,7 @@ public interface Layer {
 		}
 
 		@Override
-		public Layer newInstance(LayerType type) {
+		public Layer newInstance(LayerType type, Object... parameters) {
 			// TODO Auto-generated method stub
 			return null;
 		}

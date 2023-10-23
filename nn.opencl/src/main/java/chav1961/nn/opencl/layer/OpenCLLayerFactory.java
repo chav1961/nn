@@ -28,7 +28,7 @@ public class OpenCLLayerFactory implements Layer.LayerFactory {
 	}
 
 	@Override
-	public Layer newInstance(LayerType type) {
+	public Layer newInstance(LayerType type, Object... parameters) {
 		// TODO Auto-generated method stub
 		return null;
 	}

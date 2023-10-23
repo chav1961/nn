@@ -10,6 +10,7 @@ import chav1961.nn.api.interfaces.Layer.LayerType;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
+import chav1961.purelib.basic.Utils;
 
 public class NeuralNetworkImpl implements NeuralNetwork {
 	private final TenzorFactory	tf;
@@ -42,8 +43,8 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 
 	@Override
 	public NeuralNetwork add(final Layer... layers) {
-		if (layers == null) {
-			throw new NullPointerException("Layers list can't be null");
+		if (layers == null || Utils.checkArrayContent4Nulls(layers) >= 0) {
+			throw new IllegalArgumentException("Layers list is null or contains nulls inside");
 		}
 		else if (prepared) {
 			throw new IllegalStateException("Can't add new layers after preparation. Call unprepare(...) before");
@@ -98,6 +99,9 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 		if (input == null) {
 			throw new NullPointerException("Input tenzor can't be null");
 		}
+		else if (!prepared) {
+			throw new IllegalStateException("Calling forward(...) before preparation. Call prepare(...) before");
+		}
 		else {
 			Tenzor	t = input;
 			
@@ -112,6 +116,9 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 	public Tenzor backward(final Tenzor errors) {
 		if (errors == null) {
 			throw new NullPointerException("Input tenzor can't be null");
+		}
+		else if (!prepared) {
+			throw new IllegalStateException("Calling forward(...) before preparation. Call prepare(...) before");
 		}
 		else {
 			Tenzor	t = errors;

@@ -10,6 +10,7 @@ import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
 import chav1961.nn.utils.calc.TenzorCalculationUtils;
 import chav1961.nn.utils.calc.TenzorCalculationUtils.Command;
 import chav1961.nn.utils.calc.TenzorCalculationUtils.FunctionType;
+import chav1961.nn.utils.calc.TenzorUtils;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -518,7 +519,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					final Tenzor	temp = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[index], parameters);
 					
 					switch (((char[])node.cargo)[index-1]) {
-						case '+' : case '-' : case '*' : case '/' :
+						case '+' : case '-' : case '*' : case '/' : case 'x' :
 							term = calculate(term, temp, ((char[])node.cargo)[index-1]);
 							break;
 						default :
@@ -595,7 +596,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("Uncompatible sizes of the tenzors");
+			throw new IllegalArgumentException("Uncompatible sizes of the tenzors: ["+Arrays.toString(TenzorUtils.extractDimension(left))+"] and ["+Arrays.toString(TenzorUtils.extractDimension(right))+"]");
 		}
 		throw new IllegalArgumentException("Undefined operator ["+operator+"]");
 	}
@@ -651,6 +652,27 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			}
 		}
 
+		@Override
+		public boolean sizeEquals(final Tenzor another) {
+			if (another == null) {
+				return false;
+			}
+			else if (another instanceof TenzorImpl) {
+				return Arrays.equals(this.dimensions, ((TenzorImpl)another).dimensions);
+			}
+			else if (another.getArity() != getArity()) {
+				return false;
+			}
+			else {
+				for(int index = 0; index < this.dimensions.length; index++) {
+					if (another.getSize(index) != dimensions[index]) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		
 		@Override
 		public float[] getContent() {
 			return content;

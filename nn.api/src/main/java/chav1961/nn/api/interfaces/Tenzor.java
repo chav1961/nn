@@ -31,6 +31,7 @@ public interface Tenzor extends Serializable {
 	int getSize(int dimension);
 
 	boolean equals(Tenzor another, float epsilon);
+	boolean sizeEquals(Tenzor another);
 	
 	float[] getContent();
 	float get(int... indices);

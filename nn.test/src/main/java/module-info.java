@@ -4,5 +4,5 @@ module nn.test {
 	requires nn.api;
 	requires nn.core;
 	requires nn.standalone;
-	requires nn.utils;
+	requires tenzor;
 }

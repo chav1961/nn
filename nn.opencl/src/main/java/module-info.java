@@ -5,7 +5,7 @@ module nn.opencl {
 	requires transitive chav1961.purelib;
 	requires java.base;
 	requires nn.api;
-	requires nn.utils;
+	requires tenzor;
 	
 	uses Tenzor.TenzorFactory;
 	provides Tenzor.TenzorFactory with chav1961.nn.opencl.util.OpenCLTenzorFactory; 
