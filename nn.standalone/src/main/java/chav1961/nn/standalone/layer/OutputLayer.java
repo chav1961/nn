@@ -125,7 +125,7 @@ class OutputLayer extends AbstractLayer {
 		}
 		else {
 			try {
-				output = input.calculate(getActivationFunctionName()+"(trans(%0 x %1))", weights);
+				output = input.calculate("vector("+getActivationFunctionName()+"(trans(matrix(%0,1) x %1)))", weights);
 				
 				return output;
 			} catch (SyntaxException e) {
@@ -150,8 +150,8 @@ class OutputLayer extends AbstractLayer {
 		}
 		else {
 			try {
-				final Tenzor	result = errors.calculate("trans("+getActivationFunctionPrimeName()+"(%1 - %0) x %2)", output, weights);
-				final Tenzor	temp = weights.calculate("trans("+getActivationFunctionPrimeName()+"(%1 - %0) x %2)", output, errors);
+				final Tenzor	result = errors.calculate("vector(trans(matrix("+getActivationFunctionPrimeName()+"(%1 - %0),1) x %2))", output, weights);
+				final Tenzor	temp = weights.calculate("trans(matrix("+getActivationFunctionPrimeName()+"(%2 - %1),1) x %0)", output, errors);
 				
 				weights.set(temp);
 				return result;

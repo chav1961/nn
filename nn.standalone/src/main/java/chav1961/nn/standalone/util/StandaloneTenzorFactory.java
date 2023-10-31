@@ -26,7 +26,6 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		void before();
 		float after();
 	}
-
 	
 	private static FunctionInterface	FI_SQRT = new FunctionInterface() {
 											@Override public void process(float value, int... indices) {}
@@ -396,7 +395,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					throw new IllegalArgumentException("Sizes at position ["+index+"] contains negative or zero value");
 				}
 			}
-			return new TenzorImpl(TenzorCalculationUtils.joinWithArray(size, advanced));
+			return new TenzorImpl(this, TenzorCalculationUtils.joinWithArray(size, advanced));
 		}
 	}
 
@@ -418,7 +417,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				}
 			}
 			final int[]			arities = TenzorCalculationUtils.joinWithArray(size, advanced);
-			final TenzorImpl	result = new TenzorImpl(arities);
+			final TenzorImpl	result = new TenzorImpl(this, arities);
 			final int[]			dim = new int[arities.length];
 			
 			Arrays.fill(dim, -1);
@@ -427,20 +426,20 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		}
 	}
 
-	static Tenzor calculateInternal(final CharSequence charArray, final Tenzor[] parameters) throws SyntaxException {
-		return calculate(TenzorCalculationUtils.parseCalcExpression(charArray), parameters);
+	static Tenzor calculateInternal(final TenzorFactory factory, final CharSequence charArray, final Tenzor[] parameters) throws SyntaxException {
+		return calculate(factory, TenzorCalculationUtils.parseCalcExpression(charArray), parameters);
 	}
 
-	private static Tenzor calculate(final SyntaxNode<Command, SyntaxNode<?, ?>> node, final Tenzor[] parameters) {
+	private static Tenzor calculate(final TenzorFactory factory, final SyntaxNode<Command, SyntaxNode<?, ?>> node, final Tenzor[] parameters) {
 		switch (node.getType()) {
 			case Function		:
-				try{final Tenzor			value = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
+				try{final Tenzor			value = calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
 				
 					if (FUNCTIONS.containsKey((FunctionType)node.cargo)) {
 						final FunctionInterface	fi = FUNCTIONS.get((FunctionType)node.cargo).clone();
 					
 						if (fi.isAggregate()) {
-							final Tenzor	result = new TenzorImpl(1);
+							final Tenzor	result = new TenzorImpl(factory, 1);
 							
 							fi.before();
 							value.forEach(fi);
@@ -456,13 +455,27 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						switch ((FunctionType)node.cargo) {
 							case Trans		:
 								return value.trans();
+							case Matrix		:
+								final float 	koeffM = node.children.length > 1 ? calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 1;
+								
+								if (Math.abs(koeffM - 1) < 0.1) {
+									return TenzorUtils.toMatrix(value, 1, value.getSize(0));
+								}
+								else if (Math.abs(koeffM - 2) < 0.1) {
+									return TenzorUtils.toMatrix(value, value.getSize(0), 1);
+								}
+								else {
+									throw new IllegalArgumentException("Second argument of matrix(...,...) must be either 1 or 2, but really is ["+koeffM+"]");
+								}
+							case Vector		:
+								return TenzorUtils.toVector(value);
 							case DleakyReLu	:
-								final float 	koeffD = node.children.length > 1 ? calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 0.1f;
+								final float 	koeffD = node.children.length > 1 ? calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 0.1f;
 								
 								value.convert((n,i)->n >= 0 ? 1 : koeffD);
 								return value;
 							case leakyReLu	:
-								final float 	koeff = node.children.length > 1 ? calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 0.1f;
+								final float 	koeff = node.children.length > 1 ? calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 0.1f;
 								
 								value.convert((n,i)->n >= 0 ? n : koeff * n);
 								return value;
@@ -506,17 +519,17 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					throw new IllegalArgumentException(e);
 				}
 			case LoadConstant	:
-				final Tenzor	constant = new TenzorImpl(1);
+				final Tenzor	constant = new TenzorImpl(factory, 1);
 				
 				constant.fill((float)Double.longBitsToDouble(node.value), 0);
 				return constant;
 			case LoadTenzor		:
 				return parameters[(int)node.value].duplicate();
 			case MulOper : case AddOper	:
-				Tenzor		term = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
+				Tenzor		term = calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters);
 				
 				for(int index = 1; index < node.children.length; index++) {
-					final Tenzor	temp = calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[index], parameters);
+					final Tenzor	temp = calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[index], parameters);
 					
 					switch (((char[])node.cargo)[index-1]) {
 						case '+' : case '-' : case '*' : case '/' : case 'x' :
@@ -530,7 +543,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			case Root			:
 				throw new IllegalArgumentException("Root node can't be in the tree");
 			case UnaryOper		:
-				return calculate((SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters).convert((v,n)->-v);
+				return calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[0], parameters).convert((v,n)->-v);
 			default :
 				throw new UnsupportedOperationException("Command ["+node.getType()+"] is not supported yet");
 		}
@@ -595,6 +608,9 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				}
 			}
 		}
+		else if (operator == 'x' && left.getArity() == 2 && right.getArity() == 2) {
+			return left.matrixMul(right);
+		}
 		else {
 			throw new IllegalArgumentException("Uncompatible sizes of the tenzors: ["+Arrays.toString(TenzorUtils.extractDimension(left))+"] and ["+Arrays.toString(TenzorUtils.extractDimension(right))+"]");
 		}
@@ -613,10 +629,12 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	private static class TenzorImpl implements Tenzor {
 		private static final long serialVersionUID = -4849576541841339261L;
 		
-		private float[]		content;
-		private final int[] dimensions;
+		private final TenzorFactory	factory;
+		private float[]				content;
+		private final int[] 		dimensions;
 		
-		private TenzorImpl(final int... dimensions) {
+		private TenzorImpl(final TenzorFactory factory, final int... dimensions) {
+			this.factory = factory;
 			this.dimensions = dimensions.clone();
 			this.content = new float[calcSize(dimensions)];
 		}
@@ -636,6 +654,11 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			}
 		}
 
+		@Override
+		public TenzorFactory getFactory() {
+			return factory;
+		}
+		
 		@Override
 		public boolean equals(final Tenzor another, float epsilon) {
 			if (another == this) {
@@ -826,7 +849,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 
 		@Override
 		public Tenzor duplicate() {
-			final TenzorImpl	result = new TenzorImpl(dimensions);
+			final TenzorImpl	result = new TenzorImpl(factory, dimensions);
 			
 			System.arraycopy(content, 0, result.content, 0, content.length);
 			return result;
@@ -1017,7 +1040,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 				
 				temp[0] = this;
 				System.arraycopy(parameters, 0, temp, 1, parameters.length);
-				return calculateInternal(expression, temp);
+				return calculateInternal(getFactory(), expression, temp);
 			}
 		}
 

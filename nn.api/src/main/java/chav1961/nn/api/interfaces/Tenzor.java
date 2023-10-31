@@ -29,6 +29,7 @@ public interface Tenzor extends Serializable {
 	
 	int getArity();
 	int getSize(int dimension);
+	TenzorFactory getFactory();
 
 	boolean equals(Tenzor another, float epsilon);
 	boolean sizeEquals(Tenzor another);

@@ -22,6 +22,8 @@ public class TenzorCalculationUtils {
 		FUNCTIONS.placeName((CharSequence)"min", FunctionType.Min);
 		FUNCTIONS.placeName((CharSequence)"max", FunctionType.Max);
 		FUNCTIONS.placeName((CharSequence)"trans", FunctionType.Trans);
+		FUNCTIONS.placeName((CharSequence)"matrix", FunctionType.Matrix);
+		FUNCTIONS.placeName((CharSequence)"vector", FunctionType.Vector);
 		
 		FUNCTIONS.placeName((CharSequence)"leakyReLu", FunctionType.leakyReLu);
 		FUNCTIONS.placeName((CharSequence)"linear", FunctionType.linear);
@@ -55,6 +57,8 @@ public class TenzorCalculationUtils {
 		Min,
 		Max,
 		Trans,
+		Matrix,
+		Vector,
 		leakyReLu,
 		linear,
 		relu,
@@ -170,7 +174,7 @@ public class TenzorCalculationUtils {
 						final long	funcId = FUNCTIONS.seekNameI(source, forNames[0], forNames[1] + 1);
 						
 						if (funcId < 0) {
-							throw new SyntaxException(0, from, "Unknown function");
+							throw new SyntaxException(0, from, "Unknown function ["+new String(source, forNames[0], forNames[1] - forNames[0] + 1)+"]");
 						}
 						else {
 							lex.add(new Lexema(from, Lexema.LexType.Function, FUNCTIONS.getCargo(funcId)));

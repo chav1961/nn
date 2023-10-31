@@ -1,7 +1,5 @@
 package chav1961.nn.standalone.layer;
 
-import static org.junit.Assert.assertNull;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -98,5 +96,7 @@ public class OutputLayerTest {
 		}
 		
 		Assert.assertTrue(t.equals(ol.forward(nn, t), 0.001f));
+		Assert.assertTrue(t.equals(ol.backward(nn, t), 0.001f));
+		
 	}
 }
