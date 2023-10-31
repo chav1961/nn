@@ -97,6 +97,5 @@ public class OutputLayerTest {
 		
 		Assert.assertTrue(t.equals(ol.forward(nn, t), 0.001f));
 		Assert.assertTrue(t.equals(ol.backward(nn, t), 0.001f));
-		
 	}
 }

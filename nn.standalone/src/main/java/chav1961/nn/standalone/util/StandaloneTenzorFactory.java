@@ -1002,6 +1002,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					}
 				}
 				content = temp;
+				dimensions[0] = xDim;
+				dimensions[1] = yDim;
 				return this;
 			}
 		}

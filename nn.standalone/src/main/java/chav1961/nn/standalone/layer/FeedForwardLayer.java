@@ -1,14 +1,24 @@
 package chav1961.nn.standalone.layer;
 
+import java.util.Arrays;
+
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.utils.calc.TenzorUtils;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 
 class FeedForwardLayer extends AbstractLayer {
-	private Tenzor			weights;
+	private final int[]	dim;
+	private boolean		prepared = false;
+	private boolean		connected = false;
+	private Tenzor		input;
+	private Tenzor		weights;
+	private Tenzor		output;
 	
-	FeedForwardLayer(final Tenzor.TenzorFactory factory, final int numberOfNeurons) {
+	FeedForwardLayer(final int numberOfNeurons) {
 		super(LayerType.FEED_FORWARD, numberOfNeurons);
+		this.dim = new int[] {numberOfNeurons};
 	}
 
 	@Override
@@ -25,6 +35,8 @@ class FeedForwardLayer extends AbstractLayer {
 			switch (type) {
 				case WEIGHTS :
 					return weights;
+				case UNKNOWN	:
+					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
 				default :
 					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
 			}
@@ -36,9 +48,12 @@ class FeedForwardLayer extends AbstractLayer {
 		if (nn == null) {
 			throw new NullPointerException("Neural network can't be null");
 		}
+		else if (prepared) {
+			throw new IllegalStateException("Layer is already prepared");
+		}
 		else {
-			// TODO Auto-generated method stub
-			return null;
+			prepared = true;
+			return this;
 		}
 	}
 
@@ -63,9 +78,19 @@ class FeedForwardLayer extends AbstractLayer {
 		else if (before == null) {
 			throw new NullPointerException("Before layer can't be null");
 		}
+		else if (!prepared) {
+			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
+		}
+		else if (connected) {
+			throw new IllegalStateException("Attempt to connect twice");
+		}
+		else if (canConnectBefore(nn, before)) {
+			connected = true;
+			weights = nn.getTenzorFactory().newInstance(before.getSize(0), getSize(0));
+			return this;
+		}
 		else {
-			// TODO Auto-generated method stub
-			return null;
+			throw new IllegalStateException("Layer type ["+before.getLayerType()+"] can't be connected before");
 		}
 	}
 
@@ -92,8 +117,7 @@ class FeedForwardLayer extends AbstractLayer {
 			throw new NullPointerException("After layer can't be null");
 		}
 		else {
-			// TODO Auto-generated method stub
-			return null;
+			return this;
 		}
 	}
 
@@ -105,9 +129,24 @@ class FeedForwardLayer extends AbstractLayer {
 		else if (input == null) {
 			throw new NullPointerException("Input tenzor can't be null");
 		}
+		else if (!prepared) {
+			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
+		}
+		else if (!connected) {
+			throw new IllegalStateException("Layer is not connected anywhere");
+		}
+		else if (!Arrays.equals(dim, TenzorUtils.extractDimension(input))) { 
+			throw new IllegalArgumentException("Input tenzor size "+Arrays.toString(TenzorUtils.extractDimension(input))+" differ with declared layer size "+Arrays.toString(dim));
+		}
 		else {
-			// TODO Auto-generated method stub
-			return null;
+			try {
+				this.input = input.duplicate();
+				this.output = input.calculate("vector("+getActivationFunctionName()+"(trans(matrix(%0,1) x %1)))", weights);
+				
+				return output;
+			} catch (SyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
 		}
 	}
 
@@ -119,9 +158,22 @@ class FeedForwardLayer extends AbstractLayer {
 		else if (errors == null) {
 			throw new NullPointerException("Errors tenzor can't be null");
 		}
+		else if (output == null) {
+			throw new IllegalStateException("Calling backward(...) without calling forward(...). Call forward(...) before!");
+		}
+		else if (errors.getArity() != output.getArity()) { 
+			throw new IllegalArgumentException("Errors tenzor arity ["+errors.getArity()+"] differ with layer declared arity ["+getArity()+"]");
+		}
 		else {
-			// TODO Auto-generated method stub
-			return null;
+			try {
+				final Tenzor	temp = weights.calculate("matrix(%3, 2) x matrix("+getActivationFunctionPrimeName()+"(%2 - %1), 1)", output, errors, input);
+				final Tenzor	result = errors.calculate("vector(matrix("+getActivationFunctionPrimeName()+"(%1 - %0),1) x trans(%2))", output, weights);
+				
+				weights.add(temp);
+				return result;
+			} catch (SyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
 		}
 	}
 
@@ -130,9 +182,13 @@ class FeedForwardLayer extends AbstractLayer {
 		if (nn == null) {
 			throw new NullPointerException("Neural network can't be null");
 		}
+		else if (!prepared) {
+			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
+		}
 		else {
-			// TODO Auto-generated method stub
-			return null;
+			connected = false;
+			prepared = false;
+			return this;
 		}
 	}
 

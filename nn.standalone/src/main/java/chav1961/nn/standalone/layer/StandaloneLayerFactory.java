@@ -51,7 +51,7 @@ public class StandaloneLayerFactory implements Layer.LayerFactory {
 				case CONVOLUTIONAL	:
 					break;
 				case FEED_FORWARD	:
-					break;
+					return new FeedForwardLayer(extractIntArray(parameters)[0]);
 				case INPUT			:
 					return new InputLayer(extractIntArray(parameters));
 				case OUTPUT			:
@@ -77,7 +77,7 @@ public class StandaloneLayerFactory implements Layer.LayerFactory {
 					content[index] = ((Number)parameters[index]).intValue();
 				}
 				else {
-					throw new IllegalArgumentException("Parameter as index ["+index+"] is not a number");
+					throw new IllegalArgumentException("Parameter at index ["+index+"] is not a number");
 				}
 			}
 			return content;
