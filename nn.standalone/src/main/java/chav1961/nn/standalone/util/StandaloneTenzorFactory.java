@@ -455,18 +455,10 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 						switch ((FunctionType)node.cargo) {
 							case Trans		:
 								return value.trans();
-							case Matrix		:
-								final float 	koeffM = node.children.length > 1 ? calculate(factory, (SyntaxNode<Command, SyntaxNode<?, ?>>) node.children[1], parameters).getContent()[0] : 1;
-								
-								if (Math.abs(koeffM - 1) < 0.1) {
-									return TenzorUtils.toMatrix(value, 1, value.getSize(0));
-								}
-								else if (Math.abs(koeffM - 2) < 0.1) {
-									return TenzorUtils.toMatrix(value, value.getSize(0), 1);
-								}
-								else {
-									throw new IllegalArgumentException("Second argument of matrix(...,...) must be either 1 or 2, but really is ["+koeffM+"]");
-								}
+							case Matrix1	:
+								return TenzorUtils.toMatrix(value, 1, value.getSize(0));
+							case Matrix2	:
+								return TenzorUtils.toMatrix(value, value.getSize(0), 1);
 							case Vector		:
 								return TenzorUtils.toVector(value);
 							case DleakyReLu	:

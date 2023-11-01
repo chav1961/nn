@@ -13,6 +13,7 @@ import chav1961.purelib.cdb.SyntaxNode;
 
 public class TenzorCalculationUtils {
 	private static final SyntaxTreeInterface<FunctionType>	FUNCTIONS = new AndOrTree<>();
+	private static final SyntaxTreeInterface<FunctionType>	SUFFIX = new AndOrTree<>();
 	private static final char								EOF = '\uFFFF';
 	
 	static {
@@ -21,9 +22,9 @@ public class TenzorCalculationUtils {
 		FUNCTIONS.placeName((CharSequence)"sumSqr", FunctionType.SumSqr);
 		FUNCTIONS.placeName((CharSequence)"min", FunctionType.Min);
 		FUNCTIONS.placeName((CharSequence)"max", FunctionType.Max);
-		FUNCTIONS.placeName((CharSequence)"trans", FunctionType.Trans);
-		FUNCTIONS.placeName((CharSequence)"matrix", FunctionType.Matrix);
-		FUNCTIONS.placeName((CharSequence)"vector", FunctionType.Vector);
+//		FUNCTIONS.placeName((CharSequence)"trans", FunctionType.Trans);
+//		FUNCTIONS.placeName((CharSequence)"matrix", FunctionType.Matrix);
+//		FUNCTIONS.placeName((CharSequence)"vector", FunctionType.Vector);
 		
 		FUNCTIONS.placeName((CharSequence)"leakyReLu", FunctionType.leakyReLu);
 		FUNCTIONS.placeName((CharSequence)"linear", FunctionType.linear);
@@ -38,6 +39,11 @@ public class TenzorCalculationUtils {
 		FUNCTIONS.placeName((CharSequence)"Dsigmoid", FunctionType.Dsigmoid);
 		FUNCTIONS.placeName((CharSequence)"Dsoftmax", FunctionType.Dsoftmax);
 		FUNCTIONS.placeName((CharSequence)"Dtanh", FunctionType.Dtanh);
+
+		SUFFIX.placeName((CharSequence)"T", FunctionType.Trans);
+		SUFFIX.placeName((CharSequence)"m1", FunctionType.Matrix1);
+		SUFFIX.placeName((CharSequence)"m2", FunctionType.Matrix2);
+		SUFFIX.placeName((CharSequence)"v", FunctionType.Vector);
 	}
 
 	public static enum Command {
@@ -57,7 +63,8 @@ public class TenzorCalculationUtils {
 		Min,
 		Max,
 		Trans,
-		Matrix,
+		Matrix1,
+		Matrix2,
 		Vector,
 		leakyReLu,
 		linear,
@@ -137,6 +144,9 @@ public class TenzorCalculationUtils {
 				case ')'		: 
 					lex.add(new Lexema(from++, Lexema.LexType.Close));
 					break;
+				case '.'		: 
+					lex.add(new Lexema(from++, Lexema.LexType.Dot));
+					break;
 				case ','		: 
 					lex.add(new Lexema(from++, Lexema.LexType.Div));
 					break;
@@ -174,7 +184,14 @@ public class TenzorCalculationUtils {
 						final long	funcId = FUNCTIONS.seekNameI(source, forNames[0], forNames[1] + 1);
 						
 						if (funcId < 0) {
-							throw new SyntaxException(0, from, "Unknown function ["+new String(source, forNames[0], forNames[1] - forNames[0] + 1)+"]");
+							final long	suffixId = SUFFIX.seekNameI(source, forNames[0], forNames[1] + 1);
+							
+							if (suffixId < 0) {
+								throw new SyntaxException(0, from, "Unknown suffix ["+new String(source, forNames[0], forNames[1] - forNames[0] + 1)+"]");
+							}
+							else {
+								lex.add(new Lexema(from, Lexema.LexType.Suffix, SUFFIX.getCargo(suffixId)));
+							}
 						}
 						else {
 							lex.add(new Lexema(from, Lexema.LexType.Function, FUNCTIONS.getCargo(funcId)));
@@ -294,6 +311,26 @@ public class TenzorCalculationUtils {
 						break;
 				
 				}
+				if (source[from].type == Lexema.LexType.Dot) {
+					if (source[++from].type == Lexema.LexType.Suffix) {
+						switch (source[from].funcType) {
+							case Trans : case Matrix1 : case Matrix2 : case Vector :
+								final SyntaxNode<Command, SyntaxNode<?,?>>		parm = (SyntaxNode<Command, SyntaxNode<?, ?>>) node.clone();
+								
+								node.type = Command.Function;
+								node.cargo = source[from].funcType;
+								node.value = 0;
+								node.children = new SyntaxNode[] {parm};
+								from++;
+								break;
+							default :
+								throw new SyntaxException(0, source[from].pos, "Unsupported suffix ["+source[from].funcType+"]");
+						}
+					}
+					else {
+						throw new SyntaxException(0, source[from].pos, "Missing suffix");
+					}
+				}
 				break;
 			default:
 				throw new UnsupportedOperationException("Depth ["+depth+"] is not supported yet");
@@ -306,6 +343,8 @@ public class TenzorCalculationUtils {
 			Tensor,
 			Constant,
 			Function,
+			Suffix,
+			Dot,
 			Div,
 			Open,
 			Close,
