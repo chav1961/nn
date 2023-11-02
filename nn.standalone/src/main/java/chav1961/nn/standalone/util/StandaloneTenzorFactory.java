@@ -84,7 +84,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 
 											@Override
 											public float convert(float value, int... indices) {
-												return 1;
+												return value;
 											}
 										};
 	private static FunctionInterface	FI_RELU = new FunctionInterface() {
