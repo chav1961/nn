@@ -73,15 +73,15 @@ public class FeedForwardLayerTest {
 		} catch (IllegalStateException exc) {
 		}
 		
-		ffl.prepare(nn);
+		ffl.prepare(nn, false);
 
 		try {
-			ffl.prepare(null);
+			ffl.prepare(null, false);
 			Assert.fail("Mandatory exceptin was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
 		try {
-			ffl.prepare(nn);
+			ffl.prepare(nn, false);
 			Assert.fail("Mandatory exceptin was not detected (attempt to prepare twice)");
 		} catch (IllegalStateException exc) {
 		}

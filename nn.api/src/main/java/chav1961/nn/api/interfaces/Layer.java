@@ -62,7 +62,8 @@ public interface Layer {
 	
 	Tenzor getInternalTenzor(InternalTenzorType type);
 	
-	Layer prepare(NeuralNetwork nn);
+	Layer prepare(NeuralNetwork nn, boolean forwardOnly);
+	boolean isForwardOnly();
 	boolean canConnectBefore(NeuralNetwork nn, Layer before);
 	Layer connectBefore(NeuralNetwork nn, Layer before);
 	boolean canConnectAfter(NeuralNetwork nn, Layer after);

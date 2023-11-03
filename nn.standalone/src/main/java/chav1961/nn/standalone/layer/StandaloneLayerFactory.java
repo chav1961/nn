@@ -51,13 +51,15 @@ public class StandaloneLayerFactory implements Layer.LayerFactory {
 				case CONVOLUTIONAL	:
 					break;
 				case FEED_FORWARD	:
-					return new FeedForwardLayer(extractIntArray(parameters)[0]);
+					return new FeedForwardLayer(extractIntArray(parameters, 1)[0]);
 				case INPUT			:
-					return new InputLayer(extractIntArray(parameters));
+					return new InputLayer(extractIntArray(parameters, 0));
 				case OUTPUT			:
-					return new OutputLayer(extractIntArray(parameters));
+					return new OutputLayer(extractIntArray(parameters, 0));
 				case POOLING		:
-					break;
+					final int[]	poolingParm = extractIntArray(parameters, 3);
+					
+					return new PoolingLayer(poolingParm[0], poolingParm[1], poolingParm[2]);
 				default:
 					throw new UnsupportedOperationException("Layer type ["+type+"] is not supported yet");
 			}
@@ -65,7 +67,7 @@ public class StandaloneLayerFactory implements Layer.LayerFactory {
 		}
 	}
 	
-	private static int[] extractIntArray(final Object[] parameters) {
+	private static int[] extractIntArray(final Object[] parameters, final int awaitedNumbers) {
 		if (parameters == null || Utils.checkArrayContent4Nulls(parameters) >= 0) {
 			throw new IllegalArgumentException("Parameters is null or contains nulls inside");
 		}
@@ -79,6 +81,9 @@ public class StandaloneLayerFactory implements Layer.LayerFactory {
 				else {
 					throw new IllegalArgumentException("Parameter at index ["+index+"] is not a number");
 				}
+			}
+			if (awaitedNumbers > 0 && content.length != awaitedNumbers) {
+				throw new IllegalArgumentException("Awaited number of parameters ["+awaitedNumbers+"] is differ than passed ["+content.length+"]");
 			}
 			return content;
 		}

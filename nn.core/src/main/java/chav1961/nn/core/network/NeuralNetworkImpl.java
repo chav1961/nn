@@ -56,7 +56,7 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 	}
 
 	@Override
-	public NeuralNetwork prepare() {
+	public NeuralNetwork prepare(final boolean forwardOnly) {
 		if (prepared) {
 			throw new IllegalStateException("Networs is already prepared");
 		}
@@ -71,7 +71,7 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 		}
 		else {
 			for(Layer item : layers) {
-				item.prepare(this);
+				item.prepare(this, forwardOnly);
 			}
 			for(int index = 1; index < layers.size(); index++) {
 				if (!layers.get(index).canConnectBefore(this, layers.get(index - 1))) {

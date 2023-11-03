@@ -5,7 +5,7 @@ public interface NeuralNetwork {
 	Layer.LayerFactory getLayerFactory();
 	NeuralNetwork add(Layer... layers);
 	
-	NeuralNetwork prepare();
+	NeuralNetwork prepare(boolean forwardOnly);
 	Tenzor forward(Tenzor input);
 	Tenzor backward(Tenzor errors);
 	NeuralNetwork unprepare();

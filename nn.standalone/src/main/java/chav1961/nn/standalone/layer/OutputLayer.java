@@ -10,7 +10,6 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 
 class OutputLayer extends AbstractLayer {
 	private final int[]	dim;
-	private boolean		prepared = false;
 	private boolean		connected = false;
 	private Tenzor		input;
 	private Tenzor		weights;
@@ -39,142 +38,59 @@ class OutputLayer extends AbstractLayer {
 	}
 
 	@Override
-	public Layer prepare(final NeuralNetwork nn) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (prepared) {
-			throw new IllegalStateException("Layer is already prepared");
-		}
-		else {
-			prepared = true;
-			return this;
-		}
+	protected void prepareInternal(final NeuralNetwork nn) {
+	}
+	
+	@Override
+	protected boolean canConnectBeforeInternal(final NeuralNetwork nn, final Layer before) {
+		return before.getLayerType() != LayerType.OUTPUT;
+	}
+	
+	@Override
+	protected boolean canConnectAfterInternal(final NeuralNetwork nn, final Layer after) {
+		return false;
 	}
 
 	@Override
-	public boolean canConnectBefore(final NeuralNetwork nn, final Layer before) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (before == null) {
-			throw new NullPointerException("Before layer can't be null");
-		}
-		else {
-			return before.getLayerType() != LayerType.OUTPUT;
-		}
+	protected void connectBeforeInternal(NeuralNetwork nn, Layer before) {
+		weights = nn.getTenzorFactory().newInstance(before.getSize(0), getSize(0));
+		setConnected(true);
 	}
-
+	
 	@Override
-	public Layer connectBefore(final NeuralNetwork nn, final Layer before) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (before == null) {
-			throw new NullPointerException("Before layer can't be null");
-		}
-		else if (!prepared) {
-			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
-		}
-		else if (connected) {
-			throw new IllegalStateException("Attempt to connect twice");
-		}
-		else if (canConnectBefore(nn, before)) {
-			connected = true;
-			weights = nn.getTenzorFactory().newInstance(before.getSize(0), getSize(0));
-			return this;
-		}
-		else {
-			throw new IllegalStateException("Layer type ["+before.getLayerType()+"] can't be connected before");
-		}
-	}
-
-	@Override
-	public boolean canConnectAfter(final NeuralNetwork nn, final Layer after) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (after == null) {
-			throw new NullPointerException("After layer can't be null");
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
-	public Layer connectAfter(NeuralNetwork nn, Layer after) {
+	protected void connectAfterInternal(NeuralNetwork nn, Layer after) {
 		throw new IllegalStateException("Can not connect anything after output layer");
 	}
 
 	@Override
-	public Tenzor forward(final NeuralNetwork nn, final Tenzor input) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (input == null) {
-			throw new NullPointerException("Input tenzor can't be null");
-		}
-		else if (!prepared) {
-			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
-		}
-		else if (!connected) {
-			throw new IllegalStateException("Layer is not connected anywhere");
-		}
-		else if (!Arrays.equals(dim, TenzorUtils.extractDimension(input))) { 
+	protected Tenzor forwardInternal(final NeuralNetwork nn, final Tenzor input) throws SyntaxException {
+		if (!Arrays.equals(dim, TenzorUtils.extractDimension(input))) { 
 			throw new IllegalArgumentException("Input tenzor size "+Arrays.toString(TenzorUtils.extractDimension(input))+" differ with declared layer size "+Arrays.toString(dim));
 		}
 		else {
-			try {
-				this.input = input.duplicate();
-				this.output = input.calculate(""+getActivationFunctionName()+"((%0.m1 x %1).T).v", weights);
-				
-				return output;
-			} catch (SyntaxException e) {
-				throw new IllegalArgumentException(e);
-			}
+			this.input = input.duplicate();
+			this.output = input.calculate(""+getActivationFunctionName()+"((%0.m1 x %1).T).v", weights);
+			
+			return output;
 		}
 	}
 
 	@Override
-	public Tenzor backward(final NeuralNetwork nn, final Tenzor errors) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (errors == null) {
-			throw new NullPointerException("Errors tenzor can't be null");
-		}
-		else if (output == null) {
-			throw new IllegalStateException("Calling backward(...) without calling forward(...). Call forward(...) before!");
-		}
-		else if (errors.getArity() != output.getArity()) { 
+	protected Tenzor backwardInternal(NeuralNetwork nn, Tenzor errors) throws SyntaxException {
+		if (errors.getArity() != output.getArity()) { 
 			throw new IllegalArgumentException("Errors tenzor arity ["+errors.getArity()+"] differ with layer declared arity ["+getArity()+"]");
 		}
 		else {
-			try {
-				final Tenzor	temp = weights.calculate("%3.m2 x "+getActivationFunctionPrimeName()+"(%2 - %1).m1", output, errors, input);
-				final Tenzor	result = errors.calculate("("+getActivationFunctionPrimeName()+"(%1 - %0).m1 x %2.T).v", output, weights);
-				
-				weights.add(temp);
-				return result;
-			} catch (SyntaxException e) {
-				throw new IllegalArgumentException(e);
-			}
+			final Tenzor	temp = weights.calculate("%3.m2 x "+getActivationFunctionPrimeName()+"(%2 - %1).m1", output, errors, input);
+			final Tenzor	result = errors.calculate("("+getActivationFunctionPrimeName()+"(%1 - %0).m1 x %2.T).v", output, weights);
+			
+			weights.add(temp);
+			return result;
 		}
 	}
-
+	
 	@Override
-	public Layer unprepare(final NeuralNetwork nn) {
-		if (nn == null) {
-			throw new NullPointerException("Neural network can't be null");
-		}
-		else if (!prepared) {
-			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
-		}
-		else {
-			connected = false;
-			prepared = false;
-			return this;
-		}
+	protected void unprepareInternal(final NeuralNetwork nn) {
 	}
 }
+

@@ -68,15 +68,15 @@ public class InputLayerTest {
 		} catch (IllegalStateException exc) {
 		}
 		
-		il.prepare(nn);
+		il.prepare(nn, false);
 		
 		try {
-			il.prepare(null);
+			il.prepare(null, false);
 			Assert.fail("Mandatory exceptin was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
 		try {
-			il.prepare(nn);
+			il.prepare(nn, false);
 			Assert.fail("Mandatory exceptin was not detected (attempt to prepare twice)");
 		} catch (IllegalStateException exc) {
 		}

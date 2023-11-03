@@ -71,15 +71,15 @@ public class OutputLayerTest {
 		} catch (IllegalStateException exc) {
 		}
 		
-		ol.prepare(nn);
+		ol.prepare(nn, false);
 
 		try {
-			ol.prepare(null);
+			ol.prepare(null, false);
 			Assert.fail("Mandatory exceptin was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
 		try {
-			ol.prepare(nn);
+			ol.prepare(nn, false);
 			Assert.fail("Mandatory exceptin was not detected (attempt to prepare twice)");
 		} catch (IllegalStateException exc) {
 		}
