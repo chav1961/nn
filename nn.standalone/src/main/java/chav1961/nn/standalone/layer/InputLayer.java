@@ -5,6 +5,7 @@ import java.util.Arrays;
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
 import chav1961.nn.utils.calc.LayerUtils;
 import chav1961.nn.utils.calc.TenzorUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -35,6 +36,16 @@ class InputLayer extends AbstractLayer {
 		}
 	}
 
+	@Override
+	public boolean isInternalTenzorSupported(final InternalTenzorType type) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else {
+			return false;
+		}
+	}
+	
 	@Override
 	public Tenzor backward(final NeuralNetwork nn, final Tenzor errors) {
 		if (nn == null) {

@@ -12,7 +12,7 @@ public interface Tenzor extends Serializable {
 	public static interface TenzorFactory extends SpiService<Tenzor.TenzorFactory> {
 		String TENZOR_FACTORY_SCHEMA = "tenzorfactory"; 
 		
-		URI getDefaultTensorType();
+		URI getDefaultTenzorType();
 		Tenzor newInstance(int size, int... advanced);		
 		Tenzor newInstance(float[] content, int size, int... advanced);
 	}
@@ -105,49 +105,64 @@ public interface Tenzor extends Serializable {
 	
 	public class Factory {
 		private static Tenzor.TenzorFactory	factory;
-		private static URI	tenzorType;
+		private static URI					tenzorType;
 		
 		static {
 			for(Tenzor.TenzorFactory item : ServiceLoader.load(Tenzor.TenzorFactory.class)) {
-				tenzorType = item.getDefaultTensorType();
+				tenzorType = item.getDefaultTenzorType();
+				factory = item;
 				break;
 			}
 		}
 		
-		public static URI getDefaultTensorType() {
+		public static URI getDefaultTenzorURI() {
 			return tenzorType;
 		}
 
-		public static void setDefaultTensorType(final URI newTenzorType) {
+		public static void setDefaultTensorURI(final URI newTenzorType) {
 			if (newTenzorType == null) {
 				throw new NullPointerException("Tenzor type to set cen't be null");
 			}
 			else {
-				tenzorType = newTenzorType;
-				factory = null;
+				factory = getFactory(newTenzorType);
+				tenzorType = factory.getDefaultTenzorType();
+			}
+		}
+		
+		public static Tenzor.TenzorFactory getFactory(final URI newTenzorType) {
+			if (newTenzorType == null) {
+				throw new NullPointerException("Tenzor type to set cen't be null");
+			}
+			else {
+				for(Tenzor.TenzorFactory item : ServiceLoader.load(Tenzor.TenzorFactory.class)) {
+					if (item.canServe(newTenzorType)) {
+						return item;
+					}
+				}
+				throw new IllegalArgumentException("No any service provider found to support tenzor type ["+newTenzorType+"]"); 
 			}
 		}
 		
 		public static Tenzor newInstance(final int... sizes) {
-			if (tenzorType == null) {
-				throw new IllegalStateException("No default tensor type defines. Call setDefaultTensorType(...) before");
+			if (getDefaultTenzorURI() == null) {
+				throw new IllegalStateException("No tenzor type defined. Call setDefaultTensorType(...) before");
 			}
 			else {
-				return newInstance(tenzorType, sizes);
+				return newInstance(getDefaultTenzorURI(), sizes);
 			}
 		}
 		
 		public static Tenzor newInstance(final float[] content, final int... sizes) {
-			if (tenzorType == null) {
-				throw new IllegalStateException("No default tensor type defines. Call setDefaultTensorType(...) before");
+			if (getDefaultTenzorURI() == null) {
+				throw new IllegalStateException("No default tensor type defined. Call setDefaultTensorType(...) before");
 			}
 			else {
-				return newInstance(tenzorType, content, sizes);
+				return newInstance(getDefaultTenzorURI(), content, sizes);
 			}
 		}
 
 		public static Tenzor newInstance(final URI tenzorType, final int... sizes) {
-			if (tenzorType == null) {
+			if (getDefaultTenzorURI() == null) {
 				throw new NullPointerException("Tenzor type can't be null");
 			}
 			else if (sizes == null || sizes.length == 0) {
@@ -156,7 +171,7 @@ public interface Tenzor extends Serializable {
 			else {
 				Tenzor.TenzorFactory	f = null;
 				
-				if (tenzorType.equals(getDefaultTensorType())) {
+				if (tenzorType.equals(getDefaultTenzorURI())) {
 					if (factory == null) {
 						for(Tenzor.TenzorFactory item : ServiceLoader.load(Tenzor.TenzorFactory.class)) {
 							if (item.canServe(tenzorType)) {

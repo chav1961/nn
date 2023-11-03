@@ -4,6 +4,7 @@ public interface NeuralNetwork {
 	Tenzor.TenzorFactory getTenzorFactory();
 	Layer.LayerFactory getLayerFactory();
 	NeuralNetwork add(Layer... layers);
+	Layer[] getLayers();
 	
 	NeuralNetwork prepare(boolean forwardOnly);
 	Tenzor forward(Tenzor input);

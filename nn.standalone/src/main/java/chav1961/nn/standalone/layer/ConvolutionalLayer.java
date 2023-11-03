@@ -35,6 +35,16 @@ class ConvolutionalLayer extends AbstractLayer {
 	}
 
 	@Override
+	public boolean isInternalTenzorSupported(InternalTenzorType type) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else {
+			return false;
+		}
+	}
+	
+	@Override
 	protected void prepareInternal(final NeuralNetwork nn) {
 		connectedBefore = false;
 		connectedAfter = false;

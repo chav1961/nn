@@ -1,7 +1,10 @@
 package chav1961.nn.api.interfaces;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.ServiceLoader;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.SpiService;
 
@@ -61,6 +64,7 @@ public interface Layer {
 	Layer setOptimizerType(OptimizerType optimizerType);
 	
 	Tenzor getInternalTenzor(InternalTenzorType type);
+	boolean isInternalTenzorSupported(InternalTenzorType type);
 	
 	Layer prepare(NeuralNetwork nn, boolean forwardOnly);
 	boolean isForwardOnly();
@@ -72,32 +76,90 @@ public interface Layer {
 	Tenzor backward(NeuralNetwork nn, Tenzor errors);
 	Layer unprepare(NeuralNetwork nn);
 	
-	public static class Factory implements LayerFactory {
-
-		@Override
-		public URI getDefaultLayerType() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
+	public static class Factory {
+		private static Layer.LayerFactory	factory;
+		private static URI					layerURI;
 		
-		@Override
-		public boolean canServe(URI resource) throws NullPointerException {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public LayerFactory newInstance(URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public Layer newInstance(LayerType type, Object... parameters) {
-			// TODO Auto-generated method stub
-			return null;
+		static {
+			for(Layer.LayerFactory item : ServiceLoader.load(Layer.LayerFactory.class)) {
+				layerURI = item.getDefaultLayerType();
+				factory = item;
+				break;
+			}
 		}
 		
+		public static URI getDefaultLayerURI() {
+			return layerURI;
+		}
+
+		public static void setDefaultLayerURI(final URI newLayerURI) {
+			if (newLayerURI == null) {
+				throw new NullPointerException("Layer type to set cen't be null");
+			}
+			else {
+				factory = getFactory(newLayerURI);
+				layerURI = factory.getDefaultLayerType();
+			}
+		}
+		
+		public static Layer.LayerFactory getFactory(final URI newLayerURI) {
+			if (newLayerURI == null) {
+				throw new NullPointerException("Layer type to set cen't be null");
+			}
+			else {
+				for(Layer.LayerFactory item : ServiceLoader.load(Layer.LayerFactory.class)) {
+					if (item.canServe(newLayerURI)) {
+						return item;
+					}
+				}
+				throw new IllegalArgumentException("No any service provider found to support layer URI ["+newLayerURI+"]");
+			}
+		}
+		
+		public static Layer newInstance(final LayerType type, final int... sizes) {
+			if (type == null) {
+				throw new NullPointerException("Layer type can't be null");
+			}
+			else if (sizes == null) {
+				throw new NullPointerException("Sise list can't be null");
+			}
+			else if (getDefaultLayerURI() == null) {
+				throw new IllegalStateException("No default layer URI was defined. Call setDefaultLayerURI(...) before");
+			}
+			else {
+				return newInstance(getDefaultLayerURI(), type, sizes);
+			}
+		}
+		
+		public static Layer newInstance(final URI layerURI, final LayerType type, final int... sizes) {
+			if (layerURI == null) {
+				throw new NullPointerException("Layer URI can't be null");
+			}
+			else if (type == null) {
+				throw new NullPointerException("Layer type can't be null");
+			}
+			else if (sizes == null) {
+				throw new NullPointerException("Sise list can't be null");
+			}
+			else {
+				Layer.LayerFactory f = null;
+				
+				if (layerURI.equals(getDefaultLayerURI())) {
+					f = factory;
+				}
+				else {
+					for(Layer.LayerFactory item : ServiceLoader.load(Layer.LayerFactory.class)) {
+						if (item.canServe(layerURI)) {
+							f = item;
+							break;
+						}
+					}
+					if (f == null) {
+						throw new IllegalStateException("No layer factory found for ["+layerURI+"]");
+					}
+				}
+				return f.newInstance(type, sizes);
+			}
+		}
 	}
 }

@@ -54,6 +54,11 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 			return this;
 		}
 	}
+	
+	@Override
+	public Layer[] getLayers() {
+		return layers.toArray(new Layer[layers.size()]);
+	}
 
 	@Override
 	public NeuralNetwork prepare(final boolean forwardOnly) {
