@@ -362,7 +362,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 			throw new NullPointerException("Uri to test can't be null");
 		}
 		else {
-			return URIUtils.canServeURI(resource, getDefaultTensorType());
+			return URIUtils.canServeURI(resource, getDefaultTenzorType());
 		}
 	}
 
@@ -377,7 +377,7 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	@Override
-	public URI getDefaultTensorType() {
+	public URI getDefaultTenzorType() {
 		return TENZOR_TYPE;
 	}
 
@@ -400,15 +400,12 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	@Override
-	public Tenzor newInstance(final float[] content, final int size, final int... advanced) {
+	public Tenzor newInstance(final float[] content, final int... advanced) {
 		if (content == null || content.length == 0) {
 			throw new IllegalArgumentException("Content to fill can't be null or empty array");
 		}
-		else if (size <= 0) {
-			throw new IllegalArgumentException("Size ["+size+"] must be greater than 0");
-		}
-		else if (advanced == null) {
-			throw new NullPointerException("Advanced sizes can't be null");
+		else if (advanced == null || advanced.length == 0) {
+			throw new IllegalArgumentException("Advanced sizes can't be null or empty array");
 		}
 		else {
 			for(int index = 0; index < advanced.length; index++) {
@@ -416,9 +413,8 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 					throw new IllegalArgumentException("Sizes at position ["+index+"] contains negative or zero value");
 				}
 			}
-			final int[]			arities = TenzorCalculationUtils.joinWithArray(size, advanced);
-			final TenzorImpl	result = new TenzorImpl(this, arities);
-			final int[]			dim = new int[arities.length];
+			final TenzorImpl	result = new TenzorImpl(this, advanced);
+			final int[]			dim = new int[advanced.length];
 			
 			Arrays.fill(dim, -1);
 			result.set(content, dim);

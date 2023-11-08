@@ -14,7 +14,7 @@ public interface Tenzor extends Serializable {
 		
 		URI getDefaultTenzorType();
 		Tenzor newInstance(int size, int... advanced);		
-		Tenzor newInstance(float[] content, int size, int... advanced);
+		Tenzor newInstance(float[] content, int... advanced);
 	}
 	
 	@FunctionalInterface

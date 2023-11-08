@@ -52,9 +52,9 @@ public class NeuralNetworkTest {
 		} catch (IllegalStateException exc) {
 		}
 		
-		nn.prepare();
+		nn.prepare(true);
 
-		try {nn.prepare();
+		try {nn.prepare(true);
 			Assert.fail("Mandatory exception was not detected (attempt to prepare NN twice)");
 		} catch (IllegalStateException exc) {
 		}

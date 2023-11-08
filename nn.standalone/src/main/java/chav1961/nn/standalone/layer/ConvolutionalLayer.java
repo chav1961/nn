@@ -35,6 +35,25 @@ class ConvolutionalLayer extends AbstractLayer {
 	}
 
 	@Override
+	public Layer setInternalTenzor(InternalTenzorType type, Tenzor tenzor) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else if (tenzor == null) {
+			throw new NullPointerException("Tenzor can't be null");
+		}
+		else {
+			switch (type) {
+				case UNKNOWN : case WEIGHTS :
+					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
+				default:
+					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
+			}
+//			return this;
+		}
+	}
+	
+	@Override
 	public boolean isInternalTenzorSupported(InternalTenzorType type) {
 		if (type == null) {
 			throw new NullPointerException("Tenzor type can't be null");

@@ -56,14 +56,15 @@ public interface Layer {
 	int getArity();
 	int getSize(int index);
 	ActivationType getActivationType();
-	Object[] getActivationParameters();
-	Layer setActivationType(ActivationType activationType, Object... parameters);
+	String[] getActivationParameters();
+	Layer setActivationType(ActivationType activationType, String... parameters);
 	LossType getLossType();
 	Layer setLossType(LossType lossType);
 	OptimizerType getOptimizerType();
 	Layer setOptimizerType(OptimizerType optimizerType);
 	
 	Tenzor getInternalTenzor(InternalTenzorType type);
+	Layer setInternalTenzor(InternalTenzorType type, Tenzor tenzor);
 	boolean isInternalTenzorSupported(InternalTenzorType type);
 	
 	Layer prepare(NeuralNetwork nn, boolean forwardOnly);

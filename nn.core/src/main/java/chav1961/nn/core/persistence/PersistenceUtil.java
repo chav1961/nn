@@ -6,7 +6,11 @@ import java.io.IOException;
 import java.net.URI;
 
 import chav1961.nn.api.interfaces.Layer;
+import chav1961.nn.api.interfaces.Layer.ActivationType;
 import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
+import chav1961.nn.api.interfaces.Layer.LayerType;
+import chav1961.nn.api.interfaces.Layer.LossType;
+import chav1961.nn.api.interfaces.Layer.OptimizerType;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.core.network.NeuralNetworkImpl;
@@ -68,6 +72,58 @@ public class PersistenceUtil {
 					final int			layerAmount = dis.readInt();
 					
 					for(int layerNo = 0; layerNo < layerAmount; layerNo++) {
+						final LayerType			layerType = LayerType.valueOf(dis.readUTF());
+						final OptimizerType		optimizerType = OptimizerType.valueOf(dis.readUTF());
+						final LossType			loassType = LossType.valueOf(dis.readUTF());
+						final ActivationType	activationType = ActivationType.valueOf(dis.readUTF()); 
+						final int				activationParameterCount = dis.readInt();
+						final String[]			parameters = new String[activationParameterCount];
+						
+						for(int index = 0; index < activationParameterCount; index++) {
+							parameters[index] = dis.readUTF();
+						}
+
+						final int				arity = dis.readInt();
+						final int[]				sizes = new int[arity];
+
+						for(int index = 0; index < arity; index++) {
+							sizes[index] = dis.readInt();
+						}
+						
+						final int					tenzorCount = dis.readInt();
+						final Tenzor[]				tenzors = new Tenzor[tenzorCount];
+						final InternalTenzorType[]	tenzorTypes = new InternalTenzorType[tenzorCount]; 
+								
+						for(int index = 0; index < tenzorCount; index++) {
+							final InternalTenzorType	tenzorType = InternalTenzorType.valueOf(dis.readUTF());
+							final int					tenzorArity = dis.readInt();
+							final int[]					dimensions = new int[tenzorArity];
+							
+							for(int item = 0; item < tenzorArity; item++) {
+								dimensions[index] = dis.readInt();
+							}
+							
+							final int					contentLength = dis.readInt();
+							final float[]				content = new float[contentLength];
+							
+							for(int item = 0; item < arity; item++) {
+								content[index] = dis.readFloat();
+							}
+							tenzors[index] = tenzorFactory.newInstance(content, dimensions);
+							tenzorTypes[index] = tenzorType;
+						}
+						
+						final Layer		layer = layerFactory.newInstance(layerType, sizes);
+
+						layer.setOptimizerType(optimizerType);
+						layer.setLossType(loassType);
+						layer.setActivationType(activationType, parameters);
+						
+						for(int index = 0; index < tenzorCount; index++) {
+							layer.setInternalTenzor(tenzorTypes[index], tenzors[index]);
+						}
+						
+						nn.add(layer);
 					}
 					return nn;
 				}
@@ -95,13 +151,18 @@ public class PersistenceUtil {
 				dos.writeUTF(layer.getLossType().name());
 				dos.writeUTF(layer.getActivationType().name());
 				
-				final Object[]	parm = layer.getActivationParameters();
+				final String[]	parm = layer.getActivationParameters();
 				
 				dos.writeInt(parm.length);
 				if (parm.length > 0) {
-					for(Object item : parm) {
-						dos.writeUTF(item.toString());
+					for(String item : parm) {
+						dos.writeUTF(item);
 					}
+				}
+
+				dos.writeInt(layer.getArity());
+				for(int index = 0; index < layer.getArity(); index++) {
+					dos.writeInt(layer.getSize(index));
 				}
 				
 				int count = 0;

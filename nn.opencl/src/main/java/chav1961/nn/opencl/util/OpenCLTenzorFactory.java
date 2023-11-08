@@ -22,7 +22,7 @@ public class OpenCLTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	@Override
-	public URI getDefaultTensorType() {
+	public URI getDefaultTenzorType() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -34,7 +34,7 @@ public class OpenCLTenzorFactory implements Tenzor.TenzorFactory {
 	}
 
 	@Override
-	public Tenzor newInstance(float[] content, int size, int... advanced) {
+	public Tenzor newInstance(float[] content, int... advanced) {
 		// TODO Auto-generated method stub
 		return null;
 	}

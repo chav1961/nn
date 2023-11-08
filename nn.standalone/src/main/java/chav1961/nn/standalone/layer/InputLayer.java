@@ -5,7 +5,6 @@ import java.util.Arrays;
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
 import chav1961.nn.utils.calc.LayerUtils;
 import chav1961.nn.utils.calc.TenzorUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -26,9 +25,7 @@ class InputLayer extends AbstractLayer {
 		}
 		else {
 			switch (type) {
-				case WEIGHTS 	:
-					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
-				case UNKNOWN	:
+				case WEIGHTS : case UNKNOWN :
 					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
 				default :
 					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
@@ -36,6 +33,24 @@ class InputLayer extends AbstractLayer {
 		}
 	}
 
+	@Override
+	public Layer setInternalTenzor(final InternalTenzorType type, final Tenzor tenzor) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else if (tenzor == null) {
+			throw new NullPointerException("Tenzor can't be null");
+		}
+		else {
+			switch (type) {
+				case WEIGHTS : case UNKNOWN : 
+					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
+				default:
+					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
+			}
+		}
+	}
+	
 	@Override
 	public boolean isInternalTenzorSupported(final InternalTenzorType type) {
 		if (type == null) {

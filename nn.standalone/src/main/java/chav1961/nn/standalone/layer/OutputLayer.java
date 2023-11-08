@@ -5,13 +5,11 @@ import java.util.Arrays;
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
 import chav1961.nn.utils.calc.TenzorUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 class OutputLayer extends AbstractLayer {
 	private final int[]	dim;
-	private boolean		connected = false;
 	private Tenzor		input;
 	private Tenzor		weights;
 	private Tenzor		output;
@@ -38,6 +36,28 @@ class OutputLayer extends AbstractLayer {
 		}
 	}
 
+	@Override
+	public Layer setInternalTenzor(final InternalTenzorType type, final Tenzor tenzor) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else if (tenzor == null) {
+			throw new NullPointerException("Tenzor can't be null");
+		}
+		else {
+			switch (type) {
+				case WEIGHTS	:
+					this.weights = tenzor;
+					break;
+				case UNKNOWN	: 
+					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
+				default:
+					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
+			}
+			return this;
+		}
+	}
+	
 	@Override
 	public boolean isInternalTenzorSupported(final InternalTenzorType type) {
 		if (type == null) {

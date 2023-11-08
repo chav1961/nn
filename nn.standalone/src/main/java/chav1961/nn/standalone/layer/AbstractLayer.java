@@ -1,12 +1,8 @@
 package chav1961.nn.standalone.layer;
 
-import java.util.Arrays;
-
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.Layer.LayerType;
-import chav1961.nn.utils.calc.TenzorUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 abstract class AbstractLayer implements Layer {
@@ -16,7 +12,7 @@ abstract class AbstractLayer implements Layer {
 	private boolean			forwardOnly = false;
 	private boolean			connected = false;
 	private ActivationType	activationType = ActivationType.LINEAR;
-	private Object[]		activationParameters = new Object[0];
+	private String[]		activationParameters = new String[0];
 	private LossType		lossType = LossType.CROSS_ENTROPY;
 	private OptimizerType	optimizerType = OptimizerType.MOMENTUM;
 	
@@ -69,12 +65,12 @@ abstract class AbstractLayer implements Layer {
 	}
 
 	@Override
-	public Object[] getActivationParameters() {
+	public String[] getActivationParameters() {
 		return activationParameters;
 	}
 	
 	@Override
-	public Layer setActivationType(final ActivationType activationType, final Object... activationParameters) {
+	public Layer setActivationType(final ActivationType activationType, final String... activationParameters) {
 		if (activationType == null) {
 			throw new NullPointerException("Activation type can't be null");
 		}

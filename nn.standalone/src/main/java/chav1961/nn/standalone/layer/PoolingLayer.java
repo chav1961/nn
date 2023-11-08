@@ -39,6 +39,24 @@ class PoolingLayer extends AbstractLayer {
 	}
 
 	@Override
+	public Layer setInternalTenzor(final InternalTenzorType type, final Tenzor tenzor) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else if (tenzor == null) {
+			throw new NullPointerException("Tenzor can't be null");
+		}
+		else {
+			switch (type) {
+				case WEIGHTS : case UNKNOWN : 
+					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
+				default:
+					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
+			}
+		}
+	}
+	
+	@Override
 	public boolean isInternalTenzorSupported(final InternalTenzorType type) {
 		if (type == null) {
 			throw new NullPointerException("Tenzor type can't be null");
@@ -47,8 +65,7 @@ class PoolingLayer extends AbstractLayer {
 			return false;
 		}
 	}	
-	
-	
+
 	@Override
 	protected void prepareInternal(final NeuralNetwork nn) {
 		connectedBefore = false;
