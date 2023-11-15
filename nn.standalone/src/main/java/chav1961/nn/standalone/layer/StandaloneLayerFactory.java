@@ -3,14 +3,15 @@ package chav1961.nn.standalone.layer;
 import java.net.URI;
 
 import chav1961.nn.api.interfaces.Layer;
-import chav1961.nn.api.interfaces.Layer.LayerFactory;
 import chav1961.nn.api.interfaces.Layer.LayerType;
+import chav1961.nn.api.interfaces.LayerFactory;
+import chav1961.nn.api.interfaces.XLayer;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
-public class StandaloneLayerFactory implements Layer.LayerFactory {
-	public static final URI	FACTORY_URI = URI.create(Layer.LayerFactory.LAYER_FACTORY_SCHEMA+":standard:/");
+public class StandaloneLayerFactory implements LayerFactory {
+	public static final URI	FACTORY_URI = URI.create(LayerFactory.LAYER_FACTORY_SCHEMA+":standard:/");
 
 	@Override
 	public boolean canServe(final URI resource) throws NullPointerException {
@@ -65,6 +66,18 @@ public class StandaloneLayerFactory implements Layer.LayerFactory {
 			}
 			return null;
 		}
+	}
+
+	@Override
+	public boolean isXLayerSupported() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public XLayer newInstanceX(LayerType type, Object... parameters) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	private static int[] extractIntArray(final Object[] parameters, final int awaitedNumbers) {

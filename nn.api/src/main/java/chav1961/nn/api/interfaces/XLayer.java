@@ -6,8 +6,9 @@ import java.util.ServiceLoader;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.interfaces.SpiService;
 
-public interface Layer {
+public interface XLayer {
 	int WIDTH = 0;
 	int HEIGHT = 1;
 	int DEPTH = 2;
@@ -44,37 +45,44 @@ public interface Layer {
 		UNKNOWN
 	}
 	
+	public static interface LayerFactory extends SpiService<XLayer.LayerFactory> {
+		String LAYER_FACTORY_SCHEMA = "layerfactory"; 
+		
+		URI getDefaultLayerType();
+		XLayer newInstance(LayerType type, final Object... parameters);		
+	}
+	
 	LayerType getLayerType();
 	int getArity();
 	int getSize(int index);
 	ActivationType getActivationType();
 	String[] getActivationParameters();
-	Layer setActivationType(ActivationType activationType, String... parameters);
+	XLayer setActivationType(ActivationType activationType, String... parameters);
 	LossType getLossType();
-	Layer setLossType(LossType lossType);
+	XLayer setLossType(LossType lossType);
 	OptimizerType getOptimizerType();
-	Layer setOptimizerType(OptimizerType optimizerType);
+	XLayer setOptimizerType(OptimizerType optimizerType);
 	
-	Tenzor getInternalTenzor(InternalTenzorType type);
-	Layer setInternalTenzor(InternalTenzorType type, Tenzor tenzor);
+	XTenzor getInternalTenzor(InternalTenzorType type);
+	XLayer setInternalTenzor(InternalTenzorType type, XTenzor tenzor);
 	boolean isInternalTenzorSupported(InternalTenzorType type);
 	
-	Layer prepare(NeuralNetwork nn, boolean forwardOnly);
+	XLayer prepare(XNeuralNetwork nn, boolean forwardOnly);
 	boolean isForwardOnly();
-	boolean canConnectBefore(NeuralNetwork nn, Layer before);
-	Layer connectBefore(NeuralNetwork nn, Layer before);
-	boolean canConnectAfter(NeuralNetwork nn, Layer after);
-	Layer connectAfter(NeuralNetwork nn, Layer after);
-	Tenzor forward(NeuralNetwork nn, Tenzor input);
-	Tenzor backward(NeuralNetwork nn, Tenzor errors);
-	Layer unprepare(NeuralNetwork nn);
+	boolean canConnectBefore(XNeuralNetwork nn, XLayer before);
+	XLayer connectBefore(XNeuralNetwork nn, XLayer before);
+	boolean canConnectAfter(XNeuralNetwork nn, XLayer after);
+	XLayer connectAfter(XNeuralNetwork nn, XLayer after);
+	XTenzor forward(XNeuralNetwork nn, XTenzor input);
+	XTenzor backward(XNeuralNetwork nn, XTenzor errors);
+	XLayer unprepare(XNeuralNetwork nn);
 	
 	public static class Factory {
-		private static LayerFactory	factory;
+		private static XLayer.LayerFactory	factory;
 		private static URI					layerURI;
 		
 		static {
-			for(LayerFactory item : ServiceLoader.load(LayerFactory.class)) {
+			for(XLayer.LayerFactory item : ServiceLoader.load(XLayer.LayerFactory.class)) {
 				layerURI = item.getDefaultLayerType();
 				factory = item;
 				break;
@@ -95,12 +103,12 @@ public interface Layer {
 			}
 		}
 		
-		public static LayerFactory getFactory(final URI newLayerURI) {
+		public static XLayer.LayerFactory getFactory(final URI newLayerURI) {
 			if (newLayerURI == null) {
 				throw new NullPointerException("Layer type to set cen't be null");
 			}
 			else {
-				for(LayerFactory item : ServiceLoader.load(LayerFactory.class)) {
+				for(XLayer.LayerFactory item : ServiceLoader.load(XLayer.LayerFactory.class)) {
 					if (item.canServe(newLayerURI)) {
 						return item;
 					}
@@ -109,7 +117,7 @@ public interface Layer {
 			}
 		}
 		
-		public static Layer newInstance(final LayerType type, final int... sizes) {
+		public static XLayer newInstance(final LayerType type, final int... sizes) {
 			if (type == null) {
 				throw new NullPointerException("Layer type can't be null");
 			}
@@ -124,7 +132,7 @@ public interface Layer {
 			}
 		}
 		
-		public static Layer newInstance(final URI layerURI, final LayerType type, final int... sizes) {
+		public static XLayer newInstance(final URI layerURI, final LayerType type, final int... sizes) {
 			if (layerURI == null) {
 				throw new NullPointerException("Layer URI can't be null");
 			}
@@ -135,13 +143,13 @@ public interface Layer {
 				throw new NullPointerException("Sise list can't be null");
 			}
 			else {
-				LayerFactory f = null;
+				XLayer.LayerFactory f = null;
 				
 				if (layerURI.equals(getDefaultLayerURI())) {
 					f = factory;
 				}
 				else {
-					for(LayerFactory item : ServiceLoader.load(LayerFactory.class)) {
+					for(XLayer.LayerFactory item : ServiceLoader.load(XLayer.LayerFactory.class)) {
 						if (item.canServe(layerURI)) {
 							f = item;
 							break;

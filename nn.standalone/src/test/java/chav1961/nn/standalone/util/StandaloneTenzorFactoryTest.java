@@ -7,13 +7,14 @@ import java.net.URI;
 import java.util.Arrays;
 
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 public class StandaloneTenzorFactoryTest {
 	@Test
 	public void spiTest() {
 		final StandaloneTenzorFactory	stf = new StandaloneTenzorFactory();
-		final URI						serveURI = URI.create(Tenzor.TenzorFactory.TENZOR_FACTORY_SCHEMA+":standalone:/"); 
+		final URI						serveURI = URI.create(TenzorFactory.TENZOR_FACTORY_SCHEMA+":standalone:/"); 
 		
 		Assert.assertTrue(stf.canServe(serveURI));
 		Assert.assertEquals(stf, stf.newInstance(serveURI));

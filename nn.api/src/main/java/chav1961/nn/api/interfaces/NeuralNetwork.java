@@ -1,8 +1,8 @@
 package chav1961.nn.api.interfaces;
 
 public interface NeuralNetwork {
-	Tenzor.TenzorFactory getTenzorFactory();
-	Layer.LayerFactory getLayerFactory();
+	TenzorFactory getTenzorFactory();
+	LayerFactory getLayerFactory();
 	NeuralNetwork add(Layer... layers);
 	Layer[] getLayers();
 	

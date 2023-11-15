@@ -1,5 +1,5 @@
-import chav1961.nn.api.interfaces.Layer;
-import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.LayerFactory;
+import chav1961.nn.api.interfaces.TenzorFactory;
 
 module nn.opencl {
 	requires transitive chav1961.purelib;
@@ -7,9 +7,9 @@ module nn.opencl {
 	requires nn.api;
 	requires tenzor;
 	
-	uses Tenzor.TenzorFactory;
-	provides Tenzor.TenzorFactory with chav1961.nn.opencl.util.OpenCLTenzorFactory; 
+	uses TenzorFactory;
+	provides TenzorFactory with chav1961.nn.opencl.util.OpenCLTenzorFactory; 
 
-	uses Layer.LayerFactory;
-	provides Layer.LayerFactory with chav1961.nn.opencl.layer.OpenCLLayerFactory; 
+	uses LayerFactory;
+	provides LayerFactory with chav1961.nn.opencl.layer.OpenCLLayerFactory; 
 }

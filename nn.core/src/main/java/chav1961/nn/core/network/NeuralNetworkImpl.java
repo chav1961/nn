@@ -5,11 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import chav1961.nn.api.interfaces.Layer;
-import chav1961.nn.api.interfaces.Layer.LayerFactory;
 import chav1961.nn.api.interfaces.Layer.LayerType;
+import chav1961.nn.api.interfaces.LayerFactory;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
+import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.purelib.basic.Utils;
 
 public class NeuralNetworkImpl implements NeuralNetwork {

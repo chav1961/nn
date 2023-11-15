@@ -19,6 +19,7 @@ import java.util.function.Function;
 import javax.imageio.ImageIO;
 
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 
@@ -73,7 +74,7 @@ public class DataSetManager {
 		}
  	}
 	
-	public static DataSetManager fromCsv(final int numberOfInputs, final Tenzor.TenzorFactory factory, final File... csv) throws IOException {
+	public static DataSetManager fromCsv(final int numberOfInputs, final TenzorFactory factory, final File... csv) throws IOException {
 		if (numberOfInputs <= 0) {
 			throw new IllegalArgumentException("Number of inputs ["+numberOfInputs+"] must be greater than 0");
 		}
@@ -120,7 +121,7 @@ public class DataSetManager {
 		}
 	}
 	
-	public static DataSetManager fromImages(final Tenzor.TenzorFactory factory, final File... imageCatalogs) throws IOException {
+	public static DataSetManager fromImages(final TenzorFactory factory, final File... imageCatalogs) throws IOException {
 		if (factory == null) {
 			throw new NullPointerException("Factory can't be null");
 		}
@@ -179,7 +180,7 @@ public class DataSetManager {
 		}
 	}
 
-	private static Tenzor[] toTenzor(final String source, final int inputs, final Tenzor.TenzorFactory factory) {
+	private static Tenzor[] toTenzor(final String source, final int inputs, final TenzorFactory factory) {
 		final String[]	content = source.split(",");
 		
 		if (content.length <= inputs) {
@@ -202,7 +203,7 @@ public class DataSetManager {
 		}
 	}
 
-	private static Tenzor[] toTenzor(final String source, BufferedImage image, final Tenzor.TenzorFactory factory) {
+	private static Tenzor[] toTenzor(final String source, BufferedImage image, final TenzorFactory factory) {
 		final String[]	content = source.split(",");
 		final float[]	output = new float[content.length];
 		final int		width = image.getWidth();

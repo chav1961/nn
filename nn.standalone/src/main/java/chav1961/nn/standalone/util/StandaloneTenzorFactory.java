@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.Tenzor.TenzorFactory;
+import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.utils.calc.TenzorCalculationUtils;
 import chav1961.nn.utils.calc.TenzorCalculationUtils.Command;
 import chav1961.nn.utils.calc.TenzorCalculationUtils.FunctionType;
@@ -17,7 +17,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 
-public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
+public class StandaloneTenzorFactory implements TenzorFactory {
 	public static final URI				TENZOR_TYPE = URI.create(TENZOR_FACTORY_SCHEMA +":standalone:/");
 
 	private static interface FunctionInterface extends Cloneable, Tenzor.ConvertCallback, Tenzor.ProcessCallback {
@@ -422,6 +422,23 @@ public class StandaloneTenzorFactory implements Tenzor.TenzorFactory {
 		}
 	}
 
+	@Override
+	public boolean isXTenzorSupported() {
+		return false;
+	}
+	
+	@Override
+	public Tenzor newInstanceX(double[] content, int... advanced) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Tenzor newInstanceX(int size, int... advanced) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	static Tenzor calculateInternal(final TenzorFactory factory, final CharSequence charArray, final Tenzor[] parameters) throws SyntaxException {
 		return calculate(factory, TenzorCalculationUtils.parseCalcExpression(charArray), parameters);
 	}

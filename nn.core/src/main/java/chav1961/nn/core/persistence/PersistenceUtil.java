@@ -11,8 +11,10 @@ import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
 import chav1961.nn.api.interfaces.Layer.LayerType;
 import chav1961.nn.api.interfaces.Layer.LossType;
 import chav1961.nn.api.interfaces.Layer.OptimizerType;
+import chav1961.nn.api.interfaces.LayerFactory;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.core.network.NeuralNetworkImpl;
 
 public class PersistenceUtil {
@@ -43,7 +45,7 @@ public class PersistenceUtil {
 		}
 	}
 
-	public static NeuralNetwork load(final DataInputStream dis, final Tenzor.TenzorFactory tenzorFactory, final Layer.LayerFactory layerFactory) throws IOException {
+	public static NeuralNetwork load(final DataInputStream dis, final TenzorFactory tenzorFactory, final LayerFactory layerFactory) throws IOException {
 		if (dis == null) {
 			throw new NullPointerException("Input stream can't be null");
 		}

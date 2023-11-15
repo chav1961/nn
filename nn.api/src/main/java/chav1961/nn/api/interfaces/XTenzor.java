@@ -7,90 +7,90 @@ import java.util.ServiceLoader;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
-public interface Tenzor extends Serializable {
+public interface XTenzor extends Serializable {
 	@FunctionalInterface
 	public static interface ConvertCallback {
-		float convert(float value, int... indices);
+		double convert(double value, int... indices);
 	}
 
 	@FunctionalInterface
 	public static interface ProcessCallback {
-		void process(float value, int... indices);
+		void process(double value, int... indices);
 	}
 	
 	int getArity();
 	int getSize(int dimension);
 	TenzorFactory getFactory();
 
-	boolean equals(Tenzor another, float epsilon);
-	boolean sizeEquals(Tenzor another);
+	boolean equals(XTenzor another, double epsilon);
+	boolean sizeEquals(XTenzor another);
 	
-	float[] getContent();
-	float get(int... indices);
-	Tenzor get(float[] target, int... indices);
-	Tenzor set(float value, int... indices);
-	Tenzor set(float[] toSet, int... indices);
-	Tenzor set(Tenzor toSet);
-	Tenzor fill(float value, int... indices);
+	double[] getContent();
+	double get(int... indices);
+	XTenzor get(double[] target, int... indices);
+	XTenzor set(double value, int... indices);
+	XTenzor set(double[] toSet, int... indices);
+	XTenzor set(XTenzor toSet);
+	XTenzor fill(double value, int... indices);
 	
-	Tenzor duplicate();
+	XTenzor duplicate();
 	
-	Tenzor add(Tenzor toAdd);
-	default Tenzor addN(Tenzor toAdd) {
+	XTenzor add(XTenzor toAdd);
+	default XTenzor addN(XTenzor toAdd) {
 		return duplicate().add(toAdd);
 	}
-	Tenzor add(float toAdd);
-	default Tenzor addN(float toAdd) {
+	XTenzor add(double toAdd);
+	default XTenzor addN(double toAdd) {
 		return duplicate().add(toAdd);
 	}
-	Tenzor sub(Tenzor toSubtract);
-	default Tenzor subN(Tenzor toSubtract) {
+	XTenzor sub(XTenzor toSubtract);
+	default XTenzor subN(XTenzor toSubtract) {
 		return duplicate().sub(toSubtract);
 	}
-	Tenzor sub(float toSubtract);
-	default Tenzor subN(float toSubtract) {
+	XTenzor sub(double toSubtract);
+	default XTenzor subN(double toSubtract) {
 		return duplicate().sub(toSubtract);
 	}
-	Tenzor mul(Tenzor toMultiply);
-	default Tenzor mulN(Tenzor toMultiply) {
+	XTenzor mul(XTenzor toMultiply);
+	default XTenzor mulN(XTenzor toMultiply) {
 		return duplicate().mul(toMultiply);
 	}
-	Tenzor mul(float toMultiply);
-	default Tenzor mulN(float toMultiply) {
+	XTenzor mul(double toMultiply);
+	default XTenzor mulN(double toMultiply) {
 		return duplicate().mul(toMultiply);
 	}
-	Tenzor div(Tenzor toDivide);
-	default Tenzor divN(Tenzor toDivide) {
+	XTenzor div(XTenzor toDivide);
+	default XTenzor divN(XTenzor toDivide) {
 		return duplicate().div(toDivide);
 	}
-	Tenzor div(float toDivide);
-	default Tenzor divN(float toDivide) {
+	XTenzor div(double toDivide);
+	default XTenzor divN(double toDivide) {
 		return duplicate().div(toDivide);
 	}
-	Tenzor matrixMul(Tenzor toMultiply);
-	default Tenzor matrixMulN(Tenzor toMultiply) {
+	XTenzor matrixMul(XTenzor toMultiply);
+	default XTenzor matrixMulN(XTenzor toMultiply) {
 		return duplicate().matrixMul(toMultiply);
 	}
 	
-	Tenzor trans();
+	XTenzor trans();
 	
 	/*
 	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */
-	Tenzor calculate(CharSequence expression, Tenzor... parameters) throws SyntaxException; 
-	default Tenzor calculateN(CharSequence expression, Tenzor... parameters) throws SyntaxException {
+	XTenzor calculate(CharSequence expression, XTenzor... parameters) throws SyntaxException; 
+	default XTenzor calculateN(CharSequence expression, XTenzor... parameters) throws SyntaxException {
 		return duplicate().calculate(expression, parameters);
 	}
 	
-	Tenzor convert(ConvertCallback callback);
-	default Tenzor convertN(ConvertCallback callback) {
+	XTenzor convert(ConvertCallback callback);
+	default XTenzor convertN(ConvertCallback callback) {
 		return duplicate().convert(callback);
 	}
 	
 	void forEach(ProcessCallback callback);
 	
 	
-	public static Tenzor valueOf(final CharSequence content, final int[] indices) {
+	public static XTenzor valueOf(final CharSequence content, final int[] indices) {
 		return null;
 	}
 	
