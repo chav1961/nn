@@ -89,7 +89,7 @@ public class FeedForwardLayerTest {
 		ffl.connectBefore(nn, il);
 		Assert.assertNotNull(ffl.getInternalTenzor(InternalTenzorType.WEIGHTS));
 		
-		ffl.getInternalTenzor(InternalTenzorType.WEIGHTS).fill(1, TenzorUtils.allIndicesMask(ffl.getInternalTenzor(InternalTenzorType.WEIGHTS)));
+		((Tenzor)ffl.getInternalTenzor(InternalTenzorType.WEIGHTS)).fill(1, TenzorUtils.allIndicesMask(ffl.getInternalTenzor(InternalTenzorType.WEIGHTS)));
 
 		try {
 			ffl.connectBefore(nn, il);

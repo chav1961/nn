@@ -1,8 +1,11 @@
 package chav1961.nn.standalone.layer;
 
+import java.util.Set;
+
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 class ConvolutionalLayer extends AbstractLayer {
@@ -11,46 +14,12 @@ class ConvolutionalLayer extends AbstractLayer {
 	private boolean		connectedAfter = false;
 
 	ConvolutionalLayer(final int cellWidth, final int cellHeight, final int stride) {
-		super(LayerType.CONVOLUTIONAL, new int[] {cellWidth, cellHeight});
+		super(LayerType.CONVOLUTIONAL, Set.of(), new int[] {cellWidth, cellHeight});
 		this.stride = stride;
 	}
 
 	public int getStride() {
 		return stride;
-	}
-	
-	@Override
-	public Tenzor getInternalTenzor(final InternalTenzorType type) {
-		if (type == null) {
-			throw new NullPointerException("Tenzor type can't be null");
-		}
-		else {
-			switch (type) {
-				case UNKNOWN : case WEIGHTS :
-					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
-				default:
-					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
-			}
-		}
-	}
-
-	@Override
-	public Layer setInternalTenzor(InternalTenzorType type, Tenzor tenzor) {
-		if (type == null) {
-			throw new NullPointerException("Tenzor type can't be null");
-		}
-		else if (tenzor == null) {
-			throw new NullPointerException("Tenzor can't be null");
-		}
-		else {
-			switch (type) {
-				case UNKNOWN : case WEIGHTS :
-					throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
-				default:
-					throw new UnsupportedOperationException("Tenzor type ["+type+"] is not supported yet");
-			}
-//			return this;
-		}
 	}
 	
 	@Override
@@ -101,8 +70,21 @@ class ConvolutionalLayer extends AbstractLayer {
 		return null;
 	}
 
+
+	@Override
+	protected XTenzor forwardInternal(final NeuralNetwork nn, final XTenzor input) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	@Override
 	protected Tenzor backwardInternal(final NeuralNetwork nn, final Tenzor errors) throws SyntaxException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	protected XTenzor backwardInternal(final NeuralNetwork nn, final XTenzor errors) throws SyntaxException {
 		// TODO Auto-generated method stub
 		return null;
 	}

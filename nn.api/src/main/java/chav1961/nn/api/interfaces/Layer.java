@@ -55,8 +55,8 @@ public interface Layer {
 	OptimizerType getOptimizerType();
 	Layer setOptimizerType(OptimizerType optimizerType);
 	
-	Tenzor getInternalTenzor(InternalTenzorType type);
-	Layer setInternalTenzor(InternalTenzorType type, Tenzor tenzor);
+	<T extends AnyTenzor> T getInternalTenzor(InternalTenzorType type);
+	<T extends AnyTenzor> Layer setInternalTenzor(InternalTenzorType type, T tenzor);
 	boolean isInternalTenzorSupported(InternalTenzorType type);
 	
 	Layer prepare(NeuralNetwork nn, boolean forwardOnly);
@@ -67,6 +67,8 @@ public interface Layer {
 	Layer connectAfter(NeuralNetwork nn, Layer after);
 	Tenzor forward(NeuralNetwork nn, Tenzor input);
 	Tenzor backward(NeuralNetwork nn, Tenzor errors);
+	XTenzor forward(NeuralNetwork nn, XTenzor input);
+	XTenzor backward(NeuralNetwork nn, XTenzor errors);
 	Layer unprepare(NeuralNetwork nn);
 	
 	public static class Factory {

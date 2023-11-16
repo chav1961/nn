@@ -103,7 +103,7 @@ public class InputLayerTest {
 		} catch (NullPointerException exc) {
 		}
 		try {
-			il.forward(nn, null);
+			il.forward(nn, (Tenzor)null);
 			Assert.fail("Mandatory exceptin was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
@@ -121,7 +121,7 @@ public class InputLayerTest {
 		} catch (NullPointerException exc) {
 		}
 		try {
-			il.backward(nn, null);
+			il.backward(nn, (Tenzor)null);
 			Assert.fail("Mandatory exceptin was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}

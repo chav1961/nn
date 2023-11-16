@@ -7,7 +7,7 @@ import java.util.ServiceLoader;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
-public interface Tenzor extends Serializable {
+public interface Tenzor extends Serializable, AnyTenzor {
 	@FunctionalInterface
 	public static interface ConvertCallback {
 		float convert(float value, int... indices);
@@ -18,10 +18,6 @@ public interface Tenzor extends Serializable {
 		void process(float value, int... indices);
 	}
 	
-	int getArity();
-	int getSize(int dimension);
-	TenzorFactory getFactory();
-
 	boolean equals(Tenzor another, float epsilon);
 	boolean sizeEquals(Tenzor another);
 	

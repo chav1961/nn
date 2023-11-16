@@ -27,14 +27,32 @@ import chav1961.purelib.basic.Utils;
 public class DataSetManager {
 	private final Tenzor[]	inputs;
 	private final Tenzor[]	outputs;
+	private final XTenzor[]	inputsX;
+	private final XTenzor[]	outputsX;
+	private final boolean	xSupported;
 	
 	protected DataSetManager(final Tenzor[] inputs, final Tenzor[] outputs) {
 		this.inputs = inputs;
 		this.outputs = outputs;
+		this.inputsX = null;
+		this.outputsX = null;
+		this.xSupported = false;
+	}
+
+	protected DataSetManager(final XTenzor[] inputs, final XTenzor[] outputs) {
+		this.inputs = null;
+		this.outputs = null;
+		this.inputsX = inputs;
+		this.outputsX = outputs;
+		this.xSupported = true;
 	}
 	
 	public int size() {
 		return inputs.length;
+	}
+	
+	public boolean isXSupported() {
+		return xSupported;
 	}
 	
 	public DataSetManager[] split(final float percentage) {
@@ -68,9 +86,26 @@ public class DataSetManager {
 		if (callback == null) {
 			throw new NullPointerException("Callback can't be null"); 
 		}
+		else if (isXSupported()) {
+			throw new IllegalStateException("This dataset containx XTenzor content, not Tenzor. Call forEachX(...) method instead"); 
+		}
 		else {
 			for(int index = 0; index < inputs.length; index++) {
 				callback.accept(inputs[index], outputs[index]);
+			}
+		}
+ 	}
+
+	public void forEachX(final BiConsumer<XTenzor, XTenzor> callback) {
+		if (callback == null) {
+			throw new NullPointerException("Callback can't be null"); 
+		}
+		else if (!isXSupported()) {
+			throw new IllegalStateException("This dataset contains Tenzor content, not XTenzor. Call forEach(...) method instead"); 
+		}
+		else {
+			for(int index = 0; index < inputsX.length; index++) {
+				callback.accept(inputsX[index], outputsX[index]);
 			}
 		}
  	}

@@ -2,10 +2,11 @@ package chav1961.nn.utils.calc;
 
 import java.util.Arrays;
 
+import chav1961.nn.api.interfaces.AnyTenzor;
 import chav1961.nn.api.interfaces.Tenzor;
 
 public class TenzorUtils {
-	public static int[] extractDimension(final Tenzor tenzor) {
+	public static int[] extractDimension(final AnyTenzor tenzor) {
 		if (tenzor == null) {
 			throw new NullPointerException("Tenzor to extract dimensions can't be null");
 		}
@@ -19,7 +20,7 @@ public class TenzorUtils {
 		}
 	}
 	
-	public static int[] allIndicesMask(final Tenzor tenzor) {
+	public static int[] allIndicesMask(final AnyTenzor tenzor) {
 		if (tenzor == null) {
 			throw new NullPointerException("Tenzor to build indices mask can't be null");
 		}

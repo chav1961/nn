@@ -9,5 +9,7 @@ public interface NeuralNetwork {
 	NeuralNetwork prepare(boolean forwardOnly);
 	Tenzor forward(Tenzor input);
 	Tenzor backward(Tenzor errors);
+	XTenzor forward(XTenzor input);
+	XTenzor backward(XTenzor errors);
 	NeuralNetwork unprepare();
 }

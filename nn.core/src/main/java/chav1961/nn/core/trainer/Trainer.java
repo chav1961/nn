@@ -2,6 +2,7 @@ package chav1961.nn.core.trainer;
 
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.nn.core.dataset.DataSetManager;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 
@@ -43,7 +44,12 @@ public class Trainer {
 			pi.start("", maxEpoch);
 			for(int index = 0; index < maxEpoch && !stop[0]; index++) {
 				pi.processed(index);
-				mgr.forEach((in,out)->{stop[0] = learn(in, nn, out, maxError, learningSpeed);});
+				if (mgr.isXSupported()) {
+					mgr.forEachX((in,out)->{stop[0] = learn(in, nn, out, maxError, learningSpeed);});
+				}
+				else {
+					mgr.forEach((in,out)->{stop[0] = learn(in, nn, out, maxError, learningSpeed);});
+				}
 			}
 			pi.end();
 			return stop[0];
@@ -87,6 +93,28 @@ public class Trainer {
 		}
 	}
 
+	private boolean learn(final XTenzor in, final NeuralNetwork nn, final XTenzor out, final float maxError, final float learningSpeed) {
+		final XTenzor	t = nn.forward(in);
+		final double[]	content1 = t.getContent(), content2 = out.getContent();
+		boolean			continuationRequired = false;
+		
+		for(int index = 0; index < content1.length; index++) {
+			if (Math.abs(content1[index] - content2[index]) > maxError) {
+				continuationRequired = true;
+			}
+		}
+		if (continuationRequired) {
+			for(int index = 0; index < content1.length; index++) {
+				content1[index] = learningSpeed * (content1[index] - content2[index]);
+			}
+			nn.backward(t);
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	
 	private boolean test(final Tenzor in, final NeuralNetwork nn, final Tenzor out, final float maxError) {
 		final Tenzor	t = nn.forward(in);
 		final float[]	content1 = t.getContent(), content2 = out.getContent();

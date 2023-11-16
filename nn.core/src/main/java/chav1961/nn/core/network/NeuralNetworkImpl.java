@@ -10,6 +10,7 @@ import chav1961.nn.api.interfaces.LayerFactory;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.TenzorFactory;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.purelib.basic.Utils;
 
 public class NeuralNetworkImpl implements NeuralNetwork {
@@ -118,6 +119,24 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 	}
 
 	@Override
+	public XTenzor forward(final XTenzor input) {
+		if (input == null) {
+			throw new NullPointerException("Input tenzor can't be null");
+		}
+		else if (!prepared) {
+			throw new IllegalStateException("Calling forward(...) before preparation. Call prepare(...) before");
+		}
+		else {
+			XTenzor	t = input;
+			
+			for(int index = 0; index < layers.size(); index++) {
+				t = layers.get(index).forward(this, t);
+			}
+			return t;
+		}
+	}
+	
+	@Override
 	public Tenzor backward(final Tenzor errors) {
 		if (errors == null) {
 			throw new NullPointerException("Input tenzor can't be null");
@@ -135,6 +154,24 @@ public class NeuralNetworkImpl implements NeuralNetwork {
 		}
 	}
 
+	@Override
+	public XTenzor backward(final XTenzor errors) {
+		if (errors == null) {
+			throw new NullPointerException("Input tenzor can't be null");
+		}
+		else if (!prepared) {
+			throw new IllegalStateException("Calling forward(...) before preparation. Call prepare(...) before");
+		}
+		else {
+			XTenzor	t = errors;
+			
+			for(int index = layers.size() - 1; index >= 0; index--) {
+				t = layers.get(index).backward(this, t);
+			}
+			return t;
+		}
+	}
+	
 	@Override
 	public NeuralNetwork unprepare() {
 		if (!prepared) {

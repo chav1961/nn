@@ -7,6 +7,7 @@ import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.Layer.LayerType;
 import chav1961.nn.api.interfaces.LayerFactory;
 import chav1961.nn.api.interfaces.NeuralNetwork;
+import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.core.network.NeuralNetworkImpl;
 import chav1961.nn.standalone.layer.StandaloneLayerFactory;
@@ -71,14 +72,14 @@ public class NeuralNetworkTest {
 		
 		nn.forward(tf.newInstance(10));
 		
-		try {nn.forward(null);
+		try {nn.forward((Tenzor)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}		
 		
 		nn.backward(tf.newInstance(10));
 
-		try {nn.backward(null);
+		try {nn.backward((Tenzor)null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}		

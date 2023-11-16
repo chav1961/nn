@@ -87,7 +87,7 @@ public class OutputLayerTest {
 		ol.connectBefore(nn, il);
 		Assert.assertNotNull(ol.getInternalTenzor(InternalTenzorType.WEIGHTS));
 		
-		ol.getInternalTenzor(InternalTenzorType.WEIGHTS).fill(1, TenzorUtils.allIndicesMask(ol.getInternalTenzor(InternalTenzorType.WEIGHTS)));
+		((Tenzor)ol.getInternalTenzor(InternalTenzorType.WEIGHTS)).fill(1, TenzorUtils.allIndicesMask(ol.getInternalTenzor(InternalTenzorType.WEIGHTS)));
 
 		try {
 			ol.connectBefore(nn, il);

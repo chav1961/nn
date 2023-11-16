@@ -1,13 +1,19 @@
 package chav1961.nn.standalone.layer;
 
+import java.util.EnumMap;
+import java.util.Set;
+
+import chav1961.nn.api.interfaces.AnyTenzor;
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 abstract class AbstractLayer implements Layer {
 	private final LayerType	type;
 	private final int[]		dimensions;
+	private final EnumMap<InternalTenzorType, AnyTenzor>	internalTenzors = new EnumMap<>(InternalTenzorType.class);
 	private boolean			prepared = false;
 	private boolean			forwardOnly = false;
 	private boolean			connected = false;
@@ -16,7 +22,7 @@ abstract class AbstractLayer implements Layer {
 	private LossType		lossType = LossType.CROSS_ENTROPY;
 	private OptimizerType	optimizerType = OptimizerType.MOMENTUM;
 	
-	AbstractLayer(final LayerType type, final int... dimensions) {
+	AbstractLayer(final LayerType type, final Set<InternalTenzorType> supports, final int... dimensions) {
 		if (type == null) {
 			throw new NullPointerException("Layer type can't be null");
 		}
@@ -26,6 +32,9 @@ abstract class AbstractLayer implements Layer {
 		else {
 			this.type = type;
 			this.dimensions = dimensions;
+			for(InternalTenzorType item : supports) {
+				internalTenzors.put(item, null);
+			}
 		}
 	}
 
@@ -36,6 +45,8 @@ abstract class AbstractLayer implements Layer {
 	protected abstract void connectAfterInternal(NeuralNetwork nn, Layer after);
 	protected abstract Tenzor forwardInternal(NeuralNetwork nn, Tenzor input) throws SyntaxException;
 	protected abstract Tenzor backwardInternal(NeuralNetwork nn, Tenzor errors) throws SyntaxException;
+	protected abstract XTenzor forwardInternal(NeuralNetwork nn, XTenzor input) throws SyntaxException;
+	protected abstract XTenzor backwardInternal(NeuralNetwork nn, XTenzor errors) throws SyntaxException;
 	protected abstract void unprepareInternal(NeuralNetwork nn);
 	
 	
@@ -138,6 +149,47 @@ abstract class AbstractLayer implements Layer {
 				throw new UnsupportedOperationException("Activation type ["+getActivationType()+"] is not supported yet");
 		}
 	}
+	
+	@Override
+	public <T extends AnyTenzor> T getInternalTenzor(final InternalTenzorType type) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else if (isInternalTenzorSupported(type)) {
+			return (T) internalTenzors.get(type);
+		}
+		else {
+			throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
+		}
+	}
+
+	@Override
+	public <T extends AnyTenzor> Layer setInternalTenzor(final InternalTenzorType type, final T tenzor) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else if (tenzor == null) {
+			throw new NullPointerException("Tenzor can't be null");
+		}
+		else if (isInternalTenzorSupported(type)) {
+			internalTenzors.put(type, tenzor);
+			return this;
+		}
+		else {
+			throw new IllegalArgumentException("Tenzor type ["+type+"] is missing in the layer");
+		}
+	}
+	
+	@Override
+	public boolean isInternalTenzorSupported(final InternalTenzorType type) {
+		if (type == null) {
+			throw new NullPointerException("Tenzor type can't be null");
+		}
+		else {
+			return internalTenzors.containsKey(type);
+		}
+	}
+	
 	
 	@Override
 	public boolean isForwardOnly() {
@@ -257,6 +309,29 @@ abstract class AbstractLayer implements Layer {
 	}
 
 	@Override
+	public XTenzor forward(final NeuralNetwork nn, final XTenzor input) {
+		if (nn == null) {
+			throw new NullPointerException("Neural network can't be null");
+		}
+		else if (input == null) {
+			throw new NullPointerException("Input tenzor can't be null");
+		}
+		else if (!isPrepared()) {
+			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
+		}
+		else if (!isConnected()) {
+			throw new IllegalStateException("Layer is not connected anywhere");
+		}
+		else {
+			try {
+				return forwardInternal(nn, input);
+			} catch (SyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+	}
+	
+	@Override
 	public Tenzor backward(final NeuralNetwork nn, final Tenzor errors) {
 		if (nn == null) {
 			throw new NullPointerException("Neural network can't be null");
@@ -282,7 +357,31 @@ abstract class AbstractLayer implements Layer {
 		}
 	}
 	
-
+	@Override
+	public XTenzor backward(final NeuralNetwork nn, final XTenzor errors) {
+		if (nn == null) {
+			throw new NullPointerException("Neural network can't be null");
+		}
+		else if (errors == null) {
+			throw new NullPointerException("Errors tenzor can't be null");
+		}
+		else if (!isPrepared()) {
+			throw new IllegalStateException("Layer is not prepared or was unprepared earlier");
+		}
+		else if (!isConnected()) {
+			throw new IllegalStateException("Layer is not connected anywhere");
+		}
+		else if (isForwardOnly()) {
+			throw new IllegalStateException("Layer was prepared for 'forward only' mode. Don't call this method!");
+		}
+		else {
+			try {
+				return backwardInternal(nn, errors);
+			} catch (SyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+	}
 
 	@Override
 	public Layer unprepare(final NeuralNetwork nn) {

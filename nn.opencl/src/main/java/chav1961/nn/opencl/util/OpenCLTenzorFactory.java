@@ -4,6 +4,7 @@ import java.net.URI;
 
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.TenzorFactory;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 public class OpenCLTenzorFactory implements TenzorFactory {
@@ -45,13 +46,13 @@ public class OpenCLTenzorFactory implements TenzorFactory {
 	}
 
 	@Override
-	public Tenzor newInstanceX(int size, int... advanced) {
+	public XTenzor newInstanceX(int size, int... advanced) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tenzor newInstanceX(double[] content, int... advanced) {
+	public XTenzor newInstanceX(double[] content, int... advanced) {
 		// TODO Auto-generated method stub
 		return null;
 	}
