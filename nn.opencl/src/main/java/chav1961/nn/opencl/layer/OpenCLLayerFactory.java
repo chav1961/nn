@@ -41,7 +41,7 @@ public class OpenCLLayerFactory implements LayerFactory {
 	}
 
 	@Override
-	public XLayer newInstanceX(LayerType type, Object... parameters) {
+	public XLayer newXInstance(LayerType type, Object... parameters) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -11,5 +11,5 @@ public interface LayerFactory extends SpiService<LayerFactory> {
 	URI getDefaultLayerType();
 	Layer newInstance(LayerType type, final Object... parameters);
 	boolean isXLayerSupported();
-	XLayer newInstanceX(LayerType type, final Object... parameters);
+	XLayer newXInstance(LayerType type, final Object... parameters);
 }

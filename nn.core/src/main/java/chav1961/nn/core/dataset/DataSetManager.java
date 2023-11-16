@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 
 import chav1961.nn.api.interfaces.Tenzor;
 import chav1961.nn.api.interfaces.TenzorFactory;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 
@@ -180,6 +181,53 @@ public class DataSetManager {
 		}
 	}
 
+	public static DataSetManager fromImagesX(final BiFunction<String, BufferedImage, XTenzor[]> converter, final File... imageCatalogs) throws IOException {
+		if (converter == null) {
+			throw new NullPointerException("Converter can't be null");
+		}
+		else if (imageCatalogs == null || imageCatalogs.length == 0 || Utils.checkArrayContent4Nulls(imageCatalogs) >= 0) {
+			throw new IllegalArgumentException("Image catalogs list is null, empty or contains nulls inside"); 
+		}
+		else {
+			final List<XTenzor>	inputs = new ArrayList<>();
+			final List<XTenzor>	outputs = new ArrayList<>();
+			
+			for(File item : imageCatalogs) {
+				try(final InputStream		is = new FileInputStream(item);
+					final Reader			rdr = new InputStreamReader(is, PureLibSettings.DEFAULT_CONTENT_ENCODING);
+					final BufferedReader	brdr = new BufferedReader(rdr)) {
+					String		line;
+					
+					while ((line = brdr.readLine()) != null) {
+						final String[]		content = line.split(",");
+						
+						if (content.length <= 1) {
+							throw new IOException("Line ["+line+"] must contain at least image file name and at least one float");
+						}
+						else {
+							File	f = new File(content[1].trim());
+							
+							if (!f.isAbsolute()) {
+								f = new File(item.getParentFile(), content[1].trim());
+							}
+							if (!f.exists() || f.isDirectory() || !f.canRead()) {
+								throw new IOException("File ["+f.getAbsolutePath()+"] not exists, is a directory or doesnt' have read access for you");
+							}
+							else {
+								final BufferedImage	img = ImageIO.read(f);
+								final XTenzor[]		temp = converter.apply(line.substring(line.indexOf(',')+1), img);
+								
+								inputs.add(temp[0]);
+								outputs.add(temp[1]);
+							}
+						}
+					}
+				}
+			}
+			return new DataSetManager(inputs.toArray(new Tenzor[inputs.size()]), outputs.toArray(new Tenzor[outputs.size()]));
+		}
+	}
+	
 	private static Tenzor[] toTenzor(final String source, final int inputs, final TenzorFactory factory) {
 		final String[]	content = source.split(",");
 		
