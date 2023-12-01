@@ -49,7 +49,6 @@ abstract class AbstractLayer implements Layer {
 	protected abstract XTenzor backwardInternal(NeuralNetwork nn, XTenzor errors) throws SyntaxException;
 	protected abstract void unprepareInternal(NeuralNetwork nn);
 	
-	
 	@Override
 	public LayerType getLayerType() {
 		return type;

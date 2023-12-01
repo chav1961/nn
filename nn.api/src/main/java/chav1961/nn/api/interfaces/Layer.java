@@ -1,11 +1,7 @@
 package chav1961.nn.api.interfaces;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.ServiceLoader;
-
-import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 public interface Layer {
 	int WIDTH = 0;
