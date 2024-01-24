@@ -6,9 +6,9 @@ import org.junit.Test;
 
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
-import chav1961.nn.api.interfaces.LayerFactory;
+import chav1961.nn.api.interfaces.factories.LayerFactory;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.nn.core.network.NeuralNetworkImpl;
 import chav1961.nn.standalone.util.StandaloneTenzorFactory;
 import chav1961.nn.utils.calc.TenzorUtils;

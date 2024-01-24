@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.ServiceLoader;
 
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 public interface Tenzor extends Serializable, AnyTenzor {
@@ -36,55 +37,21 @@ public interface Tenzor extends Serializable, AnyTenzor {
 		return duplicate().add(toAdd);
 	}
 	Tenzor add(float toAdd);
-	default Tenzor addN(float toAdd) {
-		return duplicate().add(toAdd);
-	}
 	Tenzor sub(Tenzor toSubtract);
-	default Tenzor subN(Tenzor toSubtract) {
-		return duplicate().sub(toSubtract);
-	}
 	Tenzor sub(float toSubtract);
-	default Tenzor subN(float toSubtract) {
-		return duplicate().sub(toSubtract);
-	}
 	Tenzor mul(Tenzor toMultiply);
-	default Tenzor mulN(Tenzor toMultiply) {
-		return duplicate().mul(toMultiply);
-	}
 	Tenzor mul(float toMultiply);
-	default Tenzor mulN(float toMultiply) {
-		return duplicate().mul(toMultiply);
-	}
 	Tenzor div(Tenzor toDivide);
-	default Tenzor divN(Tenzor toDivide) {
-		return duplicate().div(toDivide);
-	}
 	Tenzor div(float toDivide);
-	default Tenzor divN(float toDivide) {
-		return duplicate().div(toDivide);
-	}
 	Tenzor matrixMul(Tenzor toMultiply);
-	default Tenzor matrixMulN(Tenzor toMultiply) {
-		return duplicate().matrixMul(toMultiply);
-	}
-	
 	Tenzor trans();
 	
 	/*
 	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */
 	Tenzor calculate(CharSequence expression, Tenzor... parameters) throws SyntaxException; 
-	default Tenzor calculateN(CharSequence expression, Tenzor... parameters) throws SyntaxException {
-		return duplicate().calculate(expression, parameters);
-	}
-	
 	Tenzor convert(ConvertCallback callback);
-	default Tenzor convertN(ConvertCallback callback) {
-		return duplicate().convert(callback);
-	}
-	
 	void forEach(ProcessCallback callback);
-	
 	
 	public static Tenzor valueOf(final CharSequence content, final int[] indices) {
 		return null;

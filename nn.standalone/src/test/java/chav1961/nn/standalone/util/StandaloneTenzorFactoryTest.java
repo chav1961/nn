@@ -7,7 +7,7 @@ import java.net.URI;
 import java.util.Arrays;
 
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 public class StandaloneTenzorFactoryTest {

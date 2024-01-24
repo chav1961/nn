@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.api.interfaces.XTenzor;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.nn.utils.calc.TenzorCalculationUtils;
 import chav1961.nn.utils.calc.TenzorCalculationUtils.Command;
 import chav1961.nn.utils.calc.TenzorCalculationUtils.FunctionType;

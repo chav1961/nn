@@ -4,7 +4,7 @@ import java.net.URI;
 
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.Layer.LayerType;
-import chav1961.nn.api.interfaces.LayerFactory;
+import chav1961.nn.api.interfaces.factories.LayerFactory;
 import chav1961.nn.api.interfaces.XLayer;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;

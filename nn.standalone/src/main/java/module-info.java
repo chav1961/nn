@@ -1,5 +1,5 @@
-import chav1961.nn.api.interfaces.LayerFactory;
-import chav1961.nn.api.interfaces.TenzorFactory;
+import chav1961.nn.api.interfaces.factories.LayerFactory;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 
 module nn.standalone {
 	requires transitive chav1961.purelib;

@@ -5,16 +5,19 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.URI;
 
+import chav1961.nn.api.interfaces.AnyLayer;
+import chav1961.nn.api.interfaces.AnyLayer.ActivationType;
+import chav1961.nn.api.interfaces.AnyLayer.InternalTenzorType;
+import chav1961.nn.api.interfaces.AnyLayer.LayerType;
+import chav1961.nn.api.interfaces.AnyLayer.LossType;
+import chav1961.nn.api.interfaces.AnyLayer.OptimizerType;
+import chav1961.nn.api.interfaces.AnyTenzor;
 import chav1961.nn.api.interfaces.Layer;
-import chav1961.nn.api.interfaces.Layer.ActivationType;
-import chav1961.nn.api.interfaces.Layer.InternalTenzorType;
-import chav1961.nn.api.interfaces.Layer.LayerType;
-import chav1961.nn.api.interfaces.Layer.LossType;
-import chav1961.nn.api.interfaces.Layer.OptimizerType;
-import chav1961.nn.api.interfaces.LayerFactory;
+import chav1961.nn.api.interfaces.factories.LayerFactory;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
+import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.nn.core.network.NeuralNetworkImpl;
 
 public class PersistenceUtil {
@@ -93,7 +96,7 @@ public class PersistenceUtil {
 						}
 						
 						final int					tenzorCount = dis.readInt();
-						final Tenzor[]				tenzors = new Tenzor[tenzorCount];
+						final AnyTenzor[]			tenzors = new Tenzor[tenzorCount];
 						final InternalTenzorType[]	tenzorTypes = new InternalTenzorType[tenzorCount]; 
 								
 						for(int index = 0; index < tenzorCount; index++) {
@@ -105,14 +108,32 @@ public class PersistenceUtil {
 								dimensions[index] = dis.readInt();
 							}
 							
-							final int					contentLength = dis.readInt();
-							final float[]				content = new float[contentLength];
+							final int				contentType = dis.readByte(); 
+							final int				contentLength = dis.readInt();
 							
-							for(int item = 0; item < arity; item++) {
-								content[index] = dis.readFloat();
+							
+							switch (contentType) {
+								case 0 :
+									final float[]	floatContent = new float[contentLength];
+									
+									for(int item = 0; item < arity; item++) {
+										floatContent[index] = dis.readFloat();
+									}
+									tenzors[index] = tenzorFactory.newInstance(floatContent, dimensions);
+									tenzorTypes[index] = tenzorType;
+									break;
+								case 1 :
+									final double[]	doubleContent = new double[contentLength];
+									
+									for(int item = 0; item < arity; item++) {
+										doubleContent[index] = dis.readDouble();
+									}
+									tenzors[index] = tenzorFactory.newInstanceX(doubleContent, dimensions);
+									tenzorTypes[index] = tenzorType;
+									break;
+								default :
 							}
-							tenzors[index] = tenzorFactory.newInstance(content, dimensions);
-							tenzorTypes[index] = tenzorType;
+							
 						}
 						
 						final Layer		layer = layerFactory.newInstance(layerType, sizes);
@@ -141,13 +162,13 @@ public class PersistenceUtil {
 			throw new NullPointerException("Output stream can't be null");
 		}
 		else {
-			final Layer[]	layers = nn.getLayers();
+			final AnyLayer[]	layers = nn.getLayers();
 			
 			dos.writeInt(MAGIC);
 			dos.writeInt(VERSION);
 			dos.writeInt(layers.length);
 			
-			for (Layer layer : layers) {
+			for (AnyLayer layer : layers) {
 				dos.writeUTF(layer.getLayerType().name());
 				dos.writeUTF(layer.getOptimizerType().name());
 				dos.writeUTF(layer.getLossType().name());
@@ -178,8 +199,7 @@ public class PersistenceUtil {
 				if (count > 0) {
 					for (InternalTenzorType item : InternalTenzorType.values()) {
 						if (layer.isInternalTenzorSupported(item)) {
-							final Tenzor	value = layer.getInternalTenzor(item);
-							final float[]	content = value.getContent();
+							final AnyTenzor	value = layer.getInternalTenzor(item);
 							 
 							dos.writeUTF(item.name());
 							dos.writeInt(value.getArity());
@@ -188,11 +208,30 @@ public class PersistenceUtil {
 									dos.writeInt(value.getSize(index));
 								}
 							}
-							dos.writeInt(content.length);
-							if (content.length > 0) {
-								for(float floatVal : content) {
-									dos.writeFloat(floatVal);
+							if (value instanceof Tenzor) {
+								final float[]	content = ((Tenzor)value).getContent();
+								
+								dos.writeByte(0);
+								dos.writeInt(content.length);
+								if (content.length > 0) {
+									for(float floatVal : content) {
+										dos.writeFloat(floatVal);
+									}
 								}
+							}
+							else if (value instanceof XTenzor) {
+								final double[]	content = ((XTenzor)value).getContent();
+								
+								dos.writeByte(1);
+								dos.writeInt(content.length);
+								if (content.length > 0) {
+									for(double doubleVal : content) {
+										dos.writeDouble(doubleVal);
+									}
+								}
+							}
+							else {
+								
 							}
 						}
 					}

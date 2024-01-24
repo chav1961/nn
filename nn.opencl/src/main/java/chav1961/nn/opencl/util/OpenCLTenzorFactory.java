@@ -3,8 +3,8 @@ package chav1961.nn.opencl.util;
 import java.net.URI;
 
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.api.interfaces.XTenzor;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 public class OpenCLTenzorFactory implements TenzorFactory {

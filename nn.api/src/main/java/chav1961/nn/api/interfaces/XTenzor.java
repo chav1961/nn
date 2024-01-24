@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.ServiceLoader;
 
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 
 public interface XTenzor extends Serializable, AnyTenzor {
@@ -32,59 +33,22 @@ public interface XTenzor extends Serializable, AnyTenzor {
 	XTenzor duplicate();
 	
 	XTenzor add(XTenzor toAdd);
-	default XTenzor addN(XTenzor toAdd) {
-		return duplicate().add(toAdd);
-	}
 	XTenzor add(double toAdd);
-	default XTenzor addN(double toAdd) {
-		return duplicate().add(toAdd);
-	}
 	XTenzor sub(XTenzor toSubtract);
-	default XTenzor subN(XTenzor toSubtract) {
-		return duplicate().sub(toSubtract);
-	}
 	XTenzor sub(double toSubtract);
-	default XTenzor subN(double toSubtract) {
-		return duplicate().sub(toSubtract);
-	}
 	XTenzor mul(XTenzor toMultiply);
-	default XTenzor mulN(XTenzor toMultiply) {
-		return duplicate().mul(toMultiply);
-	}
 	XTenzor mul(double toMultiply);
-	default XTenzor mulN(double toMultiply) {
-		return duplicate().mul(toMultiply);
-	}
 	XTenzor div(XTenzor toDivide);
-	default XTenzor divN(XTenzor toDivide) {
-		return duplicate().div(toDivide);
-	}
 	XTenzor div(double toDivide);
-	default XTenzor divN(double toDivide) {
-		return duplicate().div(toDivide);
-	}
 	XTenzor matrixMul(XTenzor toMultiply);
-	default XTenzor matrixMulN(XTenzor toMultiply) {
-		return duplicate().matrixMul(toMultiply);
-	}
-	
 	XTenzor trans();
 	
 	/*
 	 * %0 + 2 * %1 *( sqrt(%2) - max(%3) + sum(%3)/sum2(%3))
 	 */
 	XTenzor calculate(CharSequence expression, XTenzor... parameters) throws SyntaxException; 
-	default XTenzor calculateN(CharSequence expression, XTenzor... parameters) throws SyntaxException {
-		return duplicate().calculate(expression, parameters);
-	}
-	
 	XTenzor convert(ConvertCallback callback);
-	default XTenzor convertN(ConvertCallback callback) {
-		return duplicate().convert(callback);
-	}
-	
 	void forEach(ProcessCallback callback);
-	
 	
 	public static XTenzor valueOf(final CharSequence content, final int[] indices) {
 		return null;

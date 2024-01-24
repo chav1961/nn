@@ -5,10 +5,10 @@ import org.junit.Test;
 
 import chav1961.nn.api.interfaces.Layer;
 import chav1961.nn.api.interfaces.Layer.LayerType;
-import chav1961.nn.api.interfaces.LayerFactory;
+import chav1961.nn.api.interfaces.factories.LayerFactory;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.core.network.NeuralNetworkImpl;
 import chav1961.nn.standalone.layer.StandaloneLayerFactory;
 import chav1961.nn.standalone.util.StandaloneTenzorFactory;

@@ -1,15 +1,17 @@
 package chav1961.nn.core.trainer;
 
+import chav1961.nn.api.interfaces.AnyNeuralNetwork;
 import chav1961.nn.api.interfaces.NeuralNetwork;
 import chav1961.nn.api.interfaces.Tenzor;
+import chav1961.nn.api.interfaces.XNeuralNetwork;
 import chav1961.nn.api.interfaces.XTenzor;
 import chav1961.nn.core.dataset.DataSetManager;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 
 public class Trainer {
-	private final NeuralNetwork	nn;
+	private final AnyNeuralNetwork	nn;
 	
-	public Trainer(final NeuralNetwork nn) {
+	public Trainer(final AnyNeuralNetwork nn) {
 		if (nn == null) {
 			throw new NullPointerException("Neural network can't be null");
 		}
@@ -45,10 +47,10 @@ public class Trainer {
 			for(int index = 0; index < maxEpoch && !stop[0]; index++) {
 				pi.processed(index);
 				if (mgr.isXSupported()) {
-					mgr.forEachX((in,out)->{stop[0] = learn(in, nn, out, maxError, learningSpeed);});
+					mgr.forEachX((in,out)->{stop[0] = learn(in, (XNeuralNetwork)nn, out, maxError, learningSpeed);});
 				}
 				else {
-					mgr.forEach((in,out)->{stop[0] = learn(in, nn, out, maxError, learningSpeed);});
+					mgr.forEach((in,out)->{stop[0] = learn(in, (NeuralNetwork)nn, out, maxError, learningSpeed);});
 				}
 			}
 			pi.end();
@@ -66,7 +68,12 @@ public class Trainer {
 		else {
 			final boolean[]	stop = new boolean[] {false};
 			
-			mgr.forEach((in,out)->{stop[0] = test(in, nn, out, maxError);});
+			if (nn instanceof XNeuralNetwork) {
+				mgr.forEachX((in,out)->{stop[0] = test(in, (XNeuralNetwork)nn, out, maxError);});
+			}
+			else {
+				mgr.forEach((in,out)->{stop[0] = test(in, (NeuralNetwork)nn, out, maxError);});
+			}
 			return stop[0];
 		}
 	}
@@ -93,7 +100,7 @@ public class Trainer {
 		}
 	}
 
-	private boolean learn(final XTenzor in, final NeuralNetwork nn, final XTenzor out, final float maxError, final float learningSpeed) {
+	private boolean learn(final XTenzor in, final XNeuralNetwork nn, final XTenzor out, final float maxError, final float learningSpeed) {
 		final XTenzor	t = nn.forward(in);
 		final double[]	content1 = t.getContent(), content2 = out.getContent();
 		boolean			continuationRequired = false;
@@ -128,4 +135,17 @@ public class Trainer {
 		return continuationRequired;
 	}
 
+	private boolean test(final XTenzor in, final XNeuralNetwork nn, final XTenzor out, final double maxError) {
+		final XTenzor	t = nn.forward(in);
+		final double[]	content1 = t.getContent(), content2 = out.getContent();
+		boolean			continuationRequired = false;
+		
+		for(int index = 0; index < content1.length; index++) {
+			if (Math.abs(content1[index] - content2[index]) > maxError) {
+				continuationRequired = true;
+			}
+		}
+		return continuationRequired;
+	}
+	
 }

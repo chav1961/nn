@@ -19,8 +19,8 @@ import java.util.function.Function;
 import javax.imageio.ImageIO;
 
 import chav1961.nn.api.interfaces.Tenzor;
-import chav1961.nn.api.interfaces.TenzorFactory;
 import chav1961.nn.api.interfaces.XTenzor;
+import chav1961.nn.api.interfaces.factories.TenzorFactory;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 

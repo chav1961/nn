@@ -3,4 +3,5 @@ module nn.api {
 	requires java.base;
 	
 	exports chav1961.nn.api.interfaces;
+	exports chav1961.nn.api.interfaces.factories;
 }
