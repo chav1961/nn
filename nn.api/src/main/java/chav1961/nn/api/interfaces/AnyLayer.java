@@ -1,6 +1,6 @@
 package chav1961.nn.api.interfaces;
 
-public interface AnyLayer {
+public interface AnyLayer<T extends AnyNeuralNetwork<?,?>, L extends AnyLayer<?,?>> {
 	int WIDTH = 0;
 	int HEIGHT = 1;
 	int DEPTH = 2;
@@ -46,8 +46,14 @@ public interface AnyLayer {
 	LossType getLossType();
 	OptimizerType getOptimizerType();
 
-	<T extends AnyTenzor> T getInternalTenzor(InternalTenzorType type);
-	<T extends AnyTenzor> Layer setInternalTenzor(InternalTenzorType type, T tenzor);
+	<TT extends AnyTenzor> TT getInternalTenzor(InternalTenzorType type);
+	<TT extends AnyTenzor> AnyLayer<T,L> setInternalTenzor(InternalTenzorType type, TT tenzor);
+	
+	boolean canConnectBefore(AnyNeuralNetwork<T,L> nn, AnyLayer<T,L> before);
+	Layer connectBefore(AnyNeuralNetwork<T,L> nn, AnyLayer<T,L> before);
+	boolean canConnectAfter(AnyNeuralNetwork<T,L> nn, AnyLayer<T,L> after);
+	Layer connectAfter(AnyNeuralNetwork<T,L> nn, AnyLayer<T,L> after);
+	
 	
 	boolean isInternalTenzorSupported(InternalTenzorType type);
 	boolean isForwardOnly();

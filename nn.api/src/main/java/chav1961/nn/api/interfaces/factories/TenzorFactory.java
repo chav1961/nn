@@ -11,8 +11,8 @@ public interface TenzorFactory extends SpiService<TenzorFactory> {
 	
 	URI getDefaultTenzorType();
 	Tenzor newInstance(int size, int... advanced);		
-	Tenzor newInstance(float[] content, int... advanced);
+	Tenzor newInstance(float[] content, int size, int... advanced);
 	boolean isXTenzorSupported();
 	XTenzor newInstanceX(int size, int... advanced);		
-	XTenzor newInstanceX(double[] content, int... advanced);
+	XTenzor newInstanceX(double[] content, int size, int... advanced);
 }

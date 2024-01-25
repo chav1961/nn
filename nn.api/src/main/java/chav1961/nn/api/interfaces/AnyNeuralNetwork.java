@@ -1,5 +1,6 @@
 package chav1961.nn.api.interfaces;
 
+import java.io.Closeable;
 import java.net.URI;
 import java.util.ServiceLoader;
 
@@ -7,14 +8,14 @@ import chav1961.nn.api.interfaces.factories.LayerFactory;
 import chav1961.nn.api.interfaces.factories.NeuralNetworkFactory;
 import chav1961.nn.api.interfaces.factories.TenzorFactory;
 
-public interface AnyNeuralNetwork {
+public interface AnyNeuralNetwork<T extends AnyNeuralNetwork<?,?>, L extends AnyLayer<?,?>> extends Closeable {
 	TenzorFactory getTenzorFactory();
 	LayerFactory getLayerFactory();
-	NeuralNetwork add(AnyLayer... layers);
-	AnyLayer[] getLayers();
+	T add(AnyLayer<T,L>... layers);
+	AnyLayer<T,L>[] getLayers();
 	
-	AnyNeuralNetwork prepare(boolean forwardOnly);
-	AnyNeuralNetwork unprepare();
+	T prepare(boolean forwardOnly);
+	T unprepare();
 	
 	public final static class Factory {
 		private Factory() {}

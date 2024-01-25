@@ -5,4 +5,6 @@ module nn.core {
 	requires java.desktop;
 	
 	exports chav1961.nn.core.network;
+	exports chav1961.nn.core.dataset;
+	exports chav1961.nn.core.util;
 }
