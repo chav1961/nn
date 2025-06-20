@@ -5,7 +5,15 @@
     <artifactId>nn</artifactId>
     <version>0.0.1</version>
   </parent>
-  <artifactId>nn.api</artifactId>
+  <artifactId>nn.ordinal</artifactId>
+
+	<dependencies>
+        <dependency>
+            <groupId>com.github.chav1961</groupId>
+            <artifactId>nn.api</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+	</dependencies>
 
 	<developers>
 		<developer>
@@ -59,7 +67,7 @@
 	</distributionManagement>
   
      <build>
-       <finalName>nn.api-${project.parent.version}</finalName>
+       <finalName>nn.ordinal-${project.parent.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -98,5 +106,4 @@
            </plugin>
        </plugins>
    </build>
-
 </project>

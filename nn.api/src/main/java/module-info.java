@@ -4,4 +4,6 @@ module nn.api {
 	
 	exports chav1961.nn.api;
 	exports chav1961.nn.api.interfaces;
+	
+	uses chav1961.nn.api.interfaces.PipeBuilderFactory;
 }

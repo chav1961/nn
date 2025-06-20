@@ -5,7 +5,16 @@
     <artifactId>nn</artifactId>
     <version>0.0.1</version>
   </parent>
-  <artifactId>nn.api</artifactId>
+  <artifactId>nn.vocab</artifactId>
+
+
+	<dependencies>
+        <dependency>
+            <groupId>com.github.chav1961</groupId>
+            <artifactId>nn.api</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+	</dependencies>
 
 	<developers>
 		<developer>
@@ -59,7 +68,7 @@
 	</distributionManagement>
   
      <build>
-       <finalName>nn.api-${project.parent.version}</finalName>
+       <finalName>nn.vocab-${project.parent.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -97,6 +106,4 @@
                </configuration>
            </plugin>
        </plugins>
-   </build>
-
-</project>
+   </build></project>
