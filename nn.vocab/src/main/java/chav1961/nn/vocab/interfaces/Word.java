@@ -9,4 +9,5 @@ public interface Word extends Iterable<String>{
 	WordForm wordForm();
 	LangPart part();
 	boolean hasAttribute(String attr);
+	int numberOfAttributes();
 }

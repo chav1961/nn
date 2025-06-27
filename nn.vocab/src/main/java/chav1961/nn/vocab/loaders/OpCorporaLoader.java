@@ -1,15 +1,17 @@
 package chav1961.nn.vocab.loaders;
 
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -20,13 +22,11 @@ import javax.xml.stream.events.XMLEvent;
 import chav1961.nn.vocab.interfaces.LangPart;
 import chav1961.nn.vocab.interfaces.Word;
 import chav1961.nn.vocab.interfaces.WordForm;
-import chav1961.nn.vocab.interfaces.WordLink;
 import chav1961.nn.vocab.interfaces.WordLinkType;
 import chav1961.nn.vocab.interfaces.WordRestrictionType;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.DottedVersion;
 import chav1961.purelib.basic.LongIdMap;
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
@@ -61,6 +61,9 @@ public class OpCorporaLoader {
 	private static final QName		TAG_LINK = QName.valueOf("link");
 	private static final QName		ATTR_FROM = QName.valueOf("from");
 	private static final QName		ATTR_TO = QName.valueOf("to");
+
+	private static final int	CORPORA_MAGIC = 0x16061903;
+	
 	
 	private final SyntaxTreeInterface<Word[]>	vocab = new AndOrTree<>(1,1);
 	private final LongIdMap<Word>	wordIndex = new LongIdMap<Word>(Word.class);
@@ -87,8 +90,49 @@ public class OpCorporaLoader {
 		}
 	}
 
+	public OpCorporaLoader(final DataInput in) throws IOException, SyntaxException {
+		int	temp;
+		
+		if (in == null) {
+			throw new NullPointerException("Data input can't be null");
+		}
+		else if ((temp = in.readInt()) != CORPORA_MAGIC) {
+			throw new IllegalArgumentException("Illegal magic ["+temp+"] in the input stream, ["+CORPORA_MAGIC+"] awaited"); 
+		}
+		else {
+			this.version = new DottedVersion(in.readUTF());
+			this.revision = in.readInt();
+			this.gramms = LoaderUtils.downloadGrammemes(in);
+			this.restr = LoaderUtils.downloadRestrictions(in, gramms);
+			LoaderUtils.downloadVocab(in, vocab, (s)->LoaderUtils.fromString(s, gramms));
+		}
+	}
+	
 	public SyntaxTreeInterface<Word[]> getVocab() {
 		return vocab;
+	}
+	
+	public Grammeme[] getGrammemes() {
+		return gramms;
+	}
+	
+	public Restriction[] getRestrictions() {
+		return restr;
+	}
+	
+	public void store(final DataOutput out) throws IOException {
+		if (out == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else {
+			out.writeInt(CORPORA_MAGIC);
+			out.writeUTF(version.toString());
+			out.writeInt(revision);
+			LoaderUtils.uploadGrammemes(getGrammemes(), out);
+			LoaderUtils.uploadRestrictions(getRestrictions(), out);
+			LoaderUtils.uploadVocab(getVocab(), out);
+			out.writeInt(CORPORA_MAGIC);
+		}
 	}
 	
 	private static class TempGrammeme {
@@ -102,32 +146,6 @@ public class OpCorporaLoader {
 			this.name = name;
 			this.alias = alias;
 			this.description = description;
-		}
-	}
-	
-	private static class Grammeme {
-		private final Grammeme		parent;
-		private final String		name;
-		private final String		alias;
-		private final String		description;
-		private final Grammeme[]	children;
-		
-		private Grammeme(final Grammeme parent, final String name, final String alias, final String description, final Grammeme... children) {
-			this.parent = parent;
-			this.name = name;
-			this.alias = alias;
-			this.description = description;
-			this.children = children;
-		}
-
-		@Override
-		public String toString() {
-			if (parent != null) {
-				return "Grammeme [parent=" + parent.name + ", name=" + name + ", alias=" + alias + ", description=" + description + "]";
-			}
-			else {
-				return "Grammeme [name=" + name + ", alias=" + alias + ", description=" + description + ", children=" + Arrays.toString(children) + "]";
-			}
 		}
 	}
 	
@@ -152,355 +170,6 @@ public class OpCorporaLoader {
 			this.auto = auto;
 			this.left = left;
 			this.right = right;
-		}
-	}
-	
-	private static class Restriction {
-		private final WordRestrictionType	type;
-		private final boolean	auto;
-		private final WordForm	leftForm;
-		private final Grammeme	leftGram;
-		private final WordForm	rightForm;
-		private final Grammeme	rightGram;
-		
-		private Restriction(WordRestrictionType type, boolean auto, WordForm leftForm, Grammeme leftGram, WordForm rightForm, Grammeme rightGram) {
-			this.type = type;
-			this.auto = auto;
-			this.leftForm = leftForm;
-			this.leftGram = leftGram;
-			this.rightForm = rightForm;
-			this.rightGram = rightGram;
-		}
-	}
-	
-	private static class WordImpl implements Word {
-		private final int			id;
-		private final WordForm		form;
-		private final LangPart		part;
-		private final String		word;
-		private final Word			lemma;
-		private final Grammeme[]	attrs;
-		private volatile WordLink	link = null;
-
-		private WordImpl(final int id, final LangPart part, final String word, final Grammeme... attrs) {
-			this.id = id;
-			this.form = WordForm.LEMMA;
-			this.part = part;
-			this.word = word;
-			this.lemma = null;
-			this.attrs = attrs;
-		}
-		
-		private WordImpl(final int id, final Word lemma, final LangPart part, final String word, final Grammeme... attrs) {
-			this.id = id;
-			this.form = WordForm.FORM;
-			this.part = part;
-			this.word = word;
-			this.lemma = lemma;
-			this.attrs = attrs;
-		}
-
-		@Override
-		public Iterator<String> iterator() {
-			final List<String>	result = new ArrayList<>();
-			
-			for (Grammeme item : attrs) {
-				for (Grammeme child : item.children) {
-					result.add(item.name+"."+child.name);
-				}
-			}
-			return result.iterator();
-		}
-
-		@Override
-		public int id() {
-			return id;
-		}
-		
-		@Override
-		public String getWord() {
-			return word;
-		}
-
-		@Override
-		public int getWord(final char[] where, final int from) {
-			if (where == null || where.length == 0) {
-				throw new IllegalArgumentException("Array to store word must be neither null nor empty");
-			}
-			else if (from < 0 || from >= where.length) {
-				throw new IllegalArgumentException("From value ["+from+"] out of range 0.."+(where.length-1));
-			}
-			else {
-				final int	len = Math.min(word.length(), where.length-from);
-				
-				word.getChars(0, len, where, from);
-				return len;
-			}
-		}
-
-		@Override
-		public Word getLemma() {
-			if (form == WordForm.LEMMA) {
-				throw new IllegalStateException("Lemma can't have parent lemma");
-			}
-			else {
-				return lemma;
-			}
-		}
-
-		@Override
-		public WordLink getLinks() {
-			return link;
-		}
-		
-		@Override
-		public WordForm wordForm() {
-			return form;
-		}
-
-		@Override
-		public LangPart part() {
-			return part;
-		}
-
-		@Override
-		public boolean hasAttribute(final String attr) {
-			if (Utils.checkEmptyOrNullString(attr)) {
-				throw new NullPointerException("Attribuate name must be neither null nor empty");
-			}
-			else {
-				for (Grammeme item : attrs) {
-					if (item.name.equals(attr)) {
-						return true;
-					}
-					else {
-						for (Grammeme child : item.children) {
-							if (child.name.equals(attr)) {
-								return true;
-							}
-						}
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public String toString() {
-			return "WordImpl [id=" + id + ", form=" + form + ", part=" + part + ", word=" + word + ", attrs="
-					+ Arrays.toString(attrs) + "]";
-		}
-
-		private void setLinks(final WordLink link) {
-			this.link = link;
-		}
-	}
-
-	private static class LinkDescriptor {
-		final WordLinkType	type;
-		final boolean		left;
-		final Word			word;
-		
-		private LinkDescriptor(final WordLinkType type, final boolean left, final Word word) {
-			this.type = type;
-			this.left = left;
-			this.word = word;
-		}
-	}
-	
-	private static class LinkImpl implements WordLink {
-		private final Word				current;
-		private final LinkDescriptor[]	links;
-		
-		private LinkImpl(Word current, LinkDescriptor... links) {
-			this.current = current;
-			this.links = links;
-		}
-
-		@Override
-		public boolean hasLinkFrom(final Word another) {
-			if (another == null) {
-				throw new NullPointerException("Word to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (!item.left && item.word == another) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public boolean hasLinkTo(final Word another) {
-			if (another == null) {
-				throw new NullPointerException("Word to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (item.left && item.word == another) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public boolean hasLinkFrom(final WordLinkType type) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (!item.left && item.type == type) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public boolean hasLinkTo(final WordLinkType type) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (item.left && item.type == type) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public boolean hasLinkFrom(final WordLinkType type, final Word another) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else if (another == null) {
-				throw new NullPointerException("Word to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (!item.left && item.word == another && item.type == type) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public boolean hasLinkTo(final WordLinkType type, final Word another) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else if (another == null) {
-				throw new NullPointerException("Word to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (item.left && item.word == another && item.type == type) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-
-		@Override
-		public Word getLinkFrom(final WordLinkType type) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (!item.left && item.type == type) {
-						return item.word;
-					}
-				}
-				throw new IllegalArgumentException("Word link type ["+type+"] not found anywhere");
-			}
-		}
-
-		@Override
-		public Word getLinkTo(final WordLinkType type) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else {
-				for (LinkDescriptor item : links) {
-					if (item.left && item.type == type) {
-						return item.word;
-					}
-				}
-				throw new IllegalArgumentException("Word link type ["+type+"] not found anywhere");
-			}
-		}
-
-		@Override
-		public Word[] getLinksFrom(final WordLinkType type) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else {
-				int	count = 0;
-				
-				for (LinkDescriptor item : links) {
-					if (!item.left && item.type == type) {
-						count++;
-					}
-				}
-				if (count == 0) {
-					throw new IllegalArgumentException("Word link type ["+type+"] not found anywhere");
-				}
-				else {
-					final Word[]	result = new Word[count];
-					
-					count = 0;
-					for (LinkDescriptor item : links) {
-						if (!item.left && item.type == type) {
-							result[count++] = item.word;
-						}
-					}
-					return result;
-				}
-			}
-		}
-
-		@Override
-		public Word[] getLinksTo(final WordLinkType type) {
-			if (type == null) {
-				throw new NullPointerException("Link type to test can't be null");
-			}
-			else {
-				int	count = 0;
-				
-				for (LinkDescriptor item : links) {
-					if (item.left && item.type == type) {
-						count++;
-					}
-				}
-				if (count == 0) {
-					throw new IllegalArgumentException("Word link type ["+type+"] not found anywhere");
-				}
-				else {
-					final Word[]	result = new Word[count];
-					
-					count = 0;
-					for (LinkDescriptor item : links) {
-						if (item.left && item.type == type) {
-							result[count++] = item.word;
-						}
-					}
-					return result;
-				}
-			}
 		}
 	}
 	
