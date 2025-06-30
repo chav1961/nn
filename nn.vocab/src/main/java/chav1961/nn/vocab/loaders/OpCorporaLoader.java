@@ -5,13 +5,15 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -49,7 +51,7 @@ public class OpCorporaLoader {
 	private static final QName		TAG_LEMMATA = QName.valueOf("lemmata");
 	private static final QName		TAG_LEMMA = QName.valueOf("lemma");
 	private static final QName		ATTR_ID = QName.valueOf("id");
-	private static final QName		ATTR_REV = QName.valueOf("rev");
+//	private static final QName		ATTR_REV = QName.valueOf("rev");
 	private static final QName		TAG_L = QName.valueOf("l");
 	private static final QName		TAG_G = QName.valueOf("g");
 	private static final QName		TAG_F = QName.valueOf("f");
@@ -178,22 +180,24 @@ public class OpCorporaLoader {
 		
 		this.version = new DottedVersion(event.asStartElement().getAttributeByName(ATTR_VERSION).getValue());
 		this.revision = Integer.valueOf(event.asStartElement().getAttributeByName(ATTR_REVISION).getValue());
-		
-		event = skipTo(rdr, TAG_GRAMMEMES);
 		final List<TempGrammeme>	grammemes = new ArrayList<>();
-		
+
+		event = skipTo(rdr, TAG_GRAMMEMES);
 		event = skipTo(rdr, TAG_GRAMMEME);
 		while (event.isStartElement() && event.asStartElement().getName().equals(TAG_GRAMMEME)) {
 			loadGrammeme(rdr, grammemes);
 			event = next(rdr);
 		}
 		if (event.isEndElement() && event.asEndElement().getName().equals(TAG_GRAMMEMES)) {
-			this.gramms = buildGrammemes(grammemes);
+			this.gramms = buildGrammemes(grammemes, "", null);
+//			printGrammemes(System.err, "", 0, gramms);
 		}
+		else {
+			throw new EOFException("Grammemes part not terminated correctry");
+		}
+		final List<TempRestriction>	restrictions = new ArrayList<>();
 
 		event = skipTo(rdr, TAG_RESTRICTIONS);
-		final List<TempRestriction>	restrictions = new ArrayList<>();
-		
 		event = skipTo(rdr, TAG_RESTRICTION);
 		while (event.isStartElement() && event.asStartElement().getName().equals(TAG_RESTRICTION)) {
 			loadRestriction(rdr, restrictions);
@@ -201,15 +205,14 @@ public class OpCorporaLoader {
 		}
 		if (event.isEndElement() && event.asEndElement().getName().equals(TAG_RESTRICTIONS)) {
 			this.restr = buildRestriction(restrictions, this.gramms);
+//			printRestrictions(System.err, restr);
+		}
+		else {
+			throw new EOFException("Restrictions part not terminated correctry");
 		}
 		final Map<String, Grammeme>	map = new HashMap<>();
 
-		for(Grammeme item : gramms) {
-			map.put(item.name, item);
-			for(Grammeme child : item.children) {
-				map.put(child.name, child);
-			}
-		}
+		walkGrammemes(gramms, (n)->map.put(n.getName(), n));
 		final Grammeme[]	temp = new Grammeme[map.size()];
 		
 		event = skipTo(rdr, TAG_LEMMATA);
@@ -217,6 +220,9 @@ public class OpCorporaLoader {
 		while (event.isStartElement() && event.asStartElement().getName().equals(TAG_LEMMA)) {
 			loadLemma(rdr, map, temp, vocab, wordIndex);
 			event = next(rdr);
+		}
+		if (!(event.isEndElement() && event.asEndElement().getName().equals(TAG_LEMMATA))) {
+			throw new EOFException("Lemmata part not terminated correctry");
 		}
 		event = skipTo(rdr, TAG_LINK_TYPES);
 		event = skipTo(rdr, TAG_TYPE);
@@ -243,6 +249,12 @@ public class OpCorporaLoader {
 		}
 	}
 
+	private void walkGrammemes(final Grammeme[] gramms, final Consumer<Grammeme> callback) {
+		for (Grammeme item : gramms) {
+			item.walk(callback);
+		}
+	}
+
 	private XMLEvent loadGrammeme(final XMLEventReader rdr, final List<TempGrammeme> grammemes) throws EOFException, XMLStreamException {
 		grammemes.add(new TempGrammeme(
 			event.asStartElement().getAttributeByName(ATTR_PARENT).getValue(), 
@@ -260,7 +272,7 @@ public class OpCorporaLoader {
 			extractRestrictionItem(rdr, TAG_LEFT),
 			extractRestrictionItem(rdr, TAG_RIGHT))
 		);
-		return event;
+		return event = next(rdr);
 	}
 
 	private TempRestrictionItem extractRestrictionItem(final XMLEventReader rdr, final QName tagName) throws EOFException, XMLStreamException {
@@ -280,39 +292,38 @@ public class OpCorporaLoader {
 		return new TempRestrictionItem(type, value);
 	}
 
-	private Grammeme[] buildGrammemes(final List<TempGrammeme> grammemes) {
-		final Map<String, Grammeme[]>	top = new HashMap<>();
-		int		topCount = 0;
+	private int calculateGrammemes(final List<TempGrammeme> grammemes, final String parent) {
+		int	count = 0;
 		
-		for(TempGrammeme current : grammemes) {
-			if (current.parent.isEmpty()) {
-				int	count = 0;
-				
-				for(TempGrammeme child : grammemes) {
-					if (child.parent.equals(current.name)) {
-						count++;
-					}
-				}
-				top.put(current.name, new Grammeme[count]);
-				topCount++;
+		for (TempGrammeme item : grammemes) {
+			if (item.parent.equals(parent)) {
+				count++;
 			}
 		}
-		final Grammeme[]	result = new Grammeme[topCount];
+		return count;
+	}	
+	
+	private Grammeme[] buildGrammemes(final List<TempGrammeme> grammemes, final String parent, final Supplier<Grammeme> parentRef) {
+		final Grammeme[]	result = new Grammeme[calculateGrammemes(grammemes, parent)];
+		int	count = 0;
 		
-		topCount = 0;
 		for(TempGrammeme current : grammemes) {
-			if (current.parent.isEmpty()) {
-				final Grammeme	parent = result[topCount++] = new Grammeme(null, current.name, current.alias, current.description, top.get(current.name));
-				int	count = 0;
+			if (current.parent.equals(parent)) {
+				final int	temp = count;
 				
-				for(TempGrammeme child : grammemes) {
-					if (child.parent.equals(current.name)) {
-						parent.children[count++] = new Grammeme(parent, child.name, child.alias, child.description);
-					}
-				}
+				result[temp] = new Grammeme(parentRef, 
+										current.name, 
+										current.alias, 
+										current.description, 
+										buildGrammemes(grammemes, current.name, ()->call(result,temp)));
+				count++;
 			}
 		}
 		return result;
+	}
+
+	private Grammeme call(final Grammeme[] result, final int temp) {
+		return result[temp];
 	}
 
 	private Restriction[] buildRestriction(final List<TempRestriction> restrictions, final Grammeme[] grams) {
@@ -324,32 +335,32 @@ public class OpCorporaLoader {
 					WordRestrictionType.from(item.type), 
 					"1".equals(item.auto), 
 					WordForm.from(item.left.type), 
-					seekGrammeme(grams, item.left.value), 
+					item.left.value.isEmpty() ? null : seekGrammeme(grams, item.left.value), 
 					WordForm.from(item.right.type),
-					seekGrammeme(grams, item.right.value));
+					item.right.value.isEmpty() ? null : seekGrammeme(grams, item.right.value));
 		}
 		return result;
 	}
 	
 	private Grammeme seekGrammeme(final Grammeme[] grams, final String value) {
-		for (Grammeme item : grams) {
-			if (item.name.equals(value)) {
-				return item;
+		final Grammeme[] result = new Grammeme[1];
+		
+		walkGrammemes(grams, (n)->{
+			if (n.getName().equals(value)) {
+				result[0] = n;
 			}
-			else {
-				for(Grammeme child : item.children) {
-					if (child.name.equals(value)) {
-						return child;
-					}
-				}
-			}
+		});
+		if (result[0] == null) {
+			throw new IllegalArgumentException("Reference to grammeme ["+value+"] not found anywhere");
 		}
-		throw new IllegalArgumentException("Reference to grammeme ["+value+"] not found anywhere");
+		else {
+			return result[0];
+		}
 	}
 
 	private void loadLemma(final XMLEventReader rdr, final Map<String, Grammeme> grammemes, final Grammeme[] temp, final SyntaxTreeInterface<Word[]> vocab, final LongIdMap<Word> index) throws EOFException, XMLStreamException {
 		final int		id = Integer.valueOf(event.asStartElement().getAttributeByName(ATTR_ID).getValue());
-		final int		rev = Integer.valueOf(event.asStartElement().getAttributeByName(ATTR_REV).getValue());
+//		final int		rev = Integer.valueOf(event.asStartElement().getAttributeByName(ATTR_REV).getValue());
 		
 		event = skipTo(rdr, TAG_L);
 		final String	lemma = event.asStartElement().getAttributeByName(ATTR_T).getValue();
@@ -361,14 +372,22 @@ public class OpCorporaLoader {
 		event = next(rdr);
 		int	count = 0;
 		while (event.isStartElement() && event.asStartElement().getName().equals(TAG_G)) {
-			temp[count++] = grammemes.get(event.asStartElement().getAttributeByName(ATTR_V).getValue());
-			event = next(rdr);
-			event = next(rdr);
+			final String	val = event.asStartElement().getAttributeByName(ATTR_V).getValue();
+			
+			if (grammemes.containsKey(val)) {
+				temp[count++] = grammemes.get(val);
+				event = next(rdr);
+				event = next(rdr);
+			}
+			else {
+				throw new XMLStreamException("Illegal grammeme ["+val+"] found");
+			}
 		}
 		event = next(rdr);
 		final Word	parent = new WordImpl(id, part, lemma, Arrays.copyOf(temp, count));
 
 		appendWord(vocab, index, parent);
+		index.put(parent.id(), parent);
 		while (event.isStartElement() && event.asStartElement().getName().equals(TAG_F)) {
 			final String	form = event.asStartElement().getAttributeByName(ATTR_T).getValue();
 			
@@ -387,21 +406,22 @@ public class OpCorporaLoader {
 	}
 	
 	private void appendWord(final SyntaxTreeInterface<Word[]> vocab, final LongIdMap<Word> index, final Word word) {
-		final long	id = vocab.seekName(word.getWord());
+		final String	w = word.getWord();
+		final long		id = vocab.seekName(w);
 		
 		if (id < 0) {
-			vocab.placeName(word.getWord(), new Word[] {word});
+			vocab.placeName(w, new Word[] {word});
 		}
 		else {
 			final Word[]	oldContent = vocab.getCargo(id);
-			final Word[]	newContent = Arrays.copyOf(oldContent, oldContent.length+1);
+			final Word[]	newContent = Arrays.copyOf(oldContent, oldContent.length + 1);
 			
 			newContent[newContent.length - 1] = word;
 			vocab.setCargo(id, newContent);
 		}
-		if (word.wordForm() == WordForm.LEMMA) {
-			index.put(word.id(), word);
-		}
+//		if (word.wordForm() == WordForm.LEMMA) {
+//			index.put(word.id(), word);
+//		}
 	}
 
 	private void loadLink(final XMLEventReader rdr, final List<int[]> links) throws EOFException, XMLStreamException {
@@ -490,5 +510,22 @@ public class OpCorporaLoader {
 			}
 		}
 		throw new EOFException();
+	}
+	
+	private static int printGrammemes(final PrintStream ps, final String prefix, int count, final Grammeme... grams) {
+		for(Grammeme item : grams) {
+			ps.println(String.format("%1$3d:%2$s %3$s (%4$s)", count, prefix, item.getName(), item.getDescription()));
+			count = printGrammemes(ps, prefix+"    ", ++count, item.getChildren());
+		}
+		return count;
+	}
+
+	private static void printRestrictions(final PrintStream ps, final Restriction... restr) {
+		int	count = 0;
+		
+		for(Restriction item : restr) {
+			ps.println(String.format("%1$3d: %2$s (%3$s/%4$s -> %5$s/%6$s)", count, item.type, item.leftForm, item.leftGram, item.rightForm, item.rightGram));
+			count++;
+		}
 	}
 }

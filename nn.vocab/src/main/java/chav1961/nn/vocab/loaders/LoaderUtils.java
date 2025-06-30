@@ -31,11 +31,11 @@ public class LoaderUtils {
 		if (gram == null) {
 			throw new NullPointerException("Grammeme to convert can't be null");
 		}
-		else if (gram.parent != null) {
-			return gram.parent.name+'.'+gram.name;
+		else if (gram.getParent() != null) {
+			return toString(gram.getParent())+'.'+gram.getName();
 		}
 		else {
-			return gram.name;
+			return gram.getName();
 		}
 	}
 	
@@ -50,18 +50,10 @@ public class LoaderUtils {
 			final String[]	parts = source.split("\\.");
 			
 			for (Grammeme item : grams) {
-				if (item.name.equals(parts[0])) {
-					if (parts.length > 1) {
-						for (Grammeme child : item.children) {
-							if (child.name.equals(parts[1])) {
-								return child;
-							}
-						}
-						throw new IllegalArgumentException("Grammeme ["+source+"] not found in the grammemes list");
-					}
-					else {
-						return item;
-					}
+				Grammeme	g;
+				
+				if ((g = item.seek((n)->n.getName().equals(parts[parts.length-1]) ? n : null)) != null) {
+					return g;
 				}
 			}
 			throw new IllegalArgumentException("Grammeme ["+source+"] not found in the grammemes list");
@@ -80,17 +72,19 @@ public class LoaderUtils {
 			out.writeInt(GRAMMEME_VERSION);
 			out.writeInt(grams.length);
 			for (Grammeme item : grams) {
-				out.writeUTF(item.name);
-				out.writeUTF(item.alias);
-				out.writeUTF(item.description);
-				out.writeInt(item.children.length);
-				for (Grammeme child : item.children) {
-					out.writeUTF(child.name);
-					out.writeUTF(child.alias);
-					out.writeUTF(child.description);
-				}
+				uploadGrammeme(item, out);
 			}
 			out.writeInt(GRAMMEME_MAGIC);
+		}
+	}
+	
+	private static void uploadGrammeme(final Grammeme item, final DataOutput out) throws IOException {
+		out.writeUTF(item.getName());
+		out.writeUTF(item.getAlias());
+		out.writeUTF(item.getDescription());
+		out.writeInt(item.getChildren().length);
+		for (Grammeme child : item.getChildren()) {
+			uploadGrammeme(child, out);
 		}
 	}
 
@@ -109,9 +103,9 @@ public class LoaderUtils {
 				out.writeByte(item.type.ordinal());
 				out.writeBoolean(item.auto);
 				out.writeByte(item.leftForm.ordinal());
-				out.writeUTF(toString(item.leftGram));
+				out.writeUTF(item.leftGram == null ? "" : toString(item.leftGram));
 				out.writeByte(item.rightForm.ordinal());
-				out.writeUTF(toString(item.rightGram));
+				out.writeUTF(item.rightGram == null ? "" : toString(item.rightGram));
 			}
 			out.writeInt(RESTRICTION_MAGIC);
 		}
@@ -145,23 +139,25 @@ public class LoaderUtils {
 						}
 						final WordLink	link = cargo.getLinks();
 						
-						for (WordLinkType item : WordLinkType.values()) {
-							if (link.hasLinkFrom(item)) {
-								final Word[]	words = link.getLinksFrom(item);
-	
-								out.writeByte(2 * item.ordinal());
-								out.writeShort(words.length);
-								for(Word w : words) {
-									out.writeInt(w.id());
+						if (link != null) {
+							for (WordLinkType item : WordLinkType.values()) {
+								if (link.hasLinkFrom(item)) {
+									final Word[]	words = link.getLinksFrom(item);
+		
+									out.writeByte(2 * item.ordinal());
+									out.writeShort(words.length);
+									for(Word w : words) {
+										out.writeInt(w.id());
+									}
 								}
-							}
-							if (link.hasLinkTo(item)) {
-								final Word[]	words = link.getLinksTo(item);
-	
-								out.writeByte(2 * item.ordinal() + 1);
-								out.writeShort(words.length);
-								for(Word w : words) {
-									out.writeInt(w.id());
+								if (link.hasLinkTo(item)) {
+									final Word[]	words = link.getLinksTo(item);
+		
+									out.writeByte(2 * item.ordinal() + 1);
+									out.writeShort(words.length);
+									for(Word w : words) {
+										out.writeInt(w.id());
+									}
 								}
 							}
 						}
@@ -202,14 +198,15 @@ public class LoaderUtils {
 				final String		alias = in.readUTF();
 				final String		desc = in.readUTF();
 				final Grammeme[]	children = new Grammeme[in.readByte()];
+				final Grammeme		gr = new Grammeme(()->null, name, alias, desc, children); 
 				
-				result[index] = new Grammeme(null, name, alias, desc, children);
+				result[index] = gr;
 				for(int childIndex = 0; childIndex < children.length; childIndex++) {
 					final String	childName = in.readUTF();
 					final String	childAlias = in.readUTF();
 					final String	childDesc = in.readUTF();
 					
-					children[index] = new Grammeme(result[index], childName, childAlias, childDesc);
+					children[index] = new Grammeme(()->gr, childName, childAlias, childDesc);
 				}
 			}
 			if ((temp = in.readInt()) != GRAMMEME_MAGIC) {

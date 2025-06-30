@@ -46,10 +46,7 @@ class WordImpl implements Word {
 		final List<String>	result = new ArrayList<>();
 		
 		for (Grammeme item : attrs) {
-			result.add(LoaderUtils.toString(item));
-			for (Grammeme child : item.children) {
-				result.add(LoaderUtils.toString(child));
-			}
+			item.walk((n)->result.add(LoaderUtils.toString(n)));
 		}
 		return result.iterator();
 	}
@@ -112,15 +109,8 @@ class WordImpl implements Word {
 		}
 		else {
 			for (Grammeme item : attrs) {
-				if (item.name.equals(attr)) {
+				if (item.seek((n)->n.getName().equals(attr)) == Boolean.TRUE) {
 					return true;
-				}
-				else {
-					for (Grammeme child : item.children) {
-						if (child.name.equals(attr)) {
-							return true;
-						}
-					}
 				}
 			}
 			return false;
@@ -146,9 +136,7 @@ class WordImpl implements Word {
 		int	count = 0;
 		
 		for (Grammeme item : attrs) {
-			for (Grammeme child : item.children) {
-				count++;
-			}
+			count = calcNumberOfAttrs(item.getChildren()) + 1;
 		}
 		return count;
 	}
