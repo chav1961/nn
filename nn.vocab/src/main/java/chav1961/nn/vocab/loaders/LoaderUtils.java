@@ -227,7 +227,7 @@ public class LoaderUtils {
 	}
 
 	private static Grammeme downloadGrammeme(final Grammeme parent,final DataInput in) throws IOException {
-		final short			gIndex = in.readShort();
+		final int			gIndex = in.readShort();
 		final String		name = in.readUTF();
 		final String		alias = in.readUTF();
 		final String		desc = in.readUTF();
@@ -328,8 +328,8 @@ public class LoaderUtils {
 						grams[count] = grammemes[in.readShort()];
 					}
 					final Word	w = form == WordForm.FORM 
-										? new WordImpl(id, part, word, grams)
-										: new WordImpl(id, wordIndex.get(lemmaId), part, word, grams);
+										? new WordImpl(id, wordIndex.get(lemmaId), part, word, grams)
+										: new WordImpl(id, part, word, grams);
 
 					wordIndex.put(id, w);
 					words[currentWordIndex] = w;					

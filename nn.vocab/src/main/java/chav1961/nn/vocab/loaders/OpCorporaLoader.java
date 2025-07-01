@@ -505,7 +505,7 @@ public class OpCorporaLoader {
 		while (reader.hasNext()) {
 			final XMLEvent	event = reader.nextEvent();
 
-			if (event.isCharacters() && event.asCharacters().getData().trim().isEmpty()) {
+			if (event.isCharacters() && event.asCharacters().isWhiteSpace()) {
 				continue;
 			}
 			else {
