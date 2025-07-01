@@ -2,13 +2,15 @@ package chav1961.nn.vocab.loaders;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
+import chav1961.nn.vocab.interfaces.Grammeme;
 import chav1961.nn.vocab.interfaces.LangPart;
 import chav1961.nn.vocab.interfaces.Word;
 import chav1961.nn.vocab.interfaces.WordForm;
@@ -59,6 +61,22 @@ public class LoaderUtils {
 			throw new IllegalArgumentException("Grammeme ["+source+"] not found in the grammemes list");
 		}
 	}
+
+	public static Grammeme fromIndex(final int source, final Grammeme... grams) {
+		if (grams == null || grams.length == 0 || Utils.checkArrayContent4Nulls(grams) >= 0) {
+			throw new IllegalArgumentException("Grammemes list is null, empty or contains nulls inside"); 
+		}
+		else {
+			for (Grammeme item : grams) {
+				Grammeme	g;
+				
+				if ((g = item.seek((n)->n.getIndex() == source ? n : null)) != null) {
+					return g;
+				}
+			}
+			throw new IllegalArgumentException("Grammeme ["+source+"] not found in the grammemes list");
+		}
+	}
 	
 	public static void uploadGrammemes(final Grammeme[] grams, final DataOutput out) throws IOException {
 		if (grams == null) {
@@ -70,22 +88,25 @@ public class LoaderUtils {
 		else {
 			out.writeInt(GRAMMEME_MAGIC);
 			out.writeInt(GRAMMEME_VERSION);
-			out.writeInt(grams.length);
+			out.writeByte(grams.length);
+			int	count = 0;
 			for (Grammeme item : grams) {
-				uploadGrammeme(item, out);
+				count = uploadGrammeme(count, item, out);
 			}
 			out.writeInt(GRAMMEME_MAGIC);
 		}
 	}
 	
-	private static void uploadGrammeme(final Grammeme item, final DataOutput out) throws IOException {
+	private static int uploadGrammeme(int count, final Grammeme item, final DataOutput out) throws IOException {
+		out.writeShort(count++);
 		out.writeUTF(item.getName());
 		out.writeUTF(item.getAlias());
 		out.writeUTF(item.getDescription());
-		out.writeInt(item.getChildren().length);
+		out.writeByte(item.getChildren().length);
 		for (Grammeme child : item.getChildren()) {
-			uploadGrammeme(child, out);
+			count = uploadGrammeme(count, child, out);
 		}
+		return count;
 	}
 
 	public static void uploadRestrictions(final Restriction[] restr, final DataOutput out) throws IOException {
@@ -98,7 +119,7 @@ public class LoaderUtils {
 		else {
 			out.writeInt(RESTRICTION_MAGIC);
 			out.writeInt(RESTRICTION_VERSION);
-			out.writeInt(restr.length);
+			out.writeShort(restr.length);
 			for (Restriction item : restr) {
 				out.writeByte(item.type.ordinal());
 				out.writeBoolean(item.auto);
@@ -134,8 +155,8 @@ public class LoaderUtils {
 							out.writeInt(cargo.getLemma().id());
 						}
 						out.writeByte(cargo.numberOfAttributes());
-						for(String item : cargo) {
-							out.writeUTF(item);
+						for(Grammeme item : cargo) {
+							out.writeShort(item.getIndex());
 						}
 						final WordLink	link = cargo.getLinks();
 						
@@ -161,7 +182,7 @@ public class LoaderUtils {
 								}
 							}
 						}
-						out.writeByte(0xFF);
+						out.writeByte(-1);
 					}
 					return true;
 				} catch (IOException e) {
@@ -194,20 +215,7 @@ public class LoaderUtils {
 			final Grammeme[]	result = new Grammeme[in.readByte()];
 			
 			for(int index = 0; index < result.length; index++) {
-				final String		name = in.readUTF();
-				final String		alias = in.readUTF();
-				final String		desc = in.readUTF();
-				final Grammeme[]	children = new Grammeme[in.readByte()];
-				final Grammeme		gr = new Grammeme(()->null, name, alias, desc, children); 
-				
-				result[index] = gr;
-				for(int childIndex = 0; childIndex < children.length; childIndex++) {
-					final String	childName = in.readUTF();
-					final String	childAlias = in.readUTF();
-					final String	childDesc = in.readUTF();
-					
-					children[index] = new Grammeme(()->gr, childName, childAlias, childDesc);
-				}
+				result[index] = downloadGrammeme(null, in);
 			}
 			if ((temp = in.readInt()) != GRAMMEME_MAGIC) {
 				throw new IOException("Illegal magic ["+temp+"] in the input stream, ["+GRAMMEME_MAGIC+"] awaited");
@@ -216,6 +224,20 @@ public class LoaderUtils {
 				return result;
 			}
 		}
+	}
+
+	private static Grammeme downloadGrammeme(final Grammeme parent,final DataInput in) throws IOException {
+		final short			gIndex = in.readShort();
+		final String		name = in.readUTF();
+		final String		alias = in.readUTF();
+		final String		desc = in.readUTF();
+		final Grammeme[]	children = new Grammeme[in.readByte()];
+		final Grammeme		gr = new Grammeme(gIndex, ()->parent, name, alias, desc, children); 
+		
+		for(int index = 0; index < children.length; index++) {
+			children[index] = downloadGrammeme(gr, in);
+		}
+		return gr;
 	}
 	
 	public static Restriction[] downloadRestrictions(final DataInput in, final Grammeme[] grams) throws IOException {
@@ -234,15 +256,17 @@ public class LoaderUtils {
 			throw new IOException("Unsupported version ["+temp+"] in the input stream");
 		}
 		else {
-			final Restriction[]	result = new Restriction[in.readByte()];
+			final Restriction[]	result = new Restriction[in.readShort()];
 			
 			for (int index = 0; index < result.length; index++) {
 				final WordRestrictionType	type = WordRestrictionType.values()[in.readByte()];
 				final boolean	auto = in.readBoolean();
 				final WordForm	leftForm = WordForm.values()[in.readByte()];
-				final Grammeme	leftGram = fromString(in.readUTF(), grams);
+				final String	leftString = in.readUTF();
+				final Grammeme	leftGram = leftString.isEmpty() ? null : fromString(leftString, grams);
 				final WordForm	rightForm = WordForm.values()[in.readByte()];
-				final Grammeme	rightGram = fromString(in.readUTF(), grams);
+				final String	rightString = in.readUTF();
+				final Grammeme	rightGram = rightString.isEmpty() ? null : fromString(rightString, grams);
 				
 				result[index] = new Restriction(type, auto, leftForm, leftGram, rightForm, rightGram);
 			}
@@ -255,11 +279,11 @@ public class LoaderUtils {
 		}
 	}
 	
-	public static void downloadVocab(final DataInput in, final SyntaxTreeInterface<Word[]> vocab, final Function<String, Grammeme> grammemDecoder) throws IOException {
-		downloadVocab(in, vocab, (x)->x, grammemDecoder);
+	public static void downloadVocab(final DataInput in, final SyntaxTreeInterface<Word[]> vocab, final IntFunction<Grammeme> grammemeDecoder) throws IOException {
+		downloadVocab(in, vocab, (x)->x, grammemeDecoder);
 	}	
 	
-	public static void downloadVocab(final DataInput in, final SyntaxTreeInterface<Word[]> vocab, final IdDecoder idDecoder, final Function<String, Grammeme> grammemDecoder) throws IOException {
+	public static void downloadVocab(final DataInput in, final SyntaxTreeInterface<Word[]> vocab, final IdDecoder idDecoder, final IntFunction<Grammeme> grammemeDecoder) throws IOException {
 		int	temp = 0;
 		
 		if (in == null) {
@@ -271,7 +295,7 @@ public class LoaderUtils {
 		else if (idDecoder == null) {
 			throw new NullPointerException("ID decoder can't be null");
 		}
-		else if (grammemDecoder == null) {
+		else if (grammemeDecoder == null) {
 			throw new NullPointerException("Grammeme decoder can't be null");
 		}
 		else if ((temp = in.readInt()) != VOCAB_MAGIC) {
@@ -282,9 +306,12 @@ public class LoaderUtils {
 		}
 		else {
 			final LongIdMap<Word>		wordIndex = new LongIdMap<Word>(Word.class);
-			final Set<String>			set = new HashSet<>();
 			final List<int[]>			links = new ArrayList<>();
-			final List<LinkDescriptor>	desc = new ArrayList<>();
+			final Grammeme[]			grammemes = new Grammeme[calcNumberOfGrammemes(grammemeDecoder)];
+			
+			for(int index = 0; index < grammemes.length; index++) {
+				grammemes[index] = grammemeDecoder.apply(index);
+			}
 			
 			for(int index = 0, maxIndex = in.readInt(); index < maxIndex; index++) {
 				final String	word = in.readUTF();
@@ -295,26 +322,31 @@ public class LoaderUtils {
 					final WordForm		form = WordForm.values()[in.readByte()];
 					final LangPart		part = LangPart.values()[in.readByte()];
 					final int			lemmaId = form == WordForm.FORM ? idDecoder.decode(in.readInt()) : -1;
+					final Grammeme[]	grams = new Grammeme[in.readByte()];
 					
-					set.clear();
-					for(int	count = 0, maxCount = in.readByte(); count < maxCount; count++) {
-						set.add(in.readUTF());
+					for(int	count = 0, maxCount = grams.length; count < maxCount; count++) {
+						grams[count] = grammemes[in.readShort()];
 					}
 					final Word	w = form == WordForm.FORM 
-										? new WordImpl(id, part, word, toGrammemes(set, grammemDecoder))
-										: new WordImpl(id, wordIndex.get(lemmaId), part, word, toGrammemes(set, grammemDecoder));
+										? new WordImpl(id, part, word, grams)
+										: new WordImpl(id, wordIndex.get(lemmaId), part, word, grams);
 
 					wordIndex.put(id, w);
-					words[index] = w;					
+					words[currentWordIndex] = w;					
 					int	linkType = in.readByte();
 					
-					while (linkType != 0xFF) {
-						final int			linkCount = in.readShort();
-						
-						for(int linkIndex = 0; linkIndex < linkCount; linkIndex++) {
-							links.add(new int[] {id, linkType, idDecoder.decode(in.readInt())});
+					while (linkType != -1) {
+						if ((linkType >> 1) < 0 || (linkType >> 1) >= WordLinkType.values().length) {
+							throw new EOFException("Illegal linkType ["+linkType+"] detected"); 
 						}
-						linkType = in.readByte();
+						else {
+							final int			linkCount = in.readShort();
+							
+							for(int linkIndex = 0; linkIndex < linkCount; linkIndex++) {
+								links.add(new int[] {id, linkType, idDecoder.decode(in.readInt())});
+							}
+							linkType = in.readByte();
+						}
 					}
 				}
 				vocab.placeName(word, words);
@@ -323,6 +355,7 @@ public class LoaderUtils {
 				throw new IOException("Illegal magic ["+temp+"] in the input stream, ["+VOCAB_MAGIC+"] awaited");
 			}
 			else {
+				final List<LinkDescriptor>	desc = new ArrayList<>();
 				int			prevId = -1;
 				WordImpl	current = null;
 				
@@ -345,13 +378,16 @@ public class LoaderUtils {
 		}
 	}
 
-	private static Grammeme[] toGrammemes(final Set<String> source, final Function<String, Grammeme> grammemDecoder) {
-		final Grammeme[]	result = new Grammeme[source.size()];
-		int	index = 0;
-
-		for(String item : source) {
-			result[index++] = grammemDecoder.apply(item); 
+	private static int calcNumberOfGrammemes(final IntFunction<Grammeme> grammemeDecoder) {
+		for(int index = 0; index < Integer.MAX_VALUE; index++) {
+			try {
+				if (grammemeDecoder.apply(index) == null) {
+					return index;
+				}
+			} catch (IllegalArgumentException exc) {
+				return index;
+			}
 		}
-		return result;
+		throw new IllegalArgumentException("Grammeme decoder has tool long resultset"); 
 	}
 }

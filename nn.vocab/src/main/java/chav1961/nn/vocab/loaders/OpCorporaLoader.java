@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -21,6 +22,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
+import chav1961.nn.vocab.interfaces.Grammeme;
 import chav1961.nn.vocab.interfaces.LangPart;
 import chav1961.nn.vocab.interfaces.Word;
 import chav1961.nn.vocab.interfaces.WordForm;
@@ -106,7 +108,7 @@ public class OpCorporaLoader {
 			this.revision = in.readInt();
 			this.gramms = LoaderUtils.downloadGrammemes(in);
 			this.restr = LoaderUtils.downloadRestrictions(in, gramms);
-			LoaderUtils.downloadVocab(in, vocab, (s)->LoaderUtils.fromString(s, gramms));
+			LoaderUtils.downloadVocab(in, vocab, (i)->LoaderUtils.fromIndex(i, gramms));
 		}
 	}
 	
@@ -189,7 +191,7 @@ public class OpCorporaLoader {
 			event = next(rdr);
 		}
 		if (event.isEndElement() && event.asEndElement().getName().equals(TAG_GRAMMEMES)) {
-			this.gramms = buildGrammemes(grammemes, "", null);
+			this.gramms = buildGrammemes(new AtomicInteger(), grammemes, "", null);
 //			printGrammemes(System.err, "", 0, gramms);
 		}
 		else {
@@ -303,7 +305,7 @@ public class OpCorporaLoader {
 		return count;
 	}	
 	
-	private Grammeme[] buildGrammemes(final List<TempGrammeme> grammemes, final String parent, final Supplier<Grammeme> parentRef) {
+	private Grammeme[] buildGrammemes(final AtomicInteger seq, final List<TempGrammeme> grammemes, final String parent, final Supplier<Grammeme> parentRef) {
 		final Grammeme[]	result = new Grammeme[calculateGrammemes(grammemes, parent)];
 		int	count = 0;
 		
@@ -311,11 +313,12 @@ public class OpCorporaLoader {
 			if (current.parent.equals(parent)) {
 				final int	temp = count;
 				
-				result[temp] = new Grammeme(parentRef, 
+				result[temp] = new Grammeme(seq.getAndIncrement(),
+										parentRef, 
 										current.name, 
 										current.alias, 
 										current.description, 
-										buildGrammemes(grammemes, current.name, ()->call(result,temp)));
+										buildGrammemes(seq, grammemes, current.name, ()->call(result,temp)));
 				count++;
 			}
 		}

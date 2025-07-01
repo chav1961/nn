@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import chav1961.nn.vocab.interfaces.Grammeme;
 import chav1961.nn.vocab.interfaces.LangPart;
 import chav1961.nn.vocab.interfaces.Word;
 import chav1961.nn.vocab.interfaces.WordForm;
@@ -42,11 +43,11 @@ class WordImpl implements Word {
 	}
 
 	@Override
-	public Iterator<String> iterator() {
-		final List<String>	result = new ArrayList<>();
+	public Iterator<Grammeme> iterator() {
+		final List<Grammeme>	result = new ArrayList<>();
 		
 		for (Grammeme item : attrs) {
-			item.walk((n)->result.add(LoaderUtils.toString(n)));
+			item.walk((n)->result.add(n));
 		}
 		return result.iterator();
 	}
@@ -136,7 +137,7 @@ class WordImpl implements Word {
 		int	count = 0;
 		
 		for (Grammeme item : attrs) {
-			count = calcNumberOfAttrs(item.getChildren()) + 1;
+			count += calcNumberOfAttrs(item.getChildren()) + 1;
 		}
 		return count;
 	}

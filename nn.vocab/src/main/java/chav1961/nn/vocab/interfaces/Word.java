@@ -1,6 +1,6 @@
 package chav1961.nn.vocab.interfaces;
 
-public interface Word extends Iterable<String>{
+public interface Word extends Iterable<Grammeme>{
 	int id();
 	String getWord();
 	int getWord(char[] where, int from);

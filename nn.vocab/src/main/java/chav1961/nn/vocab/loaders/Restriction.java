@@ -1,5 +1,6 @@
 package chav1961.nn.vocab.loaders;
 
+import chav1961.nn.vocab.interfaces.Grammeme;
 import chav1961.nn.vocab.interfaces.WordForm;
 import chav1961.nn.vocab.interfaces.WordRestrictionType;
 

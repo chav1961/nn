@@ -1,4 +1,4 @@
-package chav1961.nn.vocab.loaders;
+package chav1961.nn.vocab.interfaces;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -6,13 +6,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Grammeme {
+	private final int			index;
 	private final Supplier<Grammeme>	parent;
 	private final Grammeme[]	children;
-	private final String	alias;
-	private final String	description;
-	private final String	name;
+	private final String		alias;
+	private final String		description;
+	private final String		name;
 	
-	public Grammeme(final Supplier<Grammeme> parent, final String name, final String alias, final String description, final Grammeme... children) {
+	public Grammeme(final int index, final Supplier<Grammeme> parent, final String name, final String alias, final String description, final Grammeme... children) {
+		this.index = index;
 		this.parent = parent;
 		this.name = name;
 		this.alias = alias;
@@ -20,6 +22,10 @@ public class Grammeme {
 		this.children = children;
 	}
 
+	public int getIndex() {
+		return index;
+	}
+	
 	public Grammeme getParent() {
 		return parent == null ? null : parent.get();
 	}
@@ -57,19 +63,7 @@ public class Grammeme {
 			throw new NullPointerException("Callback can't be null");
 		}
 		else {
-			T	val = callback.apply(this);
-			
-			if (val != null) {
-				return val;
-			}
-			else {
-				for(Grammeme item : getChildren()) {
-					if ((val = item.seek(callback)) != null) {
-						return val;
-					}
-				}
-				return null;
-			}
+			return seekInternal(callback);
 		}
 	}
 	
@@ -82,4 +76,21 @@ public class Grammeme {
 			return "Grammeme [name=" + name + ", alias=" + alias + ", description=" + description + ", children=" + Arrays.toString(children) + "]";
 		}
 	}
+
+	private <T> T seekInternal(final Function<Grammeme, T> callback) {
+		T	val = callback.apply(this);
+		
+		if (val != null) {
+			return val;
+		}
+		else {
+			for(Grammeme item : children) {
+				if ((val = item.seekInternal(callback)) != null) {
+					return val;
+				}
+			}
+			return null;
+		}
+	}
+
 }
