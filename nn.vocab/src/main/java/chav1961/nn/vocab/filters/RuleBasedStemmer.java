@@ -1,14 +1,18 @@
 package chav1961.nn.vocab.filters;
 
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import chav1961.nn.api.interfaces.Stemmer;
-import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.Utils;
+import chav1961.nn.vocab.interfaces.Grammeme;
+import chav1961.nn.vocab.interfaces.LangPart;
+import chav1961.nn.vocab.interfaces.Word;
+import chav1961.nn.vocab.interfaces.WordForm;
+import chav1961.nn.vocab.interfaces.WordPipe;
 
-public class RuleBasedStemmer implements Stemmer {
+public class RuleBasedStemmer implements WordPipe {
     private static final Pattern PERFECTIVEGROUND = Pattern.compile("((ив|ивши|ившись|ыв|ывши|ывшись)|((?<=[ая])(в|вши|вшись)))$");
     private static final Pattern REFLEXIVE = Pattern.compile("(с[яь])$");
     private static final Pattern ADJECTIVE = Pattern.compile("(ее|ие|ые|ое|ими|ыми|ей|ий|ый|ой|ем|им|ым|ом|его|ого|ему|ому|их|ых|ую|юю|ая|яя|ою|ею)$");
@@ -24,58 +28,50 @@ public class RuleBasedStemmer implements Stemmer {
     private static final Pattern P = Pattern.compile("ь$");
     private static final Pattern NN = Pattern.compile("нн$");
 
+    private final WordPipe	nested;
+    
+    public RuleBasedStemmer(final WordPipe nested) {
+    	if (nested == null) {
+    		throw new NullPointerException("Nested words pipe can't be null");
+    	}
+    	else {
+    		this.nested = nested;
+    	}
+    }
+
 	@Override
-	public CharSequence resolve(CharSequence source) {
-		if (Utils.checkEmptyOrNullString(source)) {
-			throw new IllegalArgumentException("Source can't be null or empty");
-		}
-		else {
-			final CharSequence	result = resolveInternal(CharUtils.toString(source));
+	public Iterator<Word[]> iterator() {
+		return new Iterator<Word[]>() {
+			final Iterator<Word[]>	it = nested.iterator();
 			
-			return result != null ? result : source;
-		}
-	}
-
-	@Override
-	public CharSequence resolve(final CharSequence source, final Stemmer... chain) {
-		// TODO Auto-generated method stub
-		if (Utils.checkEmptyOrNullString(source)) {
-			throw new IllegalArgumentException("Source can't be null or empty");
-		}
-		else if (chain == null || Utils.checkArrayContent4Nulls(chain) >= 0) {
-			throw new IllegalArgumentException("Chain is null or contains nulls inside");
-		}
-		else {
-			final CharSequence	result = resolveInternal(CharUtils.toString(source));
-
-			if (result != null) {
-				return result;
+			@Override
+			public boolean hasNext() {
+				return it.hasNext();
 			}
-			else if (chain.length == 0) {
-				return source;
+			
+			@Override
+			public Word[] next() {
+				final Word[]	words = it.next().clone();
+						
+				for(int index = 0; index < words.length; index++) {
+					if (words[index].part() == LangPart.UNKNOWN) {
+						final List<Grammeme>	temp = new ArrayList<>(); 
+						
+						for(Grammeme item : words[index]) {
+							temp.add(item);
+						}
+						words[index] = new WordImpl(LangPart.UNKNOWN, resolveInternal(words[index].getWord()), temp.toArray(new Grammeme[temp.size()]));
+					}
+					else if (words[index].wordForm() == WordForm.FORM) {
+						words[index] = words[index].getLemma();
+					}
+				}
+				return words;
 			}
-			else {
-				final Stemmer[][]	pieces = Utils.splitArray(chain, 0);
-				
-				return pieces[0][0].resolve(source, pieces[1]);
-			}
-		}
+			
+		};
 	}
-
-	@Override
-	public CharSequence resolve(final CharSequence source, final Function<CharSequence, CharSequence> resolver) {
-		if (Utils.checkEmptyOrNullString(source)) {
-			throw new IllegalArgumentException("Source can't be null or empty");
-		}
-		else if (resolver == null) {
-			throw new NullPointerException("Resolver can't be null");
-		}
-		else {
-			CharSequence	result = resolveInternal(CharUtils.toString(source));
-
-			return result != null ? result : resolver.apply(source);
-		}
-	}
+    
 	
 	private static String resolveInternal(final String source) {
         String word = source.toLowerCase().replace('ё', 'е');

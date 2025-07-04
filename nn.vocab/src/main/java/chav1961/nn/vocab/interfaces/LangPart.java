@@ -20,7 +20,8 @@ public enum LangPart {
     CONJ("СОЮЗ"),
     PRCL("ЧАСТ"),
     INTJ("МЕЖД"),
-    PUNCT("ПУНКТ");
+    PUNCT("ПУНКТ"),
+    UNKNOWN("НЕИЗВ");
 	
 	private final String	alias;
 	

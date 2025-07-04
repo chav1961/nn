@@ -23,5 +23,6 @@
 		<module>nn.api</module>
 		<module>nn.ordinal</module>
 		<module>nn.vocab</module>
+		<module>nn.w2v</module>
 	</modules>
 </project>

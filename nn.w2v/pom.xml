@@ -5,12 +5,17 @@
     <artifactId>nn</artifactId>
     <version>0.0.1</version>
   </parent>
-  <artifactId>nn.vocab</artifactId>
+  <artifactId>nn.w2v</artifactId>
 
 	<dependencies>
         <dependency>
             <groupId>com.github.chav1961</groupId>
             <artifactId>nn.api</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.chav1961</groupId>
+            <artifactId>nn.vocab</artifactId>
             <version>0.0.1</version>
         </dependency>
 	</dependencies>
@@ -67,7 +72,7 @@
 	</distributionManagement>
   
      <build>
-       <finalName>nn.vocab-${project.parent.version}</finalName>
+       <finalName>nn.w2v-${project.parent.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>
@@ -100,7 +105,6 @@
                        <manifest>
                            <addClasspath>true</addClasspath>
                            <classpathPrefix>./</classpathPrefix>
-                           <mainClass>chav1961.nn.vocab.Application</mainClass>
                        </manifest>
                    </archive>
                </configuration>

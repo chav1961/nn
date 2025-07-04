@@ -1,0 +1,1 @@
+package chav1961.nn.w2v.interfaces;
