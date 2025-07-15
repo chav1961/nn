@@ -22,16 +22,17 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
-import chav1961.nn.vocab.interfaces.Grammeme;
-import chav1961.nn.vocab.interfaces.LangPart;
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordForm;
-import chav1961.nn.vocab.interfaces.WordLinkType;
+import chav1961.nn.api.Grammeme;
+import chav1961.nn.api.interfaces.LangPart;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordForm;
+import chav1961.nn.api.interfaces.WordLinkType;
 import chav1961.nn.vocab.interfaces.WordRestrictionType;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.DottedVersion;
 import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.IntSequence;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 public class OpCorporaLoader {
@@ -178,6 +179,8 @@ public class OpCorporaLoader {
 	}
 	
 	private void load(final XMLEventReader rdr) throws EOFException, XMLStreamException {
+		final IntSequence	seq = IntSequence.zero();
+		
 		event = skipTo(rdr, TAG_DICTIONARY);
 		
 		this.version = new DottedVersion(event.asStartElement().getAttributeByName(ATTR_VERSION).getValue());
@@ -220,9 +223,10 @@ public class OpCorporaLoader {
 		event = skipTo(rdr, TAG_LEMMATA);
 		event = skipTo(rdr, TAG_LEMMA);
 		while (event.isStartElement() && event.asStartElement().getName().equals(TAG_LEMMA)) {
-			loadLemma(rdr, map, temp, vocab, wordIndex);
+			loadLemma(rdr, seq, map, temp, vocab, wordIndex);
 			event = next(rdr);
 		}
+		final Word[] w = vocab.getCargo(vocab.seekName("была"));
 		if (!(event.isEndElement() && event.asEndElement().getName().equals(TAG_LEMMATA))) {
 			throw new EOFException("Lemmata part not terminated correctry");
 		}
@@ -361,7 +365,7 @@ public class OpCorporaLoader {
 		}
 	}
 
-	private void loadLemma(final XMLEventReader rdr, final Map<String, Grammeme> grammemes, final Grammeme[] temp, final SyntaxTreeInterface<Word[]> vocab, final LongIdMap<Word> index) throws EOFException, XMLStreamException {
+	private void loadLemma(final XMLEventReader rdr, final IntSequence seq, final Map<String, Grammeme> grammemes, final Grammeme[] temp, final SyntaxTreeInterface<Word[]> vocab, final LongIdMap<Word> index) throws EOFException, XMLStreamException {
 		final int		id = Integer.valueOf(event.asStartElement().getAttributeByName(ATTR_ID).getValue());
 //		final int		rev = Integer.valueOf(event.asStartElement().getAttributeByName(ATTR_REV).getValue());
 		
@@ -387,7 +391,7 @@ public class OpCorporaLoader {
 			}
 		}
 		event = next(rdr);
-		final Word	parent = new WordImpl(id, part, lemma, Arrays.copyOf(temp, count));
+		final Word	parent = new WordImpl(seq.next(), id, part, lemma, Arrays.copyOf(temp, count));
 
 		appendWord(vocab, index, parent);
 		index.put(parent.id(), parent);
@@ -401,7 +405,7 @@ public class OpCorporaLoader {
 				event = next(rdr);
 				event = next(rdr);
 			}
-			final Word	child = new WordImpl(id, parent, part, form, Arrays.copyOf(temp, count));
+			final Word	child = new WordImpl(seq.next(), id, parent, part, form, Arrays.copyOf(temp, count));
 			
 			appendWord(vocab, index, child);
 			event = next(rdr);
@@ -422,9 +426,7 @@ public class OpCorporaLoader {
 			newContent[newContent.length - 1] = word;
 			vocab.setCargo(id, newContent);
 		}
-//		if (word.wordForm() == WordForm.LEMMA) {
-//			index.put(word.id(), word);
-//		}
+		index.put(word.seqId(), word);
 	}
 
 	private void loadLink(final XMLEventReader rdr, final List<int[]> links) throws EOFException, XMLStreamException {

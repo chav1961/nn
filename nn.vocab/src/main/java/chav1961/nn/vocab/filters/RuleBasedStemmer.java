@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import chav1961.nn.vocab.interfaces.Grammeme;
-import chav1961.nn.vocab.interfaces.LangPart;
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordForm;
-import chav1961.nn.vocab.interfaces.WordPipe;
+import chav1961.nn.api.Grammeme;
+import chav1961.nn.api.interfaces.LangPart;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordForm;
+import chav1961.nn.api.interfaces.WordPipe;
 
 public class RuleBasedStemmer implements WordPipe {
     private static final Pattern PERFECTIVEGROUND = Pattern.compile("((ив|ивши|ившись|ыв|ывши|ывшись)|((?<=[ая])(в|вши|вшись)))$");

@@ -2,9 +2,9 @@ package chav1961.nn.vocab.filters;
 
 import java.util.Iterator;
 
-import chav1961.nn.vocab.interfaces.LangPart;
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordPipe;
+import chav1961.nn.api.interfaces.LangPart;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordPipe;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 

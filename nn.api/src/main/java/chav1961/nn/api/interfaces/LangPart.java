@@ -1,4 +1,4 @@
-package chav1961.nn.vocab.interfaces;
+package chav1961.nn.api.interfaces;
 
 import chav1961.purelib.basic.Utils;
 

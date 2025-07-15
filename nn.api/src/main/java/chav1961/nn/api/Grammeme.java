@@ -1,4 +1,4 @@
-package chav1961.nn.vocab.interfaces;
+package chav1961.nn.api;
 
 import java.util.Arrays;
 import java.util.function.Consumer;

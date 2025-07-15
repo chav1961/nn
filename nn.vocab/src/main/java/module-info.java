@@ -1,7 +1,7 @@
 module nn.vocab {
 	requires transitive chav1961.purelib;
+	requires transitive nn.api;
 	requires java.base;
-	requires nn.api;
 	requires java.xml;
 	
 	exports chav1961.nn.vocab.filters;

@@ -5,14 +5,15 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import chav1961.nn.vocab.interfaces.Grammeme;
-import chav1961.nn.vocab.interfaces.LangPart;
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordForm;
-import chav1961.nn.vocab.interfaces.WordLink;
+import chav1961.nn.api.Grammeme;
+import chav1961.nn.api.interfaces.LangPart;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordForm;
+import chav1961.nn.api.interfaces.WordLink;
 import chav1961.purelib.basic.Utils;
 
 class WordImpl implements Word {
+	private final int			seqId;
 	private final int			id;
 	private final WordForm		form;
 	private final LangPart		part;
@@ -22,7 +23,8 @@ class WordImpl implements Word {
 	private final int			numberOfAttr;
 	private volatile WordLink	link = null;
 
-	WordImpl(final int id, final LangPart part, final String word, final Grammeme... attrs) {
+	WordImpl(final int seqId, final int id, final LangPart part, final String word, final Grammeme... attrs) {
+		this.seqId = seqId;
 		this.id = id;
 		this.form = WordForm.LEMMA;
 		this.part = part;
@@ -32,7 +34,8 @@ class WordImpl implements Word {
 		this.numberOfAttr = calcNumberOfAttrs(attrs);
 	}
 	
-	WordImpl(final int id, final Word lemma, final LangPart part, final String word, final Grammeme... attrs) {
+	WordImpl(final int seqId, final int id, final Word lemma, final LangPart part, final String word, final Grammeme... attrs) {
+		this.seqId = seqId;
 		this.id = id;
 		this.form = WordForm.FORM;
 		this.part = part;
@@ -52,6 +55,11 @@ class WordImpl implements Word {
 		return result.iterator();
 	}
 
+	@Override
+	public int seqId() {
+		return seqId;
+	}
+	
 	@Override
 	public int id() {
 		return id;
@@ -122,11 +130,12 @@ class WordImpl implements Word {
 	public int numberOfAttributes() {
 		return numberOfAttr;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "WordImpl [id=" + id + ", form=" + form + ", part=" + part + ", word=" + word + ", attrs="
-				+ Arrays.toString(attrs) + "]";
+		return "WordImpl [seqId=" + seqId + ", id=" + id + ", form=" + form + ", part=" + part + ", word=" + word
+				+ ", lemma=" + lemma + ", attrs=" + Arrays.toString(attrs) + ", numberOfAttr=" + numberOfAttr
+				+ ", link=" + link + "]";
 	}
 
 	void setLinks(final WordLink link) {

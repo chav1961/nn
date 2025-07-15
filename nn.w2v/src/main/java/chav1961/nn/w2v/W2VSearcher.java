@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.util.function.Function;
 
-import chav1961.nn.vocab.interfaces.Word;
+import chav1961.nn.api.interfaces.Word;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 

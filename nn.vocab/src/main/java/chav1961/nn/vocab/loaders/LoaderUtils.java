@@ -10,12 +10,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
-import chav1961.nn.vocab.interfaces.Grammeme;
-import chav1961.nn.vocab.interfaces.LangPart;
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordForm;
-import chav1961.nn.vocab.interfaces.WordLink;
-import chav1961.nn.vocab.interfaces.WordLinkType;
+import chav1961.nn.api.Grammeme;
+import chav1961.nn.api.interfaces.LangPart;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordForm;
+import chav1961.nn.api.interfaces.WordLink;
+import chav1961.nn.api.interfaces.WordLinkType;
 import chav1961.nn.vocab.interfaces.WordRestrictionType;
 import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.Utils;
@@ -147,8 +147,10 @@ public class LoaderUtils {
 				try {
 					out.writeUTF(list[0].getWord());
 					out.writeShort(list.length);
+					out.writeInt(list[0].id());
+					
 					for (Word cargo : list) {
-						out.writeInt(cargo.id());
+						out.writeInt(cargo.seqId());
 						out.writeByte(cargo.wordForm().ordinal());
 						out.writeByte(cargo.part().ordinal());
 						if (cargo.wordForm() == WordForm.FORM) {
@@ -312,26 +314,30 @@ public class LoaderUtils {
 			for(int index = 0; index < grammemes.length; index++) {
 				grammemes[index] = grammemeDecoder.apply(index);
 			}
-			
+
 			for(int index = 0, maxIndex = in.readInt(); index < maxIndex; index++) {
 				final String	word = in.readUTF();
 				final Word[]	words = new Word[in.readShort()];
+				final int		id = idDecoder.decode(in.readInt());
 				
 				for(int currentWordIndex = 0, maxWordIndex = words.length; currentWordIndex < maxWordIndex; currentWordIndex++) {
-					final int			id = idDecoder.decode(in.readInt());
+					final int			seqId = idDecoder.decode(in.readInt());
 					final WordForm		form = WordForm.values()[in.readByte()];
 					final LangPart		part = LangPart.values()[in.readByte()];
 					final int			lemmaId = form == WordForm.FORM ? idDecoder.decode(in.readInt()) : -1;
 					final Grammeme[]	grams = new Grammeme[in.readByte()];
+					final Word			w;							
 					
 					for(int	count = 0, maxCount = grams.length; count < maxCount; count++) {
 						grams[count] = grammemes[in.readShort()];
 					}
-					final Word	w = form == WordForm.FORM 
-										? new WordImpl(id, wordIndex.get(lemmaId), part, word, grams)
-										: new WordImpl(id, part, word, grams);
-
-					wordIndex.put(id, w);
+					if (form == WordForm.FORM) {
+						w = new WordImpl(seqId, id, wordIndex.get(lemmaId), part, word, grams);
+					}
+					else {
+						w = new WordImpl(seqId, id, part, word, grams);
+						wordIndex.put(id, w);
+					}
 					words[currentWordIndex] = w;					
 					int	linkType = in.readByte();
 					
@@ -351,6 +357,7 @@ public class LoaderUtils {
 				}
 				vocab.placeName(word, words);
 			}
+			
 			if ((temp = in.readInt()) != VOCAB_MAGIC) {
 				throw new IOException("Illegal magic ["+temp+"] in the input stream, ["+VOCAB_MAGIC+"] awaited");
 			}

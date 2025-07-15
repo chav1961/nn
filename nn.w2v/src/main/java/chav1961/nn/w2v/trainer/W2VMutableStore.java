@@ -1,23 +1,26 @@
 package chav1961.nn.w2v.trainer;
 
-import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.DoubleSupplier;
-import java.util.function.Function;
 
-import chav1961.nn.vocab.interfaces.Word;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordForm;
 import chav1961.nn.w2v.internal.W2VStore;
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
-import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 public class W2VMutableStore extends W2VStore {
+	private int	unique = 0;
+	
 	public W2VMutableStore(SyntaxTreeInterface<Word[]> words) {
 		super(words);
 	}
@@ -59,9 +62,7 @@ public class W2VMutableStore extends W2VStore {
 			throw new NullPointerException("Reader can't be null");
 		}
 		else {
-			final SyntaxTreeInterface<Word[]>	temp = new AndOrTree<>();
-			
-			try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement, lineNo, data, from, length)->insert(temp, displacement, lineNo, data, from, length))) {
+			try(final LineByLineProcessor	lblp = new LineByLineProcessor((displacement, lineNo, data, from, length)->insert(data, from, length))) {
 				lblp.write(source);
 			} catch (SyntaxException e) {
 				throw new IOException(e); 
@@ -138,7 +139,7 @@ public class W2VMutableStore extends W2VStore {
 			getCurrentIds().walk((id, ref)->{
 				try {
 					out.writeInt(ref.id);
-					out.writeUTF(temp.getCargo(ref.id)[0].getWord());
+					out.writeUTF(temp.getCargo(ref.cargoRef)[0].getWord());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -169,8 +170,74 @@ public class W2VMutableStore extends W2VStore {
 		}
 	}
 
-	private void insert(final SyntaxTreeInterface<Word[]> vocab, final long displacement, final int lineNo, final char[] data, final int from, final int length) {
+	private void insert(final char[] data, int from, final int length) {
+		// TODO Auto-generated method stub
+		final List<Lexema>	lex = new ArrayList<>();
+		int	start;
 		
+		do {
+			start = from;
+			if (Character.isWhitespace(data[from])) {
+				from++;
+			}
+			else if (Character.isDigit(data[from])) {
+				while (Character.isDigit(data[from])) {
+					from++;
+				}
+				lex.add(new Lexema(start, from, LexType.NUMBER));
+			}
+			else if (Character.isLetter(data[from])) {
+				while (Character.isLetter(data[from])) {
+					from++;
+				}
+				lex.add(new Lexema(start, from, LexType.WORD));
+			}
+			else if (data[from] == '-') {
+				lex.add(new Lexema(start, from++, LexType.DEPHIS));
+			}
+			else {
+				lex.add(new Lexema(start, from++, LexType.PUNCT));
+			}
+		} while (data[from] != '\n');
+		
+		for(int index = 0; index < lex.size(); index++) {
+			if (index < lex.size()-2 && lex.get(index).type == LexType.WORD && lex.get(index+1).type == LexType.DEPHIS && lex.get(index+2).type == LexType.WORD) {
+				final String	candidate = new StringBuilder()
+												.append(data, lex.get(index).from, lex.get(index).to-lex.get(index).from)
+												.append('-')
+												.append(data, lex.get(index+2).from, lex.get(index+2).to-lex.get(index+2).from).toString().toLowerCase();
+				if (appendWord(candidate)) {
+					index += 2;
+					continue;
+				}
+			}
+			if (lex.get(index).type == LexType.WORD) {
+				final String	candidate = new String(data, lex.get(index).from, lex.get(index).to-lex.get(index).from).toLowerCase(); 
+				
+				if (!appendWord(candidate)) {
+					System.err.println("Fail: "+candidate);
+				}
+			}
+		}
+	}
+
+	private boolean appendWord(final String candidate) {
+		final long	id = getVocab().seekName(candidate);
+		
+		if (id < 0) {
+			return false;
+		}
+		else if (getVocab().getCargo(id)[0].wordForm() == WordForm.FORM) {
+			return appendWord(getVocab().getCargo(id)[0].getLemma().getWord());
+		}
+		else {
+			final int		newId = unique++;
+			final WordRef	ref = new WordRef(newId, id);
+			
+			getCurrentVocab().placeName(candidate, ref);
+			getCurrentIds().put(newId, ref);
+			return true;
+		}
 	}
 
 	private void insert(final SyntaxTreeInterface<Word[]> vocab, final Word word) {
@@ -204,5 +271,26 @@ public class W2VMutableStore extends W2VStore {
 	private void correctWeights(final float[][] fs, final float[] internal, float step) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private static enum LexType {
+		WORD, DEPHIS, NUMBER, PUNCT
+	}
+	
+	private static class Lexema {
+		private final int		from;
+		private final int		to;
+		private final LexType	type;
+		
+		private Lexema(int from, int to, LexType type) {
+			this.from = from;
+			this.to = to;
+			this.type = type;
+		}
+
+		@Override
+		public String toString() {
+			return "Lexema [from=" + from + ", to=" + to + ", type=" + type + "]";
+		}
 	}
 }

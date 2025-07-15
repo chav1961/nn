@@ -1,8 +1,8 @@
 package chav1961.nn.vocab.loaders;
 
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordLink;
-import chav1961.nn.vocab.interfaces.WordLinkType;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordLink;
+import chav1961.nn.api.interfaces.WordLinkType;
 
 class LinkImpl implements WordLink {
 	private final Word				current;

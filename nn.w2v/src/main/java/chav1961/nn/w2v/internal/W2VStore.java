@@ -4,7 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.util.function.Function;
 
-import chav1961.nn.vocab.interfaces.Word;
+import chav1961.nn.api.interfaces.Word;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.Utils;
@@ -37,10 +37,16 @@ public class W2VStore {
 				final int		id = in.readInt();
 				final String	w = in.readUTF();
 				final long		ref = words.seekName(w);
-				final WordRef	wr = new WordRef(id, ref);
 				
-				currentWords.placeName(w, wr);
-				currentIds.put(id, wr);
+				if (ref < 0) {
+					throw new IOException("Name ["+w+"] not found in total vocabulary");
+				}
+				else {
+					final WordRef	wr = new WordRef(id, ref);
+					
+					currentWords.placeName(w, wr);
+					currentIds.put(id, wr);
+				}
 			}
 		}
 	}
@@ -270,7 +276,7 @@ public class W2VStore {
 		public final int	id;
 		public final long	cargoRef;
 		
-		private WordRef(int id, long cargoRef) {
+		public WordRef(final int id, final long cargoRef) {
 			this.id = id;
 			this.cargoRef = cargoRef;
 		}

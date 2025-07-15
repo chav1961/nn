@@ -3,9 +3,9 @@ package chav1961.nn.vocab.filters;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
-import chav1961.nn.vocab.interfaces.Grammeme;
-import chav1961.nn.vocab.interfaces.Word;
-import chav1961.nn.vocab.interfaces.WordPipe;
+import chav1961.nn.api.Grammeme;
+import chav1961.nn.api.interfaces.Word;
+import chav1961.nn.api.interfaces.WordPipe;
 import chav1961.purelib.basic.Utils;
 
 public class WordsFilter implements WordPipe {
