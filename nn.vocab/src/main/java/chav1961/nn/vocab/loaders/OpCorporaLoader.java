@@ -405,6 +405,9 @@ public class OpCorporaLoader {
 				event = next(rdr);
 				event = next(rdr);
 			}
+			if ("1-ая".equals(form)) {
+				int	y = 10;
+			}
 			final Word	child = new WordImpl(seq.next(), id, parent, part, form, Arrays.copyOf(temp, count));
 			
 			appendWord(vocab, index, child);

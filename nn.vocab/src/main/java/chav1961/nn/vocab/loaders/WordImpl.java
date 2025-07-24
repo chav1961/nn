@@ -14,7 +14,7 @@ import chav1961.purelib.basic.Utils;
 
 class WordImpl implements Word {
 	private final int			seqId;
-	private final int			id;
+	private final long			id;
 	private final WordForm		form;
 	private final LangPart		part;
 	private final String		word;
@@ -23,26 +23,51 @@ class WordImpl implements Word {
 	private final int			numberOfAttr;
 	private volatile WordLink	link = null;
 
-	WordImpl(final int seqId, final int id, final LangPart part, final String word, final Grammeme... attrs) {
-		this.seqId = seqId;
-		this.id = id;
-		this.form = WordForm.LEMMA;
-		this.part = part;
-		this.word = word;
-		this.lemma = null;
-		this.attrs = attrs;
-		this.numberOfAttr = calcNumberOfAttrs(attrs);
+	WordImpl(final int seqId, final long id, final LangPart part, final String word, final Grammeme... attrs) {
+		if (part == null) {
+			throw new NullPointerException("Language part can't be null");
+		}
+		else if (Utils.checkEmptyOrNullString(word)) {
+			throw new NullPointerException("Word string can be neither null nor emoty");
+		}
+		else if (attrs == null) {
+			throw new NullPointerException("Attributes can't be null");
+		}
+		else {
+			this.seqId = seqId;
+			this.id = id;
+			this.form = WordForm.LEMMA;
+			this.part = part;
+			this.word = word;
+			this.lemma = null;
+			this.attrs = attrs;
+			this.numberOfAttr = calcNumberOfAttrs(attrs);
+		}
 	}
 	
-	WordImpl(final int seqId, final int id, final Word lemma, final LangPart part, final String word, final Grammeme... attrs) {
-		this.seqId = seqId;
-		this.id = id;
-		this.form = WordForm.FORM;
-		this.part = part;
-		this.word = word;
-		this.lemma = lemma;
-		this.attrs = attrs;
-		this.numberOfAttr = calcNumberOfAttrs(attrs);
+	WordImpl(final int seqId, final long id, final Word lemma, final LangPart part, final String word, final Grammeme... attrs) {
+		if (lemma == null) {
+			throw new NullPointerException("Lemma can't be null");
+		}
+		else if (part == null) {
+			throw new NullPointerException("Language part can't be null");
+		}
+		else if (Utils.checkEmptyOrNullString(word)) {
+			throw new NullPointerException("Word string can be neither null nor emoty");
+		}
+		else if (attrs == null) {
+			throw new NullPointerException("Attributes can't be null");
+		}
+		else {
+			this.seqId = seqId;
+			this.id = id;
+			this.form = WordForm.FORM;
+			this.part = part;
+			this.word = word;
+			this.lemma = lemma;
+			this.attrs = attrs;
+			this.numberOfAttr = calcNumberOfAttrs(attrs);
+		}
 	}
 
 	@Override
@@ -62,7 +87,7 @@ class WordImpl implements Word {
 	
 	@Override
 	public int id() {
-		return id;
+		return (int) id;
 	}
 	
 	@Override

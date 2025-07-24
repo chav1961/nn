@@ -20,6 +20,7 @@ import chav1961.nn.vocab.interfaces.WordRestrictionType;
 import chav1961.purelib.basic.LongIdMap;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.streams.byte2byte.MappedDataInputStream;
 
 public class LoaderUtils {
 	private static final int	VOCAB_MAGIC = 0x16061900;
@@ -145,47 +146,61 @@ public class LoaderUtils {
 			out.writeInt(vocab.size());
 			vocab.walk((name, len, id, list)->{
 				try {
-					out.writeUTF(list[0].getWord());
+					final String	n = new String(name, 0, len);
+					
+					out.writeLong(id);
+					out.writeUTF(n);
 					out.writeShort(list.length);
-					out.writeInt(list[0].id());
+					return true;
+				} catch (IOException e) {
+					e.printStackTrace();
+					return false;
+				}
+			});
+			
+			vocab.walk((name, len, id, list)->{
+				try {
+					int	lemmaCount = 0;
 					
 					for (Word cargo : list) {
-						out.writeInt(cargo.seqId());
-						out.writeByte(cargo.wordForm().ordinal());
-						out.writeByte(cargo.part().ordinal());
+						if (cargo.wordForm() == WordForm.LEMMA) {
+							lemmaCount++;
+						}
+					}					
+					out.writeLong(id);
+					out.writeShort(0);
+					out.writeShort(lemmaCount);
+					for (Word cargo : list) {
+						if (cargo.wordForm() == WordForm.LEMMA) {
+							writeWord(cargo, out);
+						}
+					}					
+					return true;
+				} catch (IOException e) {
+					e.printStackTrace();
+					return false;
+				}
+			});
+			vocab.walk((name, len, id, list)->{
+				try {
+					int	lemmaCount = 0, formCount = 0;
+					
+					for (Word cargo : list) {
+						if (cargo.wordForm() == WordForm.LEMMA) {
+							lemmaCount++;
+						}
+						else {
+							formCount++;
+						}
+					}					
+					out.writeLong(id);
+					out.writeShort(lemmaCount);
+					out.writeShort(lemmaCount+formCount);
+					for (Word cargo : list) {
 						if (cargo.wordForm() == WordForm.FORM) {
-							out.writeInt(cargo.getLemma().id());
+							writeWord(cargo, out);
 						}
-						out.writeByte(cargo.numberOfAttributes());
-						for(Grammeme item : cargo) {
-							out.writeShort(item.getIndex());
-						}
-						final WordLink	link = cargo.getLinks();
-						
-						if (link != null) {
-							for (WordLinkType item : WordLinkType.values()) {
-								if (link.hasLinkFrom(item)) {
-									final Word[]	words = link.getLinksFrom(item);
-		
-									out.writeByte(2 * item.ordinal());
-									out.writeShort(words.length);
-									for(Word w : words) {
-										out.writeInt(w.id());
-									}
-								}
-								if (link.hasLinkTo(item)) {
-									final Word[]	words = link.getLinksTo(item);
-		
-									out.writeByte(2 * item.ordinal() + 1);
-									out.writeShort(words.length);
-									for(Word w : words) {
-										out.writeInt(w.id());
-									}
-								}
-							}
-						}
-						out.writeByte(-1);
-					}
+					}					
 					return true;
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -194,6 +209,45 @@ public class LoaderUtils {
 			});
 			out.writeInt(VOCAB_MAGIC);
 		}
+	}
+	
+	private static void writeWord(final Word word, final DataOutput out) throws IOException {
+		out.writeLong(word.id());
+		out.writeInt(word.seqId());
+		out.writeByte(word.wordForm().ordinal());
+		out.writeByte(word.part().ordinal());
+		if (word.wordForm() == WordForm.FORM) {
+			out.writeInt(word.getLemma().id());
+		}
+		out.writeByte(word.numberOfAttributes());
+		for(Grammeme item : word) {
+			out.writeShort(item.getIndex());
+		}
+		final WordLink	link = word.getLinks();
+		
+		if (link != null) {
+			for (WordLinkType item : WordLinkType.values()) {
+				if (link.hasLinkFrom(item)) {
+					final Word[]	words = link.getLinksFrom(item);
+
+					out.writeByte(2 * item.ordinal());
+					out.writeShort(words.length);
+					for(Word w : words) {
+						out.writeInt(w.id());
+					}
+				}
+				if (link.hasLinkTo(item)) {
+					final Word[]	words = link.getLinksTo(item);
+
+					out.writeByte(2 * item.ordinal() + 1);
+					out.writeShort(words.length);
+					for(Word w : words) {
+						out.writeInt(w.id());
+					}
+				}
+			}
+		}
+		out.writeByte(-1);
 	}
 
 	@FunctionalInterface
@@ -307,20 +361,35 @@ public class LoaderUtils {
 			throw new IOException("Unsupported version ["+temp+"] in the input stream");
 		}
 		else {
-			final LongIdMap<Word>		wordIndex = new LongIdMap<Word>(Word.class);
-			final List<int[]>			links = new ArrayList<>();
-			final Grammeme[]			grammemes = new Grammeme[calcNumberOfGrammemes(grammemeDecoder)];
+			final Grammeme[]	grammemes = new Grammeme[calcNumberOfGrammemes(grammemeDecoder)];
+			final int			vocabSize = in.readInt(); 
 			
 			for(int index = 0; index < grammemes.length; index++) {
 				grammemes[index] = grammemeDecoder.apply(index);
 			}
+			final LongIdMap<String>		names = new LongIdMap<>(String.class);
 
-			for(int index = 0, maxIndex = in.readInt(); index < maxIndex; index++) {
+			for(int index = 0, maxIndex = vocabSize; index < maxIndex; index++) {
+				final long		internal = in.readLong();
 				final String	word = in.readUTF();
-				final Word[]	words = new Word[in.readShort()];
-				final int		id = idDecoder.decode(in.readInt());
+				final Word[]	content = new Word[in.readShort()];
 				
-				for(int currentWordIndex = 0, maxWordIndex = words.length; currentWordIndex < maxWordIndex; currentWordIndex++) {
+				vocab.placeName(word, internal, content);
+				names.put(internal, word);
+			}
+			
+			final LongIdMap<Word>		wordIndex = new LongIdMap<Word>(Word.class);
+			final List<int[]>			links = new ArrayList<>();
+
+			for(int index = 0, maxIndex = 2 * vocabSize; index < maxIndex; index++) {
+				final long		internal = in.readLong();
+				final int		from = in.readShort();
+				final int		to = in.readShort();
+				final Word[]	words = vocab.getCargo(internal);
+				final String	word = names.get(internal);
+
+				for(int currentWordIndex = from; currentWordIndex < to; currentWordIndex++) {
+					final int			id = idDecoder.decode((int)in.readLong());
 					final int			seqId = idDecoder.decode(in.readInt());
 					final WordForm		form = WordForm.values()[in.readByte()];
 					final LangPart		part = LangPart.values()[in.readByte()];
@@ -332,7 +401,9 @@ public class LoaderUtils {
 						grams[count] = grammemes[in.readShort()];
 					}
 					if (form == WordForm.FORM) {
-						w = new WordImpl(seqId, id, wordIndex.get(lemmaId), part, word, grams);
+						final Word	lemma = wordIndex.get(lemmaId);
+
+						w = new WordImpl(seqId, id, lemma, part, word, grams);
 					}
 					else {
 						w = new WordImpl(seqId, id, part, word, grams);
@@ -349,16 +420,16 @@ public class LoaderUtils {
 							final int			linkCount = in.readShort();
 							
 							for(int linkIndex = 0; linkIndex < linkCount; linkIndex++) {
-								links.add(new int[] {id, linkType, idDecoder.decode(in.readInt())});
+								links.add(new int[] {(int) id, linkType, idDecoder.decode(in.readInt())});
 							}
 							linkType = in.readByte();
 						}
 					}
 				}
-				vocab.placeName(word, words);
 			}
 			
 			if ((temp = in.readInt()) != VOCAB_MAGIC) {
+				System.err.println("Pos="+((MappedDataInputStream)in).getPosition());				
 				throw new IOException("Illegal magic ["+temp+"] in the input stream, ["+VOCAB_MAGIC+"] awaited");
 			}
 			else {
@@ -381,6 +452,10 @@ public class LoaderUtils {
 					desc.add(new LinkDescriptor(type, isRight, wordIndex.get(item[2])));
 				}
 				current.setLinks(new LinkImpl(current, desc.toArray(new LinkDescriptor[desc.size()])));
+				
+				names.clear();
+				wordIndex.clear();
+				links.clear();
 			}
 		}
 	}
