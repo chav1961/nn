@@ -3,7 +3,11 @@ package chav1961.nn.api.interfaces;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Random;
+
+import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.interfaces.DoubleSequence;
 
 public interface MatrixWrapper {
 	MatrixClass getMatrixClass();
@@ -17,15 +21,30 @@ public interface MatrixWrapper {
 	}
 
 	public static MatrixWrapper random(final MatrixClass clazz, final long seed, final int... dimensions) throws NullPointerException, IllegalArgumentException{
+		final DoubleSequence	ds = new DoubleSequence() {
+									final Random	rand = new Random(seed);
+									
+									@Override
+									public double next() {
+										return rand.nextDouble();
+									}
+								};
+		
+		return random(clazz, ds, dimensions);
+	}	
+	
+	public static MatrixWrapper random(final MatrixClass clazz, final DoubleSequence seq, final int... dimensions) throws NullPointerException, IllegalArgumentException{
 		if (clazz == null) {
 			throw new NullPointerException("Matrix class can't be null");
+		}
+		else if (seq == null) {
+			throw new NullPointerException("Sequence generator can't be null");
 		}
 		else if (dimensions == null || dimensions.length != clazz.numberOfDimensions()) {
 			throw new IllegalArgumentException("Matrix dimensions can't be null and must contain exactly ["+clazz.numberOfDimensions()+"] numbers");
 		}
 		else {
 			checkDimensions(dimensions);
-			final Random	rand = new Random(seed);
 			
 			switch (clazz) {
 				case DOUBLE2_ARRAY	:
@@ -33,7 +52,7 @@ public interface MatrixWrapper {
 					
 					for(double[] item : d2Result) {
 						for(int index = 0; index < item.length; index++) {
-							item[index] = rand.nextDouble();
+							item[index] = seq.next();
 						}
 					}
 					return new MatrixWrapperImpl(clazz, dimensions, d2Result);
@@ -41,7 +60,7 @@ public interface MatrixWrapper {
 					final double[]		dResult = new double[dimensions[0]];
 
 					for(int index = 0; index < dResult.length; index++) {
-						dResult[index] = rand.nextDouble();
+						dResult[index] = seq.next();
 					}
 					return new MatrixWrapperImpl(clazz, dimensions, dResult);
 				case FLOAT2_ARRAY	:
@@ -49,7 +68,7 @@ public interface MatrixWrapper {
 					
 					for(float[] item : f2Result) {
 						for(int index = 0; index < item.length; index++) {
-							item[index] = rand.nextFloat();
+							item[index] = (float)seq.next();
 						}
 					}
 					return new MatrixWrapperImpl(clazz, dimensions, f2Result);
@@ -57,7 +76,7 @@ public interface MatrixWrapper {
 					final float[]		fResult = new float[dimensions[0]];
 
 					for(int index = 0; index < fResult.length; index++) {
-						fResult[index] = rand.nextFloat();
+						fResult[index] = (float)seq.next();
 					}
 					return new MatrixWrapperImpl(clazz, dimensions, fResult);
 				default:
@@ -117,6 +136,64 @@ public interface MatrixWrapper {
 			}
 		}
 		return null;
+	}
+	
+	public static MatrixWrapper of(final float... content) {
+		if (content == null) {
+			throw new NullPointerException("Content to wrap can't be null"); 
+		}
+		else {
+			return new MatrixWrapperImpl(MatrixClass.FLOAT_ARRAY, new int[] {content.length}, content);
+		}
+	}
+
+	public static MatrixWrapper of(final double... content) {
+		if (content == null) {
+			throw new NullPointerException("Content to wrap can't be null"); 
+		}
+		else {
+			return new MatrixWrapperImpl(MatrixClass.DOUBLE_ARRAY, new int[] {content.length}, content);
+		}
+	}
+	
+	public static MatrixWrapper of(final float[]... content) {
+		if (content == null || Utils.checkArrayContent4Nulls(content) >= 0) {
+			throw new IllegalArgumentException("Content to wrap is null or contains nulls inside"); 
+		}
+		else if (!areLineSizesIdentical(content)) {
+			throw new IllegalArgumentException("Matrix lines has different sizes inside the matrix, but need to be identical"); 
+		}
+		else {
+			return new MatrixWrapperImpl(MatrixClass.FLOAT2_ARRAY, new int[] {content.length, content[0].length}, content);
+		}
+	}
+
+	public static MatrixWrapper of(final double[]... content) {
+		if (content == null || Utils.checkArrayContent4Nulls(content) >= 0) {
+			throw new IllegalArgumentException("Content to wrap is null or contains nulls inside"); 
+		}
+		else if (!areLineSizesIdentical(content)) {
+			throw new IllegalArgumentException("Matrix lines has different sizes inside the matrix, but need to be identical"); 
+		}
+		else {
+			return new MatrixWrapperImpl(MatrixClass.DOUBLE2_ARRAY, new int[] {content.length, content[0].length}, content);
+		}
+	}
+	
+	private static boolean areLineSizesIdentical(final Object[] content) {
+		if (content.length == 0) {
+			return true;
+		}
+		else {
+			final int	size = Array.getLength(content[0]);
+			
+			for(Object item : content) {
+				if (Array.getLength(item) != size) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 	
 	private static void checkDimensions(final int[] dimensions) {

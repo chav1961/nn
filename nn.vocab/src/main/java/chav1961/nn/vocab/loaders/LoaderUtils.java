@@ -141,6 +141,8 @@ public class LoaderUtils {
 			throw new NullPointerException("Data output to upload can't be null");
 		}
 		else {
+			final int[]	linkCount = new int[] {0};
+					
 			out.writeInt(VOCAB_MAGIC);
 			out.writeInt(VOCAB_VERSION);
 			out.writeInt(vocab.size());
@@ -151,12 +153,27 @@ public class LoaderUtils {
 					out.writeLong(id);
 					out.writeUTF(n);
 					out.writeShort(list.length);
+					for(Word word  : list) {
+						final WordLink	link = word.getLinks();
+						
+						if (link != null) {
+							for (WordLinkType item : WordLinkType.values()) {
+								if (link.hasLinkFrom(item)) {
+									linkCount[0] += link.getLinksFrom(item).length;
+								}
+								if (link.hasLinkTo(item)) {
+									linkCount[0] += link.getLinksTo(item).length;
+								}
+							}
+						}
+					}
 					return true;
 				} catch (IOException e) {
 					e.printStackTrace();
 					return false;
 				}
 			});
+			out.writeInt(linkCount[0]);
 			
 			vocab.walk((name, len, id, list)->{
 				try {
@@ -378,8 +395,9 @@ public class LoaderUtils {
 				names.put(internal, word);
 			}
 			
-			final LongIdMap<Word>		wordIndex = new LongIdMap<Word>(Word.class);
-			final List<int[]>			links = new ArrayList<>();
+			final LongIdMap<Word>	wordIndex = new LongIdMap<Word>(Word.class);
+			final int[][]			links = new int[in.readInt()][];
+			int	linkWhere = 0;
 
 			for(int index = 0, maxIndex = 2 * vocabSize; index < maxIndex; index++) {
 				final long		internal = in.readLong();
@@ -420,7 +438,7 @@ public class LoaderUtils {
 							final int			linkCount = in.readShort();
 							
 							for(int linkIndex = 0; linkIndex < linkCount; linkIndex++) {
-								links.add(new int[] {(int) id, linkType, idDecoder.decode(in.readInt())});
+								links[linkWhere++] = new int[] {(int) id, linkType, idDecoder.decode(in.readInt())};
 							}
 							linkType = in.readByte();
 						}
@@ -429,7 +447,6 @@ public class LoaderUtils {
 			}
 			
 			if ((temp = in.readInt()) != VOCAB_MAGIC) {
-				System.err.println("Pos="+((MappedDataInputStream)in).getPosition());				
 				throw new IOException("Illegal magic ["+temp+"] in the input stream, ["+VOCAB_MAGIC+"] awaited");
 			}
 			else {
@@ -455,7 +472,6 @@ public class LoaderUtils {
 				
 				names.clear();
 				wordIndex.clear();
-				links.clear();
 			}
 		}
 	}

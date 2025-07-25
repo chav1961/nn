@@ -1,12 +1,8 @@
 package chav1961.nn.vocab.loaders;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.ByteOrder;
@@ -19,7 +15,6 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.byte2byte.DataOutputStream;
 import chav1961.purelib.streams.byte2byte.MappedDataInputStream;
-import chav1961.purelib.streams.byte2byte.MappedInputStream;
 import chav1961.purelib.streams.byte2byte.NIOOutputStream;
 import chav1961.purelib.streams.byte2char.UTF8Reader;
 
