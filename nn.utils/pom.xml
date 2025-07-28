@@ -5,22 +5,12 @@
     <artifactId>nn</artifactId>
     <version>0.0.1</version>
   </parent>
-  <artifactId>nn.w2v</artifactId>
+  <artifactId>nn.utils</artifactId>
 
 	<dependencies>
         <dependency>
             <groupId>com.github.chav1961</groupId>
             <artifactId>nn.api</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.chav1961</groupId>
-            <artifactId>nn.vocab</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.chav1961</groupId>
-            <artifactId>nn.utils</artifactId>
             <version>0.0.1</version>
         </dependency>
 	</dependencies>
@@ -77,7 +67,7 @@
 	</distributionManagement>
   
      <build>
-       <finalName>nn.w2v-${project.parent.version}</finalName>
+       <finalName>nn.utils-${project.parent.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/java</directory>

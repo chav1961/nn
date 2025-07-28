@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.util.function.Function;
 
+import chav1961.nn.api.interfaces.FloatPredicate;
 import chav1961.nn.api.interfaces.Word;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.LongIdMap;
@@ -19,11 +20,6 @@ public class W2VStore {
 	private SyntaxTreeInterface<WordRef>	currentWords = new AndOrTree<>();
 	private LongIdMap<WordRef>				currentIds = new LongIdMap<>(WordRef.class);
 
-	@FunctionalInterface
-	public static interface FloatPredicate {
-		boolean test(float val);
-	}
-	
 	protected W2VStore(final SyntaxTreeInterface<Word[]> words) {
 		this.words = words;
 	}

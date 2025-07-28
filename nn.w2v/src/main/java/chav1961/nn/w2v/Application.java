@@ -1,4 +1,4 @@
-package chav1961.nn.w2v.interfaces;
+package chav1961.nn.w2v;
 
 public class Application {
 
